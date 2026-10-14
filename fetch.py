@@ -14,11 +14,15 @@ def num(x):
 
 # ───────── 종목코드 목록: 1) KRX  2) 네이버  3) 다음 검색 ─────────
 def krx_codes():
-    r = S.get("https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13",
-              headers={"Referer": "https://kind.krx.co.kr/"}, timeout=30)
-    r.encoding = "euc-kr"
-    df = pd.read_html(io.StringIO(r.text), header=0)[0]
-    return {norm(n): (str(c).zfill(6), str(n).strip(), "") for n, c in zip(df["회사명"], df["종목코드"])}
+    codes = {}
+    for mt, label in (("stockMkt", "코스피"), ("kosdaqMkt", "코스닥")):
+        r = S.get(f"https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13&marketType={mt}",
+                  headers={"Referer": "https://kind.krx.co.kr/"}, timeout=30)
+        r.encoding = "euc-kr"
+        df = pd.read_html(io.StringIO(r.text), header=0)[0]
+        for n, c in zip(df["회사명"], df["종목코드"]):
+            codes[norm(n)] = (str(c).zfill(6), str(n).strip(), label)
+    return codes
 
 def naver_codes():
     codes = {}
@@ -103,6 +107,11 @@ def trend_daum(code):
             inst=pick("institution", "straight", "volume") or pick("institution", "volume", exclude=("ratio",)),
             frgn=pick("foreign", "straight", "volume") or pick("foreign", "volume", exclude=("own", "ratio")),
             hold=pick("foreign", "own", "rate") or pick("foreign", "ratio")))
+    # 보유율이 0.46 처럼 비율로 오면 %로, 등락률이 비어 있으면 종가로 직접 계산
+    for i, r in enumerate(out):
+        if 0 < abs(r["hold"]) < 1: r["hold"] *= 100
+        if r["rate"] == 0 and i + 1 < len(out) and out[i + 1]["close"]:
+            r["rate"] = (r["close"] / out[i + 1]["close"] - 1) * 100
     return out
 
 def judge(rows):
@@ -154,33 +163,47 @@ def main():
         if hit: return hit
         return None
 
+    cat_of = {norm(n): c for n, c in stocks}
+    # 전 종목: KRX 목록 전체 + (목록에 없으면) 분류기 종목
+    universe = []
+    if codes:
+        seen = set()
+        for k, (code, disp, mkt) in codes.items():
+            universe.append((disp, cat_of.get(k, 0), (code, disp, mkt))); seen.add(k)
+        for n, c in stocks:
+            if norm(ALIAS.get(n, n)) not in seen: universe.append((n, c, None))
+    else:
+        universe = [(n, c, None) for n, c in stocks]
+    print("universe", len(universe))
+
     def job(item):
-        name, cat = item[0], item[1]
-        hit = resolve(name)
+        name, cat, hit = item
+        hit = hit or resolve(name)
         if not hit: return dict(name=name, cat=cat, err="코드 없음")
         code, disp, mkt = hit[0], hit[1] or name, hit[2] if len(hit) > 2 else ""
         err = ""
         for i in range(3):
             try:
                 rows = source(code); j = judge(rows)
-                return dict(name=name, disp=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], **j)
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
 
-    with cf.ThreadPoolExecutor(6) as ex: rows = list(ex.map(job, stocks))
+    with cf.ThreadPoolExecutor(8) as ex: rows = list(ex.map(job, universe))
     ok = [r for r in rows if "err" not in r]; bad = [r for r in rows if "err" in r]
     print("ok", len(ok), "bad", len(bad), [(b["name"], b["err"]) for b in bad][:15])
 
-    # 코드 캐시 저장 (다음 실행 때 검색 생략)
-    for r in ok: cache[r["name"]] = [r["code"], r["disp"], r["mkt"]]
+    for r in ok: cache[r["name"]] = [r["code"], r["name"], r["mkt"]]
     json.dump(cache, open("codes.json", "w", encoding="utf-8"), ensure_ascii=False)
 
+    ok.sort(key=lambda r: (-r["st"], r["ss"], -r["days"][0]["frgn"]))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
-    data = dict(updated=kst.strftime("%Y-%m-%d %H:%M"), base=ok[0]["days"][0]["d"] if ok else "",
-                count=len(ok), rows=sorted(ok, key=lambda r: (-r["st"], r["ss"], -r["days"][0]["frgn"])),
-                missing=[b["name"] for b in bad])
+    compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
+                [[d["d"], d["close"], round(d["rate"], 2), round(d["inst"]), round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]]] for r in ok]
+    data = dict(updated=kst.strftime("%Y-%m-%d %H:%M"), base=ok[0]["days"][0]["d"] if ok else "", count=len(ok),
+                rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    if len(ok) < len(stocks) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
+    if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
 
 if __name__ == "__main__": main()
