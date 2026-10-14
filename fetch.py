@@ -3,8 +3,8 @@
 import json, re, io, sys, time, datetime, concurrent.futures as cf
 import requests, pandas as pd
 
-HDR = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
-       "Accept-Language": "ko-KR,ko;q=0.9", "Referer": "https://finance.naver.com/"}
+HDR = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+       "Accept": "application/json, text/html, */*", "Accept-Language": "ko-KR,ko;q=0.9"}
 S = requests.Session(); S.headers.update(HDR)
 norm = lambda s: re.sub(r"\s+", "", str(s)).lower()
 
@@ -12,12 +12,20 @@ def num(x):
     try: return float(str(x).replace(",", "").replace("+", "").replace("%", "").strip())
     except: return 0.0
 
-# ── 종목코드 목록 (네이버 시가총액 페이지 크롤) ──
+# ───────── 종목코드 목록: 1) KRX  2) 네이버  3) 다음 검색 ─────────
+def krx_codes():
+    r = S.get("https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13",
+              headers={"Referer": "https://kind.krx.co.kr/"}, timeout=30)
+    r.encoding = "euc-kr"
+    df = pd.read_html(io.StringIO(r.text), header=0)[0]
+    return {norm(n): (str(c).zfill(6), str(n).strip(), "") for n, c in zip(df["회사명"], df["종목코드"])}
+
 def naver_codes():
     codes = {}
     for sosok in (0, 1):
         for p in range(1, 80):
-            r = S.get(f"https://finance.naver.com/sise/sise_market_sum.naver?sosok={sosok}&page={p}", timeout=15)
+            r = S.get(f"https://finance.naver.com/sise/sise_market_sum.naver?sosok={sosok}&page={p}",
+                      headers={"Referer": "https://finance.naver.com/"}, timeout=15)
             r.encoding = "euc-kr"
             found = re.findall(r'item/main\.naver\?code=(\d{6})"[^>]*>([^<]+)<', r.text)
             if not found: break
@@ -25,17 +33,40 @@ def naver_codes():
             time.sleep(0.2)
     return codes
 
-def krx_codes():
-    r = S.get("https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13", timeout=30)
-    r.encoding = "euc-kr"
-    df = pd.read_html(io.StringIO(r.text), header=0)[0]
-    return {norm(n): (str(c).zfill(6), str(n).strip(), "") for n, c in zip(df["회사명"], df["종목코드"])}
+def daum_search(name):
+    """다음 금융 검색 API로 종목코드 찾기 (여러 엔드포인트 시도)"""
+    h = {"Referer": "https://finance.daum.net/"}
+    for url in (f"https://finance.daum.net/api/search/quotes?q={name}&limit=10",
+                f"https://finance.daum.net/api/quote/search?q={name}&limit=10"):
+        try:
+            r = S.get(url, headers=h, timeout=10)
+            if r.status_code != 200: continue
+            j = r.json()
+            hits = []
+            def walk(o):
+                if isinstance(o, dict):
+                    sc = o.get("symbolCode") or o.get("code")
+                    nm = o.get("name") or o.get("shortName")
+                    if sc and nm and re.fullmatch(r"A?\d{6}", str(sc)):
+                        hits.append((str(sc)[-6:], str(nm).strip(), o.get("market", "") or o.get("exchange", "")))
+                    for v in o.values(): walk(v)
+                elif isinstance(o, list):
+                    for v in o: walk(v)
+            walk(j)
+            if not hits: continue
+            for c, n, m in hits:
+                if norm(n) == norm(name): return c, n, m
+            return hits[0]
+        except Exception:
+            continue
+    return None
 
-# ── 종목별 매매동향 ──
+# ───────── 종목별 매매동향: 네이버 / 다음 ─────────
 def trend_naver(code):
-    r = S.get(f"https://finance.naver.com/item/frgn.naver?code={code}", timeout=15)
+    r = S.get(f"https://finance.naver.com/item/frgn.naver?code={code}", headers={"Referer": "https://finance.naver.com/"}, timeout=15)
     if r.status_code != 200: raise RuntimeError(f"HTTP {r.status_code}")
     r.encoding = "euc-kr"
+    if "frgn" not in r.text and "외국인" not in r.text: raise RuntimeError("차단된 페이지")
     for t in pd.read_html(io.StringIO(r.text)):
         if t.shape[1] != 9: continue
         t = t.copy(); t.columns = range(9)
@@ -45,21 +76,33 @@ def trend_naver(code):
                 for a, b, c, e, f, g in zip(t[0], t[1], t[3], t[5], t[6], t[8])][:10]
     raise RuntimeError("표 없음")
 
+DAUM_DEBUG = [False]
 def trend_daum(code):
-    h = dict(HDR); h["Referer"] = f"https://finance.daum.net/quotes/A{code}"
+    h = {"Referer": f"https://finance.daum.net/quotes/A{code}"}
     r = S.get(f"https://finance.daum.net/api/investor/days?symbolCode=A{code}&perPage=10&page=1&pagination=true", headers=h, timeout=15)
     if r.status_code != 200: raise RuntimeError(f"daum HTTP {r.status_code}")
+    data = r.json().get("data", [])
+    if not data: raise RuntimeError("daum 빈 응답")
+    if not DAUM_DEBUG[0]:
+        DAUM_DEBUG[0] = True
+        print("DAUM SAMPLE KEYS:", json.dumps(data[0], ensure_ascii=False)[:1500])
     out = []
-    for it in r.json().get("data", []):
-        def pick(*keys):
-            for k in it:
-                kl = k.lower()
-                if all(x in kl for x in keys): return num(it[k])
+    for it in data:
+        keys = {k.lower(): k for k in it}
+        def pick(*parts, exclude=()):
+            for kl, k in keys.items():
+                if all(p in kl for p in parts) and not any(x in kl for x in exclude):
+                    return num(it[k])
             return 0.0
-        out.append(dict(d=str(it.get("date", ""))[:10].replace("-", "."), close=pick("tradeprice"), rate=pick("changerate") * 100,
-                        inst=pick("institution", "volume"), frgn=pick("foreign", "straight", "volume") or pick("foreign", "volume"),
-                        hold=pick("foreignownshare")))
-    if not out: raise RuntimeError("daum 빈 응답")
+        rate = pick("changerate")
+        if abs(rate) < 1: rate *= 100          # 0.0123 형태면 %로
+        out.append(dict(
+            d=str(it.get("date", ""))[:10].replace("-", "."),
+            close=pick("tradeprice"),
+            rate=rate,
+            inst=pick("institution", "straight", "volume") or pick("institution", "volume", exclude=("ratio",)),
+            frgn=pick("foreign", "straight", "volume") or pick("foreign", "volume", exclude=("own", "ratio")),
+            hold=pick("foreign", "own", "rate") or pick("foreign", "ratio")))
     return out
 
 def judge(rows):
@@ -82,36 +125,58 @@ def judge(rows):
 
 def main():
     stocks = json.load(open("stocks.json", encoding="utf-8"))          # [[이름, 분류], ...]
-    try: codes = naver_codes(); src = "naver"
-    except Exception as e:
-        print("naver codes 실패:", e); codes = krx_codes(); src = "krx"
-    print("codes", len(codes), src)
+    ALIAS = {"에코프로머티": "에코프로머티리얼즈"}
 
-    # 어떤 소스가 열리는지 삼성전자로 먼저 테스트
+    # 코드 캐시 (이전 실행 결과 재사용)
+    try: cache = json.load(open("codes.json", encoding="utf-8"))
+    except Exception: cache = {}
+    codes = {}
+    for name, fn in (("krx", krx_codes), ("naver", naver_codes)):
+        try:
+            c = fn(); print(f"{name} codes: {len(c)}")
+            if len(c) >= 1000: codes = c; break
+        except Exception as e: print(f"{name} codes 실패: {e}")
+    if not codes: print("전체 목록 실패 → 캐시/다음 검색으로 개별 조회")
+
+    # 데이터 소스 결정
     source = None
     for name, fn in (("naver", trend_naver), ("daum", trend_daum)):
-        try: fn("005930"); source = fn; print("source:", name); break
+        try:
+            rows = fn("005930"); source = fn; print("source:", name, "| 삼성전자 샘플:", rows[0]); break
         except Exception as e: print(name, "불가:", e)
     if source is None: sys.exit("데이터 소스 전부 실패")
 
-    ALIAS = {"에코프로머티": "에코프로머티리얼즈"}
+    def resolve(name):
+        k = norm(ALIAS.get(name, name))
+        if k in codes: return codes[k]
+        if name in cache: return tuple(cache[name])
+        hit = daum_search(ALIAS.get(name, name))
+        if hit: return hit
+        return None
+
     def job(item):
         name, cat = item[0], item[1]
-        k = norm(ALIAS.get(name, name))
-        if k not in codes: return dict(name=name, cat=cat, err="코드 없음")
-        code, disp, mkt = codes[k]
+        hit = resolve(name)
+        if not hit: return dict(name=name, cat=cat, err="코드 없음")
+        code, disp, mkt = hit[0], hit[1] or name, hit[2] if len(hit) > 2 else ""
+        err = ""
         for i in range(3):
             try:
                 rows = source(code); j = judge(rows)
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], **j)
+                return dict(name=name, disp=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
 
     with cf.ThreadPoolExecutor(6) as ex: rows = list(ex.map(job, stocks))
     ok = [r for r in rows if "err" not in r]; bad = [r for r in rows if "err" in r]
-    print("ok", len(ok), "bad", len(bad), [b["name"] for b in bad][:20])
-    kst = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
+    print("ok", len(ok), "bad", len(bad), [(b["name"], b["err"]) for b in bad][:15])
+
+    # 코드 캐시 저장 (다음 실행 때 검색 생략)
+    for r in ok: cache[r["name"]] = [r["code"], r["disp"], r["mkt"]]
+    json.dump(cache, open("codes.json", "w", encoding="utf-8"), ensure_ascii=False)
+
+    kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     data = dict(updated=kst.strftime("%Y-%m-%d %H:%M"), base=ok[0]["days"][0]["d"] if ok else "",
                 count=len(ok), rows=sorted(ok, key=lambda r: (-r["st"], r["ss"], -r["days"][0]["frgn"])),
                 missing=[b["name"] for b in bad])
