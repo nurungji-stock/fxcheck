@@ -13,8 +13,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - run: pip install requests pandas lxml
+      - run: pip install requests pandas lxml html5lib beautifulsoup4
       - run: python fetch.py
       - run: |
           git config user.name bot && git config user.email bot@users.noreply.github.com
-          git add data.json && (git commit -m "update $(date -u +%H:%M)" && git push) || echo "no change"
+          git add data.json codes.json && (git commit -m "update $(date -u +%H:%M)" && git push) || echo "no change"
