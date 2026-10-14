@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>외국인 연속매수 체크</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F5F7;--card:#fff;--fg:#1b1b1b;--muted:#6b6b6b;--line:#e3e4e8;--accent:#B8860B;--blue:#3B5BC4;--red:#C0392B;
+--c1:#B8860B;--c2:#3B5BC4;--c3:#C0392B;--c4:#777;--c1bg:#FBF3E0;--c2bg:#E8EDFA;--c3bg:#FBE6E3;--c4bg:#EEE}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15161a;--card:#1f2026;--fg:#ececec;--muted:#9a9a9a;--line:#33343a;--c1bg:#3a3012;--c2bg:#1d2648;--c3bg:#45201c;--c4bg:#333}}
+:root[data-theme="dark"]{--bg:#15161a;--card:#1f2026;--fg:#ececec;--muted:#9a9a9a;--line:#33343a;--c1bg:#3a3012;--c2bg:#1d2648;--c3bg:#45201c;--c4bg:#333}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:'Noto Sans KR',system-ui,sans-serif;font-size:16px;line-height:1.5}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted)}.legend b{color:var(--fg)}
+.sbox{position:relative}
+input{width:100%;padding:14px 16px;font:inherit;font-size:18px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);outline:none}
+input:focus{border-color:var(--blue)}
+#sugg{position:absolute;left:0;right:0;top:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:6px;max-height:60vh;overflow:auto;z-index:5;display:none;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+#sugg div{padding:11px 16px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+#sugg div:last-child{border-bottom:0}#sugg div:hover{background:var(--bg)}
+.tag{font-size:12px;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.t1{background:var(--c1bg);color:var(--c1)}.t2{background:var(--c2bg);color:var(--c2)}.t3{background:var(--c3bg);color:var(--c3)}.t4{background:var(--c4bg);color:var(--c4)}
+.name{font-size:22px;font-weight:700}.code{color:var(--muted);font-size:13px;font-weight:400;margin-left:6px}
+.verdict{font-size:19px;font-weight:700;margin:6px 0 4px}.vh{color:var(--blue)}.vm{color:var(--accent)}.vl{color:var(--muted)}
+.meta{color:var(--muted);font-size:13px}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}th{color:var(--muted);font-weight:500;text-align:right;padding:4px 2px;border-bottom:1px solid var(--line)}td{text-align:right;padding:6px 2px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}.up{color:var(--red)}.dn{color:var(--blue)}
+.act{margin-top:10px;padding:10px 12px;background:var(--bg);border-radius:10px;font-size:14px}
+.filt{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.filt button{font:inherit;font-size:13px;padding:5px 12px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.filt button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer;gap:8px}.row:last-child{border-bottom:0}
+.row .l{display:flex;align-items:center;gap:8px;min-width:0}.row .n{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .r{font-size:13px;white-space:nowrap}
+.empty{color:var(--muted);text-align:center;padding:12px}
+.foot{color:var(--muted);font-size:12px;margin-top:16px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>외국인 연속매수 체크</h1>
+<p class="sub" id="upd">불러오는 중…</p>
+
+<div class="card legend"><span><b>●</b> 3일 연속 순매수 = 진짜 수급</span><span><b>◐</b> 1~2일째 = 확인 전</span><span><b>○</b> 순매도 = 안 들어옴</span></div>
+
+<div class="sbox"><input id="q" placeholder="종목명 입력 (예: 삼성전자, 주성엔지니어링)" autocomplete="off"><div id="sugg"></div></div>
+
+<div class="card" id="verdict" style="display:none;margin-top:12px"></div>
+
+<div class="card" style="margin-top:12px">
+<div class="filt" id="filt"></div>
+<div id="list"></div>
+</div>
+
+<p class="foot">네이버 금융 투자자별 매매동향 기준, 평일 장중 10분마다 자동 갱신. 장중 수치는 잠정치라 저녁 6시 이후 마감 집계가 정확합니다. 목록에 없는 종목은 소통방에 요청해 주세요.</p>
+</div>
+<script>
+const CAT={1:{l:"① 실적 대형주",c:"t1",act:"들고 갑니다. 외국인이 돌아올 때 가장 먼저 받는 자리. 29일 삼성전자 실적 전까지 비중은 늘리지 않습니다."},
+2:{l:"② 재료 장비·소부장",c:"t2",act:"들고 갑니다. 확정된 수요가 있는 종목이라 반등 때 가장 먼저 움직입니다. 외국인 사흘 연속이면 물타기 가능."},
+3:{l:"③ 테마 중소형주",c:"t3",act:"반등 때 정리합니다. 본전이 아니라 반등이 기준(−20%가 −10%로 올라온 날). 외국인 안 들어온 급등은 갭상승 후 조정입니다."},
+4:{l:"? 판단 필요",c:"t4",act:"확정 재료가 확인되기 전까지는 ③처럼 대응합니다."}};
+const norm=s=>(s||"").replace(/\s+/g,"").toLowerCase();
+const fmt=v=>{v=Math.round(v);return (v>0?"+":"")+v.toLocaleString()};
+let D=null, filt="hot";
+fetch("data.json?t="+Date.now()).then(r=>r.json()).then(d=>{D=d;init();}).catch(()=>{document.getElementById("upd").textContent="데이터를 불러오지 못했습니다. 잠시 후 다시 열어주세요.";});
+
+function init(){
+  document.getElementById("upd").textContent=`${D.updated} 갱신 · 기준일 ${D.base} · ${D.count}종목`;
+  const F=document.getElementById("filt");
+  [["hot","● 3일 연속"],["half","◐ 들어오는 중"],["all","전체"],["1","①"],["2","②"],["3","③"],["4","?"]].forEach(([k,l])=>{
+    const b=document.createElement("button");b.textContent=l;b.dataset.k=k;if(k===filt)b.classList.add("on");
+    b.onclick=()=>{filt=k;[...F.children].forEach(x=>x.classList.toggle("on",x.dataset.k===k));renderList();};F.appendChild(b);});
+  renderList();
+  const q=document.getElementById("q");
+  const h=location.hash.slice(1); if(h){const r=D.rows.find(x=>norm(x.name)===norm(decodeURIComponent(h)));if(r)show(r);}
+  q.focus();
+}
+function renderList(){
+  const L=document.getElementById("list");
+  let rows=D.rows.filter(r=>filt==="all"||(filt==="hot"?r.mark==="●":filt==="half"?r.mark==="◐":r.cat==+filt));
+  if(!rows.length){L.innerHTML=`<div class="empty">${filt==="hot"?"오늘 외국인이 사흘 연속 산 종목이 없습니다":"없음"}</div>`;return;}
+  L.innerHTML=rows.map(r=>`<div class="row" data-n="${r.name}"><div class="l"><span class="tag ${CAT[r.cat].c}">${CAT[r.cat].l.slice(0,1)}</span><span class="n">${r.name}</span></div>
+<div class="r"><span class="${r.mark==="●"?"vh":r.mark==="◐"?"vm":"vl"}">${r.mark} ${r.txt}</span> <span class="${r.days[0].frgn>0?"up":"dn"}">${fmt(r.days[0].frgn)}</span></div></div>`).join("");
+  L.querySelectorAll(".row").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);show(r);window.scrollTo({top:0,behavior:"smooth"});});
+}
+function show(r){
+  const V=document.getElementById("verdict"); V.style.display="block";
+  const c=CAT[r.cat], vc=r.mark==="●"?"vh":r.mark==="◐"?"vm":"vl", t=r.days[0];
+  V.innerHTML=`<div><span class="name">${r.name}<span class="code">${r.code} · ${r.mkt||""}</span></span> <span class="tag ${c.c}">${c.l}</span></div>
+<div class="verdict ${vc}">${r.mark} ${r.txt}</div>
+<div class="meta">외국인 3일합 ${fmt(r.s3)}주 · 5일합 ${fmt(r.s5)}주 · 오늘 기관 ${fmt(t.inst)}주 · 외인 보유율 ${t.hold.toFixed(2)}%</div>
+<table><tr><th>날짜</th><th>종가</th><th>등락률</th><th>기관</th><th>외국인</th></tr>${r.days.map(d=>`<tr><td>${d.d.slice(5)}</td><td>${d.close.toLocaleString()}</td><td class="${d.rate>0?"up":d.rate<0?"dn":""}">${d.rate.toFixed(2)}%</td><td class="${d.inst>0?"up":"dn"}">${fmt(d.inst)}</td><td class="${d.frgn>0?"up":"dn"}"><b>${fmt(d.frgn)}</b></td></tr>`).join("")}</table>
+<div class="act">${c.act}</div>`;
+  history.replaceState(null,"","#"+encodeURIComponent(r.name));
+  document.getElementById("sugg").style.display="none";
+}
+const q=document.getElementById("q"), S=document.getElementById("sugg");
+q.addEventListener("input",()=>{
+  if(!D)return; const k=norm(q.value); if(!k){S.style.display="none";return;}
+  const ex=D.rows.filter(r=>norm(r.name)===k), inc=D.rows.filter(r=>norm(r.name)!==k&&norm(r.name).includes(k)).slice(0,12);
+  const list=[...ex,...inc];
+  if(!list.length){S.innerHTML=`<div class="empty">'${q.value}' 는 목록에 없습니다. 소통방에 요청해 주세요.</div>`;S.style.display="block";return;}
+  S.innerHTML=list.map(r=>`<div data-n="${r.name}"><span>${r.name}</span><span><span class="tag ${CAT[r.cat].c}">${CAT[r.cat].l.slice(0,1)}</span> <span class="${r.mark==="●"?"vh":r.mark==="◐"?"vm":"vl"}" style="font-size:13px">${r.mark} ${r.txt}</span></span></div>`).join("");
+  S.style.display="block";
+  S.querySelectorAll("div[data-n]").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);q.value=r.name;show(r);});
+});
+q.addEventListener("keydown",e=>{if(e.key==="Enter"){const f=S.querySelector("div[data-n]");if(f)f.click();}});
+document.addEventListener("click",e=>{if(!e.target.closest(".sbox"))S.style.display="none";});
+</script>
+</body>
+</html>
