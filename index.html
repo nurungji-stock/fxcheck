@@ -69,19 +69,20 @@ const CAT={0:{l:"분류 없음",c:"t4",act:"분류기에 없는 종목입니다.
 const HIDE_TOP=3;                       // 상위 몇 종목을 가릴지
 const HOOK_LINK="https://docs.google.com/forms/d/e/1FAIpQLSfwjeWhSGrFjBdtnWSijc4xu_PPPzxVUcUr9-h21Sgx8L8k7w/viewform";   // 안내 링크
 const HOOK_TEXT=`1~3위 종목이 궁금하시면<br>
-<a href="${HOOK_LINK}" target="_blank" rel="noopener" style="color:inherit;font-weight:700;text-decoration:underline">누룽지쌤 종목탈출 무료 주식 공부방🥳</a><br>
+<a href="${HOOK_LINK}" target="_blank" rel="noopener" style="color:inherit;font-weight:700;text-decoration:underline">랭크 TOP3 확인하기</a><br>
 이 링크 누르고 다음 페이지 종목명 입력칸에<br>
 <b>오늘날짜/대장</b> 이라고 적어서 보내주세요<br>
 순차적으로 안내 도와드리겠습니다`;   // 여기 문구 바꾸면 됨
 const RANK_N=20;                        // 랭킹에 보여줄 개수
-const RANK_MIN_RISE=20;                 // 랭킹 조건: 6개월 전 대비 최근 고점이 +N% 이상 올랐던 종목만
+const RANK_MIN_RISE=20;                 // 섹터 태그 없는 종목은 올해 고점까지 +N% 이상 올랐어야 랭킹에 들어감
+const LEAD_SECTORS=["반도체","반도체장비","소부장","2차전지","ESS","전력","원전","조선","로봇","우주","광통신","양자보안","유리기판","AI","바이오","방산"];   // 최근 주도 섹터 — 여기 넣고 빼면 됨
 const norm=s=>(s||"").replace(/\s+/g,"").toLowerCase();
 const fmt=v=>{v=Math.round(v);return (v>0?"+":"")+v.toLocaleString()};
 const vcls=m=>m==="●"?"vh":m==="◐"?"vm":"vl";
 let D=null, filt="hot", mkt="all";
 fetch("data.json?t="+Date.now()).then(r=>r.json()).then(d=>{
   D=d; D.rows=d.rows.map(r=>Array.isArray(r)?{name:r[0],cat:r[1],code:r[2],mkt:r[3],mark:r[4],txt:r[5],st:r[6],ss:r[7],s3:r[8],s5:r[9],
-    days:r[10].map(x=>({d:x[0],close:x[1],rate:x[2],inst:x[3],frgn:x[4],hold:x[5]})),macd:r[11]||null,bot:r[12]||null}:r);
+    days:r[10].map(x=>({d:x[0],close:x[1],rate:x[2],inst:x[3],frgn:x[4],hold:x[5]})),macd:r[11]||null,bot:r[12]||null,sec:r[13]||""}:r);
   init();
 }).catch(()=>{document.getElementById("upd").textContent="데이터를 불러오지 못했습니다. 잠시 후 다시 열어주세요.";});
 
@@ -116,18 +117,18 @@ let rankMkt="코스닥";
 function renderRank(){
   const R=document.getElementById("rank");
   const hasM=D.rows.some(r=>r.bot&&r.bot.length>10);
-  const ok=r=>r.bot&&!r.bot[6]&&r.mkt===rankMkt&&(r.bot[8]==null||r.bot[8]>=30)&&((r.cat===1||r.cat===2)||r.days[0].hold>=3)
-    &&(!hasM||r.bot[9]>=RANK_MIN_RISE);   // 사건 종목 제외 · 거래대금 30억↑ · ①② 또는 외인보유 3%↑ · 올해 고점까지 +20%↑ 올랐던 종목
+  const lead=r=>r.sec?LEAD_SECTORS.includes(r.sec):(hasM&&r.bot[9]>=RANK_MIN_RISE);   // 주도 섹터 종목, 또는 섹터 태그 없으면 올해 고점까지 많이 올랐던 종목
+  const ok=r=>r.bot&&!r.bot[6]&&r.mkt===rankMkt&&(r.bot[8]==null||r.bot[8]>=30)&&lead(r);   // 사건 종목 제외 · 거래대금 30억↑ · 주도 섹터
   const rows=D.rows.filter(ok).sort((a,b)=>b.bot[0]-a.bot[0]||(hasM?b.bot[9]-a.bot[9]:0)||a.bot[2]-b.bot[2]).slice(0,RANK_N);
   R.style.display="block";
   const fake=["■■■■■","■■■■","■■■■■■"];
   const tabs=["코스닥","코스피"].map(m=>`<button data-m="${m}" style="font:inherit;font-size:13px;padding:5px 14px;border-radius:14px;border:1px solid var(--line);background:${m===rankMkt?"var(--fg)":"var(--card)"};color:${m===rankMkt?"var(--bg)":"var(--fg)"};cursor:pointer">${m}</button>`).join(" ");
   R.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><b style="font-size:16px">바닥 점수 랭킹</b><span>${tabs}</span></div>
-<div class="meta" style="margin:4px 0 2px">올해 달렸다가 이번에 눌린 종목만 (회사 사건·거래 없는 종목 제외) · 점수 → 고점까지 많이 올랐던 순</div>`+
+<div class="meta" style="margin:4px 0 2px">최근 주도 섹터(반도체·소부장·2차전지·전력·조선·로봇·우주·바이오 등)만 · 점수 → 고점까지 많이 올랐던 순 · 회사 사건·거래 없는 종목 제외</div>`+
     (rows.length?rows.map((r,i)=>{const hid=i<HIDE_TOP;
       return `<div class="rk"${hid?"":` data-n="${r.name}" style="cursor:pointer"`}><span class="no">${i+1}</span>
-<span class="nm">${hid?`<span class="blur">${fake[i%3]}</span><span class="lock">🔒 비공개</span>`:`${r.name} <span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span>`}</span>
-<span class="sub">${hid?"":`${r.bot[9]!=null?`고점까지 +${r.bot[9]}% · `:""}이격도 ${r.bot[2]} · RSI ${r.bot[1]}`}</span><span class="sc">${r.bot[0]}점</span></div>`;}).join(""):`<div class="empty">조건에 맞는 종목이 없습니다</div>`)+
+<span class="nm">${hid?`<span class="blur">${fake[i%3]}</span><span class="lock">🔒 비공개</span>`:`${r.name} <span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span>${r.sec?` <small style="color:var(--muted)">${r.sec}</small>`:""}`}</span>
+<span class="sub">${hid?"":`${r.bot[9]!=null?`고점까지 +${r.bot[9]}% · `:""}이격도 ${r.bot[2]} · RSI ${r.bot[1]}`}</span><span class="sc">${hid?`<span class="blur">■점</span>`:r.bot[0]+"점"}</span></div>`;}).join(""):`<div class="empty">조건에 맞는 종목이 없습니다</div>`)+
     `<div class="hook">${HOOK_TEXT}</div>`;
   R.querySelectorAll("button[data-m]").forEach(b=>b.onclick=()=>{rankMkt=b.dataset.m;renderRank();});
   R.querySelectorAll(".rk[data-n]").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);show(r);window.scrollTo({top:0,behavior:"smooth"});});
@@ -166,7 +167,7 @@ function macdLine(r){
 function show(r){
   const V=document.getElementById("verdict"); V.style.display="block";
   const c=CAT[r.cat], t=r.days[0];
-  V.innerHTML=`<div><span class="name">${r.name}<span class="code">${r.code}${r.mkt?" · "+r.mkt:""}</span></span> <span class="tag ${c.c}">${c.l}</span></div>
+  V.innerHTML=`<div><span class="name">${r.name}<span class="code">${r.code}${r.mkt?" · "+r.mkt:""}${r.sec?" · "+r.sec:""}</span></span> <span class="tag ${c.c}">${c.l}</span></div>
 <div class="verdict ${vcls(r.mark)}">${r.mark} ${r.txt}</div>
 ${bottomLine(r)}${macdLine(r)}<div class="meta">외국인 3일합 ${fmt(r.s3)}주 · 5일합 ${fmt(r.s5)}주 · 오늘 기관 ${fmt(t.inst)}주 · 외인 보유율 ${t.hold.toFixed(2)}%</div>
 <table><tr><th>날짜</th><th>종가</th><th>등락률</th><th>기관</th><th>외국인</th></tr>${r.days.map(d=>`<tr><td>${d.d.slice(5)}</td><td>${d.close.toLocaleString()}</td><td class="${d.rate>0?"up":d.rate<0?"dn":""}">${d.rate.toFixed(2)}%</td><td class="${d.inst>0?"up":"dn"}">${fmt(d.inst)}</td><td class="${d.frgn>0?"up":"dn"}"><b>${fmt(d.frgn)}</b></td></tr>`).join("")}</table>

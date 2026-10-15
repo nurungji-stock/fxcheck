@@ -272,6 +272,9 @@ def judge(rows):
 
 def main():
     stocks = json.load(open("stocks.json", encoding="utf-8"))          # [[이름, 분류], ...]
+    try: SEC = json.load(open("sectors.json", encoding="utf-8"))        # {이름: 섹터}
+    except Exception: SEC = {}
+    SECN = {norm(k): v for k, v in SEC.items()}
     ALIAS = {"에코프로머티": "에코프로머티리얼즈"}
 
     # 코드 캐시 (이전 실행 결과 재사용)
@@ -329,7 +332,8 @@ def main():
                     if cd: mi = macd_info(cd); bi = bottom_info(cd, rows)
                 except Exception as e:
                     print("candle err", code, e)
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, **j)
+                sec = SECN.get(norm(name)) or SECN.get(norm(disp)) or ""
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
@@ -351,7 +355,7 @@ def main():
     ok.sort(key=lambda r: (-r["st"], r["ss"], -r["days"][0]["frgn"]))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), round(d["inst"]), round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), round(d["inst"]), round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", "")] for r in ok]
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
     # 시장 패닉 게이지
     withb = [r for r in ok if r.get("bottom")]
