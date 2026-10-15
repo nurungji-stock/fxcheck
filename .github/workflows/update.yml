@@ -1,7 +1,7 @@
 name: update
 on:
   schedule:
-    - cron: "*/10 0-9 * * 1-5"
+    - cron: "*/10 0-11 * * 1-5"
   workflow_dispatch:
 permissions:
   contents: write
@@ -17,4 +17,4 @@ jobs:
       - run: python fetch.py
       - run: |
           git config user.name bot && git config user.email bot@users.noreply.github.com
-          git add data.json codes.json && (git commit -m "update $(date -u +%H:%M)" && git push) || echo "no change"
+          git add data.json codes.json history.json && (git commit -m "update $(date -u +%H:%M)" && git push) || echo "no change"
