@@ -101,12 +101,13 @@ function init(){
 }
 function renderGauge(){
   const g=D.gauge; if(!g) return; const G=document.getElementById("gauge"); G.style.display="block";
-  const lvl=g.rsi30>=40?["패닉 극단 — 역사적으로 바닥 근처","var(--red)"]:g.rsi30>=25?["투매 구간 — 바닥 가까움","var(--accent)"]:g.rsi30>=12?["조정 중","var(--muted)"]:["정상","var(--muted)"];
+  const panic=Math.max(g.rsi30, g.low20*0.8);   // RSI 30 밑 비율과 20일 신저가 비율(0.8 가중) 중 큰 쪽
+  const lvl=panic>=40?["패닉 극단 — 역사적으로 바닥 근처","var(--red)"]:panic>=25?["투매 구간 — 바닥 가까움","var(--accent)"]:panic>=12?["조정 중","var(--muted)"]:["정상","var(--muted)"];
   const pct=v=>Math.min(100,v*2);
   G.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px"><b style="font-size:16px">시장 패닉 게이지</b><span style="color:${lvl[1]};font-weight:700">${lvl[0]}</span></div>
 <div class="g"><div><b>${g.rsi30}%</b><small>RSI 30 밑 종목</small><div class="bar"><i style="width:${pct(g.rsi30)}%"></i></div></div>
 <div><b>${g.low20}%</b><small>20일 신저가</small><div class="bar"><i style="width:${pct(g.low20)}%"></i></div></div>
-<div><b>${g.kospi_gap!=null?g.kospi_gap:g.median_gap}</b><small>${g.kospi_gap!=null?"코스피 이격도(20일)":"이격도 중간값"}</small><div class="bar"><i style="width:${Math.max(0,Math.min(100,(110-(g.kospi_gap!=null?g.kospi_gap:g.median_gap))*5))}%"></i></div></div></div>
+<div><b>${g.kospi_gap!=null?g.kospi_gap:g.median_gap}</b><small>${g.kospi_gap!=null?"코스피 이격도(20일)":"전종목 이격도 중간값"}</small><div class="bar"><i style="width:${Math.max(0,Math.min(100,(110-(g.kospi_gap!=null?g.kospi_gap:g.median_gap))*5))}%"></i></div></div></div>
 <div class="meta" style="margin-top:8px">바닥 점수 3점 이상 ${g.score3.toLocaleString()}종목 · 이격도 90 밑 ${g.gap90}% · 평소엔 RSI 30 밑이 5~10%, 패닉 바닥은 40~50%</div>`;
 }
 function renderRank(){

@@ -340,7 +340,10 @@ def main():
         n = len(withb)
         kospi_gap = None
         try:
-            kc = candles_daum("KOSPI", 260)
+            kc = None
+            for sym in ("KOSPI", "069500"):      # 코스피 지수 → 안 되면 KODEX200으로 대신
+                kc = candles_daum(sym, 260)
+                if kc: print("kospi proxy:", sym); break
             if kc:
                 cl = [r["c"] for r in kc]; kospi_gap = round(cl[-1] / (sum(cl[-20:]) / 20) * 100, 1)
                 hist = kospi_history(kc)
