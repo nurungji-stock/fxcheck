@@ -74,6 +74,7 @@ const HOOK_TEXT=`1~3위 종목이 궁금하시면<br>
 <b>오늘날짜/대장</b> 이라고 적어서 보내주세요<br>
 순차적으로 안내 도와드리겠습니다`;   // 여기 문구 바꾸면 됨
 const RANK_N=20;                        // 랭킹에 보여줄 개수
+const RANK_MIN_RISE=20;                 // 랭킹 조건: 6개월 전 대비 최근 고점이 +N% 이상 올랐던 종목만
 const norm=s=>(s||"").replace(/\s+/g,"").toLowerCase();
 const fmt=v=>{v=Math.round(v);return (v>0?"+":"")+v.toLocaleString()};
 const vcls=m=>m==="●"?"vh":m==="◐"?"vm":"vl";
@@ -113,15 +114,17 @@ function renderGauge(){
 }
 function renderRank(){
   const R=document.getElementById("rank");
-  const ok=r=>r.bot&&!r.bot[6]&&(r.bot[8]==null||r.bot[8]>=30)&&((r.cat===1||r.cat===2)||r.days[0].hold>=3);   // 사건 종목 제외 · 거래대금 30억↑ · ①② 또는 외인보유 3%↑
-  const rows=D.rows.filter(ok).sort((a,b)=>b.bot[0]-a.bot[0]||(a.cat&&a.cat<=2?0:1)-(b.cat&&b.cat<=2?0:1)||a.bot[2]-b.bot[2]||a.bot[1]-b.bot[1]).slice(0,RANK_N);
+  const hasM=D.rows.some(r=>r.bot&&r.bot.length>10);   // 새 데이터(주도주 정보)가 있을 때만 적용
+  const ok=r=>r.bot&&!r.bot[6]&&(r.bot[8]==null||r.bot[8]>=30)&&((r.cat===1||r.cat===2)||r.days[0].hold>=3)
+    &&(!hasM||(r.bot[9]>=RANK_MIN_RISE&&r.bot[10]===1));   // 사건 종목 제외 · 거래대금 30억↑ · ①② 또는 외인보유 3%↑ · 고점까지 +20%↑ 올랐던 종목 · 120일선 위
+  const rows=D.rows.filter(ok).sort((a,b)=>b.bot[0]-a.bot[0]||(hasM?b.bot[9]-a.bot[9]:0)||a.bot[2]-b.bot[2]).slice(0,RANK_N);
   if(!rows.length) return; R.style.display="block";
   const fake=["■■■■■","■■■■","■■■■■■"];
-  R.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px"><b style="font-size:16px">바닥 점수 랭킹</b><span class="meta">회사 사건·거래 없는 종목 제외 · 점수 → ①② 우선 → 이격도 낮은 순</span></div>`+
+  R.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px"><b style="font-size:16px">바닥 점수 랭킹</b><span class="meta">올해 달렸다가 눌린 종목만 (사건·거래 없는 종목 제외) · 점수 → 고점까지 많이 올랐던 순</span></div>`+
     rows.map((r,i)=>{const hid=i<HIDE_TOP;
       return `<div class="rk"${hid?"":` data-n="${r.name}" style="cursor:pointer"`}><span class="no">${i+1}</span>
 <span class="nm">${hid?`<span class="blur">${fake[i%3]}</span><span class="lock">🔒 비공개</span>`:`${r.name} <span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span>`}</span>
-<span class="sub">${hid?"":`이격도 ${r.bot[2]} · RSI ${r.bot[1]}`}</span><span class="sc">${r.bot[0]}점</span></div>`;}).join("")+
+<span class="sub">${hid?"":`${r.bot[9]!=null?`고점까지 +${r.bot[9]}% · `:""}이격도 ${r.bot[2]} · RSI ${r.bot[1]}`}</span><span class="sc">${r.bot[0]}점</span></div>`;}).join("")+
     `<div class="hook">${HOOK_TEXT}</div>`;
   R.querySelectorAll(".rk[data-n]").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);show(r);window.scrollTo({top:0,behavior:"smooth"});});
 }
@@ -142,10 +145,11 @@ function bottomLine(r){
   const b=r.bot; if(!b) return "";
   if(b[6]) return `<div style="margin:2px 0 6px"><b style="color:var(--muted);font-size:16px">바닥 점수 제외</b> <span class="tag" style="background:var(--c4bg);color:var(--c4)">${BAD[b[6]]}</span>
 <div class="meta" style="margin-top:4px">이격도 ${b[2]} · RSI ${b[1]}${b[7]!=null?` · 60일 고점 대비 −${b[7]}%`:""} — 점수 공식이 안 맞는 종목이라 수급·실적으로 따로 봐야 합니다.</div></div>`;
+  const lead=b.length>10?`<div class="meta" style="margin-top:4px">6개월 전 대비 최근 고점 <b style="color:${b[9]>=20?"var(--red)":"var(--muted)"}">+${b[9]}%</b> · 고점에서 −${b[7]}% · 120일선 ${b[10]?"<b>위</b> (추세 살아있음)":"아래 (추세 꺾임)"}</div>`:"";
   const chip=(on,l)=>`<span class="tag" style="background:${on?"var(--c3bg)":"var(--bg)"};color:${on?"var(--c3)":"var(--muted)"}">${on?"✓":"·"} ${l}</span>`;
   const col=b[0]>=3?"var(--red)":b[0]===2?"var(--accent)":"var(--muted)";
   return `<div style="margin:2px 0 6px"><b style="color:${col};font-size:16px">바닥 점수 ${b[0]} / 4</b>
-<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${chip(b[2]<=90,`이격도 ${b[2]}`)}${chip(b[1]<=30,`RSI ${b[1]}`)}${chip(b[3],"투매거래량+아래꼬리")}${chip(b[4],"외국인 매도 소진")}</div></div>`;
+<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${chip(b[2]<=90,`이격도 ${b[2]}`)}${chip(b[1]<=30,`RSI ${b[1]}`)}${chip(b[3],"투매거래량+아래꼬리")}${chip(b[4],"외국인 매도 소진")}</div>${lead}</div>`;
 }
 function macdLine(r){
   const m=r.macd; if(!m) return "";

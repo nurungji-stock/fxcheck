@@ -230,7 +230,12 @@ def bottom_info(cd, inv):
     if gap < 75: bad = 1            # 평균보다 25% 넘게 빠짐 = 수급이 아니라 사건
     elif drop60 >= 40: bad = 2      # 두 달 새 40% 넘게 빠짐
     elif tv < 1: bad = 3            # 거래가 거의 없음
-    return [score, round(rsi, 1), round(gap, 1), climax, exhaust, newlow, bad, drop60, round(tv, 1)]
+    # 주도주였나: 6개월 전 가격 대비 최근 두 달 고점 상승률, 120일선 위에 있나
+    c120 = closes[-120] if len(closes) >= 120 else closes[0]
+    rise = round((hi60 / c120 - 1) * 100, 1) if c120 else 0
+    ma120 = sum(closes[-120:]) / min(120, len(closes))
+    above120 = 1 if last["c"] >= ma120 else 0
+    return [score, round(rsi, 1), round(gap, 1), climax, exhaust, newlow, bad, drop60, round(tv, 1), rise, above120]
 
 
 def kospi_history(cd):
