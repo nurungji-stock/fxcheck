@@ -114,6 +114,131 @@ def trend_daum(code):
             r["rate"] = (r["close"] / out[i + 1]["close"] - 1) * 100
     return out
 
+
+# ───────── 일봉 + MACD ─────────
+def _pick(it, *cands):
+    for k in cands:
+        if k in it: return num(it[k])
+    kl = {k.lower(): k for k in it}
+    for k in cands:
+        for lk, ok in kl.items():
+            if k.lower() in lk: return num(it[ok])
+    return 0.0
+
+def candles_daum(code, n=130):
+    """일봉 과거→최신: dict(d, o, h, l, c, v)"""
+    sym = code if not code.isdigit() else "A" + code
+    h = {"Referer": f"https://finance.daum.net/quotes/{sym}"}
+    for url in (f"https://finance.daum.net/api/charts/{sym}/days?limit={n}&adjusted=true",
+                f"https://finance.daum.net/api/quote/{sym}/days?symbolCode={sym}&page=1&perPage={n}&pagination=true"):
+        try:
+            r = S.get(url, headers=h, timeout=15)
+            if r.status_code != 200: continue
+            j = r.json()
+            data = j.get("data") if isinstance(j, dict) else j
+            if not isinstance(data, list) or not data: continue
+            rows = []
+            for it in data:
+                if not isinstance(it, dict): continue
+                d = str(it.get("date") or it.get("candleTime") or it.get("tradeDate") or "")[:10]
+                c = _pick(it, "tradePrice", "closePrice", "close")
+                if not d or not c: continue
+                rows.append(dict(d=d, c=c, o=_pick(it, "openingPrice", "openPrice", "open") or c,
+                                 h=_pick(it, "highPrice", "high") or c, l=_pick(it, "lowPrice", "low") or c,
+                                 v=_pick(it, "candleAccTradeVolume", "accTradeVolume", "tradeVolume", "volume")))
+            if len(rows) < 40: continue
+            rows.sort(key=lambda x: x["d"])
+            if not CANDLE_DEBUG[0]:
+                CANDLE_DEBUG[0] = True
+                print("CANDLE SAMPLE KEYS:", json.dumps(data[0], ensure_ascii=False)[:600])
+                print("CANDLE PARSED:", rows[-1])
+            return rows
+        except Exception:
+            continue
+    return None
+CANDLE_DEBUG = [False]
+
+def macd_calc(closes, fast=12, slow=26, sig=9):
+    def ema(xs, n):
+        k = 2 / (n + 1); e = xs[0]; out = [e]
+        for x in xs[1:]: e = x * k + e * (1 - k); out.append(e)
+        return out
+    ef, es = ema(closes, fast), ema(closes, slow)
+    m = [a - b for a, b in zip(ef, es)]
+    s = ema(m[slow - 1:], sig)
+    s = [None] * (slow - 1) + s
+    return m, s
+
+def macd_info(rows):
+    closes = [r["c"] for r in rows]
+    if len(closes) < 40: return None
+    m, s = macd_calc(closes)
+    last = len(m) - 1
+    def cross_up(a, b):      # a가 b를 아래→위로 돌파한 날이 며칠 전인지 (0=오늘), 10일 내 없으면 -1
+        for back in range(0, 10):
+            i = last - back
+            if i < 1 or a[i] is None or a[i-1] is None or b[i] is None or b[i-1] is None: continue
+            if a[i-1] <= b[i-1] and a[i] > b[i]: return back
+        return -1
+    zero = [0.0] * len(m)
+    zc = cross_up(m, zero)
+    sc = cross_up(m, s)
+    scale = closes[-1] or 1
+    return [round(m[last] / scale * 100, 2), round((s[last] or 0) / scale * 100, 2), zc, sc, 1 if m[last] > 0 else 0, rows[-1]["d"]]
+
+
+def rsi14(closes, n=14):
+    if len(closes) < n + 2: return None
+    g = l = 0.0
+    for i in range(1, n + 1):
+        d = closes[i] - closes[i-1]
+        if d > 0: g += d
+        else: l -= d
+    ag, al = g / n, l / n
+    for i in range(n + 1, len(closes)):
+        d = closes[i] - closes[i-1]
+        ag = (ag * (n - 1) + max(d, 0)) / n
+        al = (al * (n - 1) + max(-d, 0)) / n
+    if al == 0: return 100.0
+    return 100 - 100 / (1 + ag / al)
+
+def bottom_info(cd, inv):
+    """바닥 점수 0~4: 이격도≤90 / RSI≤30 / 투매거래량+아래꼬리 / 외국인 매도 소진·전환"""
+    closes = [r["c"] for r in cd]
+    if len(closes) < 25: return None
+    last = cd[-1]
+    ma20 = sum(closes[-20:]) / 20
+    gap = closes[-1] / ma20 * 100 if ma20 else 100
+    rsi = rsi14(closes) or 50
+    vols = [r["v"] for r in cd[-21:-1]]
+    avgv = sum(vols) / len(vols) if vols and sum(vols) > 0 else 0
+    rng = last["h"] - last["l"]
+    lower_wick = (min(last["o"], last["c"]) - last["l"]) / rng if rng > 0 else 0
+    climax = 1 if (avgv and last["v"] >= 2 * avgv and lower_wick >= 0.4) else 0
+    newlow = 1 if cd[-1]["l"] <= min(r["l"] for r in cd[-21:-1]) else 0
+    f = [r["frgn"] for r in inv[:4]]
+    exhaust = 0
+    if len(f) >= 3:
+        if f[0] > 0 and f[1] < 0: exhaust = 1                                   # 매도 → 매수 전환
+        elif f[0] < 0 and f[1] < 0 and f[2] < 0 and abs(f[0]) < abs(f[1]) < abs(f[2]): exhaust = 1   # 매도 규모 3일 연속 감소
+    score = (1 if gap <= 90 else 0) + (1 if rsi <= 30 else 0) + climax + exhaust
+    return [score, round(rsi, 1), round(gap, 1), climax, exhaust, newlow]
+
+
+def kospi_history(cd):
+    """코스피 일봉으로 날짜별 4지표 — 과거 사례 검증용 (history.json)"""
+    out = []
+    closes = [r["c"] for r in cd]
+    for i in range(25, len(cd)):
+        sub = cd[:i + 1]; cl = closes[:i + 1]; last = sub[-1]
+        ma20 = sum(cl[-20:]) / 20
+        vols = [r["v"] for r in sub[-21:-1]]; avgv = sum(vols) / len(vols) if vols and sum(vols) > 0 else 0
+        rng = last["h"] - last["l"]
+        wick = round((min(last["o"], last["c"]) - last["l"]) / rng, 2) if rng > 0 else 0
+        out.append(dict(d=last["d"], close=last["c"], gap=round(last["c"] / ma20 * 100, 1), rsi=round(rsi14(cl) or 50, 1),
+                        vol_x=round(last["v"] / avgv, 2) if avgv else None, wick=wick, low=last["l"]))
+    return out
+
 def judge(rows):
     f = [r["frgn"] for r in rows]
     st = 0
@@ -185,7 +310,13 @@ def main():
         for i in range(3):
             try:
                 rows = source(code); j = judge(rows)
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], **j)
+                mi = bi = None
+                try:
+                    cd = candles_daum(code)
+                    if cd: mi = macd_info(cd); bi = bottom_info(cd, rows)
+                except Exception as e:
+                    print("candle err", code, e)
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
@@ -200,9 +331,33 @@ def main():
     ok.sort(key=lambda r: (-r["st"], r["ss"], -r["days"][0]["frgn"]))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), round(d["inst"]), round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]]] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), round(d["inst"]), round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom")] for r in ok]
+    print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
+    # 시장 패닉 게이지
+    withb = [r for r in ok if r.get("bottom")]
+    gauge = None
+    if withb:
+        n = len(withb)
+        kospi_gap = None
+        try:
+            kc = candles_daum("KOSPI", 260)
+            if kc:
+                cl = [r["c"] for r in kc]; kospi_gap = round(cl[-1] / (sum(cl[-20:]) / 20) * 100, 1)
+                hist = kospi_history(kc)
+                json.dump(hist, open("history.json", "w", encoding="utf-8"), ensure_ascii=False)
+                for h in hist:
+                    if h["d"][5:] in ("06-12", "06.12", "07-08", "07.08", "07-21", "07.21", "07-28", "07.28", "10-13", "10.13", "10-14", "10.14", "10-15", "10.15"):
+                        print("KOSPI", h)
+        except Exception as e: print("kospi hist err", e)
+        gaps = sorted(r["bottom"][2] for r in withb)
+        gauge = dict(n=n, rsi30=round(100 * sum(1 for r in withb if r["bottom"][1] <= 30) / n, 1),
+                     low20=round(100 * sum(1 for r in withb if r["bottom"][5]) / n, 1),
+                     gap90=round(100 * sum(1 for r in withb if r["bottom"][2] <= 90) / n, 1),
+                     median_gap=gaps[n // 2], kospi_gap=kospi_gap,
+                     score3=sum(1 for r in withb if r["bottom"][0] >= 3))
+        print("GAUGE", gauge)
     data = dict(updated=kst.strftime("%Y-%m-%d %H:%M"), base=ok[0]["days"][0]["d"] if ok else "", count=len(ok),
-                rows=compact, missing=[b["name"] for b in bad if b["cat"]])
+                gauge=gauge, rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
 
