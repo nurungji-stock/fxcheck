@@ -148,6 +148,8 @@ def candles_daum(code, n=130):
                                  v=_pick(it, "candleAccTradeVolume", "accTradeVolume", "tradeVolume", "volume")))
             if len(rows) < 40: continue
             rows.sort(key=lambda x: x["d"])
+            # 장 시작 전엔 오늘 봉이 거래량 0으로 미리 생김 → 버림 (장중엔 거래량이 있으니 그대로 씀)
+            while rows and rows[-1]["v"] <= 0: rows.pop()
             if not CANDLE_DEBUG[0]:
                 CANDLE_DEBUG[0] = True
                 print("CANDLE SAMPLE KEYS:", json.dumps(data[0], ensure_ascii=False)[:600])
