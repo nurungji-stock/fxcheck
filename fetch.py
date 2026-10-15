@@ -216,7 +216,7 @@ def bottom_info(cd, inv):
     lower_wick = (min(last["o"], last["c"]) - last["l"]) / rng if rng > 0 else 0
     climax = 1 if (avgv and last["v"] >= 2 * avgv and lower_wick >= 0.4) else 0
     newlow = 1 if cd[-1]["l"] <= min(r["l"] for r in cd[-21:-1]) else 0
-    f = [r["frgn"] for r in inv[:4]]
+    f = [r["frgn"] for r in inv if r.get("frgn") is not None][:4]
     exhaust = 0
     if len(f) >= 3:
         if f[0] > 0 and f[1] < 0: exhaust = 1                                   # 매도 → 매수 전환
@@ -261,6 +261,8 @@ def kospi_history(cd):
     return out
 
 def judge(rows):
+    rows = [r for r in rows if r.get("frgn") is not None]
+    if not rows: return dict(mark="○", txt="수급 집계 전", st=0, ss=0, s3=0, s5=0)
     f = [r["frgn"] for r in rows]
     st = 0
     for v in f:
@@ -333,13 +335,21 @@ def main():
         err = ""
         for i in range(3):
             try:
-                rows = source(code); j = judge(rows)
+                rows = source(code)
                 mi = bi = None
                 try:
                     cd = candles_daum(code)
-                    if cd: mi = macd_info(cd); bi = bottom_info(cd, rows)
+                    if cd:
+                        # 투자자별 집계가 아직 안 올라온 날은 종가만 먼저 표에 넣고 수급 칸은 '집계 전'
+                        cdd = cd[-1]["d"].replace("-", ".")
+                        if rows and cdd > rows[0]["d"]:
+                            prev = rows[0]["close"] or cd[-2]["c"]
+                            rows.insert(0, dict(d=cdd, close=cd[-1]["c"], rate=(cd[-1]["c"] / prev - 1) * 100 if prev else 0,
+                                                inst=None, frgn=None, hold=rows[0]["hold"]))
+                        mi = macd_info(cd); bi = bottom_info(cd, rows)
                 except Exception as e:
                     print("candle err", code, e)
+                j = judge(rows)
                 sec = SECN.get(norm(name)) or SECN.get(norm(disp)) or ""
                 return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, **j)
             except Exception as e:
@@ -360,10 +370,10 @@ def main():
     for r in ok: cache[r["name"]] = [r["code"], r["name"], r["mkt"]]
     json.dump(cache, open("codes.json", "w", encoding="utf-8"), ensure_ascii=False)
 
-    ok.sort(key=lambda r: (-r["st"], r["ss"], -r["days"][0]["frgn"]))
+    ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), round(d["inst"]), round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", "")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", "")] for r in ok]
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
     # 시장 패닉 게이지
     withb = [r for r in ok if r.get("bottom")]
@@ -391,7 +401,9 @@ def main():
                      median_gap=gaps[n // 2], kospi_gap=kospi_gap,
                      score3=sum(1 for r in withb if r["bottom"][0] >= 3 and not r["bottom"][6]))
         print("GAUGE", gauge)
-    data = dict(updated=kst.strftime("%Y-%m-%d %H:%M"), base=ok[0]["days"][0]["d"] if ok else "", count=len(ok),
+    inv_base = next((d["d"] for d in ok[0]["days"] if d["frgn"] is not None), "") if ok else ""
+    px_base = ok[0]["days"][0]["d"] if ok else ""
+    data = dict(updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지"), count=len(ok),
                 gauge=gauge, rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")

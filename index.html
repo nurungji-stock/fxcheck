@@ -77,7 +77,7 @@ const RANK_N=20;                        // 랭킹에 보여줄 개수
 const RANK_MIN_RISE=20;                 // 섹터 태그 없는 종목은 올해 고점까지 +N% 이상 올랐어야 랭킹에 들어감
 const LEAD_SECTORS=["반도체","반도체장비","소부장","2차전지","ESS","전력","원전","조선","로봇","우주","광통신","양자보안","유리기판","AI","바이오","방산"];   // 최근 주도 섹터 — 여기 넣고 빼면 됨
 const norm=s=>(s||"").replace(/\s+/g,"").toLowerCase();
-const fmt=v=>{v=Math.round(v);return (v>0?"+":"")+v.toLocaleString()};
+const fmt=v=>{if(v==null)return "집계 전";v=Math.round(v);return (v>0?"+":"")+v.toLocaleString()};
 const vcls=m=>m==="●"?"vh":m==="◐"?"vm":"vl";
 let D=null, filt="hot", mkt="all";
 fetch("data.json?t="+Date.now()).then(r=>r.json()).then(d=>{
@@ -117,7 +117,7 @@ let rankMkt="코스닥";
 function renderRank(){
   const R=document.getElementById("rank");
   const hasM=D.rows.some(r=>r.bot&&r.bot.length>10);
-  const lead=r=>r.sec?LEAD_SECTORS.includes(r.sec):(hasM&&r.bot[9]>=RANK_MIN_RISE);   // 주도 섹터 종목, 또는 섹터 태그 없으면 올해 고점까지 많이 올랐던 종목
+  const lead=r=>!!r.sec&&LEAD_SECTORS.includes(r.sec);   // 주도 섹터 태그가 있는 종목만 (섹터 없는 종목은 랭킹 제외)
   const ok=r=>r.bot&&!r.bot[6]&&r.mkt===rankMkt&&(r.bot[8]==null||r.bot[8]>=30)&&lead(r);   // 사건 종목 제외 · 거래대금 30억↑ · 주도 섹터
   const hasT=D.rows.some(r=>r.bot&&r.bot.length>11);
   const rows=D.rows.filter(ok).sort((a,b)=>hasT?(b.bot[11]-a.bot[11]||b.bot[0]-a.bot[0]):(b.bot[0]-a.bot[0]||(hasM?b.bot[9]-a.bot[9]:0)||a.bot[2]-b.bot[2])).slice(0,RANK_N);
@@ -143,7 +143,7 @@ function renderList(){
   const total=rows.length; rows=rows.slice(0,300);
   if(!total){L.innerHTML=`<div class="empty">${filt==="hot"?"외국인이 사흘 연속 산 종목이 없습니다":filt==="macd"||filt==="hotmacd"?"최근 3일 안에 MACD 0선을 올라탄 종목이 없습니다":filt==="bot"?"바닥 점수 3점 이상 종목이 없습니다":"없음"}</div>`;return;}
   L.innerHTML=`<div class="meta" style="padding:0 0 6px">${total.toLocaleString()}종목${total>300?" (상위 300개 표시, 나머지는 검색)":""}</div>`+rows.map(r=>`<div class="row" data-n="${r.name}"><div class="l"><span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span><span class="n">${r.name}</span></div>
-<div class="r">${r.bot&&r.bot[6]?`<span class="tag" style="background:var(--c4bg);color:var(--c4)">제외</span> `:r.bot&&r.bot[0]>=3?`<span class="tag" style="background:var(--c3bg);color:var(--c3)">바닥 ${r.bot[0]}점</span> `:""}${zc(r)?`<span class="tag" style="background:var(--c1bg);color:var(--c1)">0선 ${r.macd[2]===0?"오늘":r.macd[2]+"일 전"}</span> `:""}<span class="${vcls(r.mark)}">${r.mark} ${r.txt}</span> <span class="${r.days[0].frgn>0?"up":"dn"}">${fmt(r.days[0].frgn)}</span></div></div>`).join("");
+<div class="r">${r.bot&&r.bot[6]?`<span class="tag" style="background:var(--c4bg);color:var(--c4)">제외</span> `:r.bot&&r.bot[0]>=3?`<span class="tag" style="background:var(--c3bg);color:var(--c3)">바닥 ${r.bot[0]}점</span> `:""}${zc(r)?`<span class="tag" style="background:var(--c1bg);color:var(--c1)">0선 ${r.macd[2]===0?"오늘":r.macd[2]+"일 전"}</span> `:""}<span class="${vcls(r.mark)}">${r.mark} ${r.txt}</span> <span class="${(r.days.find(d=>d.frgn!=null)||{}).frgn>0?"up":"dn"}">${fmt((r.days.find(d=>d.frgn!=null)||{}).frgn)}</span></div></div>`).join("");
   L.querySelectorAll(".row").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);show(r);window.scrollTo({top:0,behavior:"smooth"});});
 }
 const BAD={1:"평균보다 25% 넘게 빠짐 — 수급이 아니라 회사 사건",2:"두 달 새 40% 넘게 빠짐 — 회사 사건",3:"거래가 거의 없는 종목"};
@@ -170,8 +170,8 @@ function show(r){
   const c=CAT[r.cat], t=r.days[0];
   V.innerHTML=`<div><span class="name">${r.name}<span class="code">${r.code}${r.mkt?" · "+r.mkt:""}${r.sec?" · "+r.sec:""}</span></span> <span class="tag ${c.c}">${c.l}</span></div>
 <div class="verdict ${vcls(r.mark)}">${r.mark} ${r.txt}</div>
-${bottomLine(r)}${macdLine(r)}<div class="meta">외국인 3일합 ${fmt(r.s3)}주 · 5일합 ${fmt(r.s5)}주 · 오늘 기관 ${fmt(t.inst)}주 · 외인 보유율 ${t.hold.toFixed(2)}%</div>
-<table><tr><th>날짜</th><th>종가</th><th>등락률</th><th>기관</th><th>외국인</th></tr>${r.days.map(d=>`<tr><td>${d.d.slice(5)}</td><td>${d.close.toLocaleString()}</td><td class="${d.rate>0?"up":d.rate<0?"dn":""}">${d.rate.toFixed(2)}%</td><td class="${d.inst>0?"up":"dn"}">${fmt(d.inst)}</td><td class="${d.frgn>0?"up":"dn"}"><b>${fmt(d.frgn)}</b></td></tr>`).join("")}</table>
+${bottomLine(r)}${macdLine(r)}<div class="meta">외국인 3일합 ${fmt(r.s3)}주 · 5일합 ${fmt(r.s5)}주 · 기관 ${fmt(t.inst)}주 · 외인 보유율 ${t.hold.toFixed(2)}%</div>
+<table><tr><th>날짜</th><th>종가</th><th>등락률</th><th>기관</th><th>외국인</th></tr>${r.days.map(d=>`<tr><td>${d.d.slice(5)}</td><td>${d.close.toLocaleString()}</td><td class="${d.rate>0?"up":d.rate<0?"dn":""}">${d.rate.toFixed(2)}%</td><td class="${d.inst==null?"":d.inst>0?"up":"dn"}">${fmt(d.inst)}</td><td class="${d.frgn==null?"":d.frgn>0?"up":"dn"}"><b>${fmt(d.frgn)}</b></td></tr>`).join("")}</table>
 <div class="act">${c.act}</div>`;
   history.replaceState(null,"","#"+encodeURIComponent(r.name));
   document.getElementById("sugg").style.display="none";
