@@ -227,8 +227,8 @@ def bottom_info(cd, inv):
     drop60 = round((1 - last["c"] / hi60) * 100, 1) if hi60 else 0
     tv = sum(r["c"] * r["v"] for r in cd[-20:]) / 20 / 1e8          # 20일 평균 거래대금(억)
     bad = 0
-    if gap < 75: bad = 1            # 평균보다 25% 넘게 빠짐 = 수급이 아니라 사건
-    elif drop60 >= 40: bad = 2      # 두 달 새 40% 넘게 빠짐
+    if gap < 60: bad = 1            # 평균보다 40% 넘게 빠짐 = 감자·거래정지급 사건
+    elif drop60 >= 45: bad = 2      # 두 달 새 45% 넘게 빠짐 = 회사 사건
     elif tv < 1: bad = 3            # 거래가 거의 없음
     # 주도주였나: 6개월 전 가격 대비 최근 두 달 고점 상승률, 120일선 위에 있나
     c120 = closes[-120] if len(closes) >= 120 else closes[0]
@@ -336,6 +336,13 @@ def main():
 
     with cf.ThreadPoolExecutor(8) as ex: rows = list(ex.map(job, universe))
     ok = [r for r in rows if "err" not in r]; bad = [r for r in rows if "err" in r]
+    # 같은 종목코드가 두 이름으로 들어온 경우 하나로 (분류기 이름 우선, 그다음 짧은 이름)
+    byc = {}
+    for r in ok:
+        k = r["code"]
+        if k not in byc or (r["cat"] and not byc[k]["cat"]) or (bool(r["cat"]) == bool(byc[k]["cat"]) and len(r["name"]) < len(byc[k]["name"])):
+            byc[k] = r
+    ok = list(byc.values())
     print("ok", len(ok), "bad", len(bad), [(b["name"], b["err"]) for b in bad][:15])
 
     for r in ok: cache[r["name"]] = [r["code"], r["name"], r["mkt"]]

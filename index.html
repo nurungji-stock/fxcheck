@@ -112,20 +112,24 @@ function renderGauge(){
 <div><b>${g.kospi_gap!=null?g.kospi_gap:g.median_gap}</b><small>${g.kospi_gap!=null?"코스피 이격도(20일)":"전종목 이격도 중간값"}</small><div class="bar"><i style="width:${Math.max(0,Math.min(100,(110-(g.kospi_gap!=null?g.kospi_gap:g.median_gap))*5))}%"></i></div></div></div>
 <div class="meta" style="margin-top:8px">바닥 점수 3점 이상 ${g.score3.toLocaleString()}종목 · 이격도 90 밑 ${g.gap90}% · 평소엔 RSI 30 밑이 5~10%, 패닉 바닥은 40~50%</div>`;
 }
+let rankMkt="코스닥";
 function renderRank(){
   const R=document.getElementById("rank");
-  const hasM=D.rows.some(r=>r.bot&&r.bot.length>10);   // 새 데이터(주도주 정보)가 있을 때만 적용
-  const ok=r=>r.bot&&!r.bot[6]&&(r.bot[8]==null||r.bot[8]>=30)&&((r.cat===1||r.cat===2)||r.days[0].hold>=3)
-    &&(!hasM||(r.bot[9]>=RANK_MIN_RISE&&r.bot[10]===1));   // 사건 종목 제외 · 거래대금 30억↑ · ①② 또는 외인보유 3%↑ · 고점까지 +20%↑ 올랐던 종목 · 120일선 위
+  const hasM=D.rows.some(r=>r.bot&&r.bot.length>10);
+  const ok=r=>r.bot&&!r.bot[6]&&r.mkt===rankMkt&&(r.bot[8]==null||r.bot[8]>=30)&&((r.cat===1||r.cat===2)||r.days[0].hold>=3)
+    &&(!hasM||r.bot[9]>=RANK_MIN_RISE);   // 사건 종목 제외 · 거래대금 30억↑ · ①② 또는 외인보유 3%↑ · 올해 고점까지 +20%↑ 올랐던 종목
   const rows=D.rows.filter(ok).sort((a,b)=>b.bot[0]-a.bot[0]||(hasM?b.bot[9]-a.bot[9]:0)||a.bot[2]-b.bot[2]).slice(0,RANK_N);
-  if(!rows.length) return; R.style.display="block";
+  R.style.display="block";
   const fake=["■■■■■","■■■■","■■■■■■"];
-  R.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px"><b style="font-size:16px">바닥 점수 랭킹</b><span class="meta">올해 달렸다가 눌린 종목만 (사건·거래 없는 종목 제외) · 점수 → 고점까지 많이 올랐던 순</span></div>`+
-    rows.map((r,i)=>{const hid=i<HIDE_TOP;
+  const tabs=["코스닥","코스피"].map(m=>`<button data-m="${m}" style="font:inherit;font-size:13px;padding:5px 14px;border-radius:14px;border:1px solid var(--line);background:${m===rankMkt?"var(--fg)":"var(--card)"};color:${m===rankMkt?"var(--bg)":"var(--fg)"};cursor:pointer">${m}</button>`).join(" ");
+  R.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><b style="font-size:16px">바닥 점수 랭킹</b><span>${tabs}</span></div>
+<div class="meta" style="margin:4px 0 2px">올해 달렸다가 이번에 눌린 종목만 (회사 사건·거래 없는 종목 제외) · 점수 → 고점까지 많이 올랐던 순</div>`+
+    (rows.length?rows.map((r,i)=>{const hid=i<HIDE_TOP;
       return `<div class="rk"${hid?"":` data-n="${r.name}" style="cursor:pointer"`}><span class="no">${i+1}</span>
 <span class="nm">${hid?`<span class="blur">${fake[i%3]}</span><span class="lock">🔒 비공개</span>`:`${r.name} <span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span>`}</span>
-<span class="sub">${hid?"":`${r.bot[9]!=null?`고점까지 +${r.bot[9]}% · `:""}이격도 ${r.bot[2]} · RSI ${r.bot[1]}`}</span><span class="sc">${r.bot[0]}점</span></div>`;}).join("")+
+<span class="sub">${hid?"":`${r.bot[9]!=null?`고점까지 +${r.bot[9]}% · `:""}이격도 ${r.bot[2]} · RSI ${r.bot[1]}`}</span><span class="sc">${r.bot[0]}점</span></div>`;}).join(""):`<div class="empty">조건에 맞는 종목이 없습니다</div>`)+
     `<div class="hook">${HOOK_TEXT}</div>`;
+  R.querySelectorAll("button[data-m]").forEach(b=>b.onclick=()=>{rankMkt=b.dataset.m;renderRank();});
   R.querySelectorAll(".rk[data-n]").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);show(r);window.scrollTo({top:0,behavior:"smooth"});});
 }
 function renderList(){
