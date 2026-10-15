@@ -222,7 +222,15 @@ def bottom_info(cd, inv):
         if f[0] > 0 and f[1] < 0: exhaust = 1                                   # 매도 → 매수 전환
         elif f[0] < 0 and f[1] < 0 and f[2] < 0 and abs(f[0]) < abs(f[1]) < abs(f[2]): exhaust = 1   # 매도 규모 3일 연속 감소
     score = (1 if gap <= 90 else 0) + (1 if rsi <= 30 else 0) + climax + exhaust
-    return [score, round(rsi, 1), round(gap, 1), climax, exhaust, newlow]
+    # 가치 하락(회사 사건) 걸러내기: 이격도 75 밑 / 60일 고점 대비 −40% / 하루 거래대금
+    hi60 = max(r["h"] for r in cd[-60:])
+    drop60 = round((1 - last["c"] / hi60) * 100, 1) if hi60 else 0
+    tv = sum(r["c"] * r["v"] for r in cd[-20:]) / 20 / 1e8          # 20일 평균 거래대금(억)
+    bad = 0
+    if gap < 75: bad = 1            # 평균보다 25% 넘게 빠짐 = 수급이 아니라 사건
+    elif drop60 >= 40: bad = 2      # 두 달 새 40% 넘게 빠짐
+    elif tv < 1: bad = 3            # 거래가 거의 없음
+    return [score, round(rsi, 1), round(gap, 1), climax, exhaust, newlow, bad, drop60, round(tv, 1)]
 
 
 def kospi_history(cd):
@@ -357,7 +365,7 @@ def main():
                      low20=round(100 * sum(1 for r in withb if r["bottom"][5]) / n, 1),
                      gap90=round(100 * sum(1 for r in withb if r["bottom"][2] <= 90) / n, 1),
                      median_gap=gaps[n // 2], kospi_gap=kospi_gap,
-                     score3=sum(1 for r in withb if r["bottom"][0] >= 3))
+                     score3=sum(1 for r in withb if r["bottom"][0] >= 3 and not r["bottom"][6]))
         print("GAUGE", gauge)
     data = dict(updated=kst.strftime("%Y-%m-%d %H:%M"), base=ok[0]["days"][0]["d"] if ok else "", count=len(ok),
                 gauge=gauge, rows=compact, missing=[b["name"] for b in bad if b["cat"]])

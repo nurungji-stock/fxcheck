@@ -67,11 +67,12 @@ const CAT={0:{l:"분류 없음",c:"t4",act:"분류기에 없는 종목입니다.
 3:{l:"③ 테마 중소형주",c:"t3",act:"반등 때 정리합니다. 본전이 아니라 반등이 기준(−20%가 −10%로 올라온 날). 외국인 안 들어온 급등은 갭상승 후 조정입니다."},
 4:{l:"? 판단 필요",c:"t4",act:"확정 재료가 확인되기 전까지는 ③처럼 대응합니다."}};
 const HIDE_TOP=3;                       // 상위 몇 종목을 가릴지
-const HOOK_LINK="https://link.inpock.co.kr/nurungzi";   // 안내 링크
+const HOOK_LINK="https://docs.google.com/forms/d/e/1FAIpQLSfwjeWhSGrFjBdtnWSijc4xu_PPPzxVUcUr9-h21Sgx8L8k7w/viewform";   // 안내 링크
 const HOOK_TEXT=`1~3위 종목이 궁금하시면<br>
-① <a href="${HOOK_LINK}" target="_blank" rel="noopener" style="color:inherit;font-weight:700;text-decoration:underline">이 링크</a> 누르고 <b>무료단타방 입장하기</b> 클릭<br>
-② 종목명 칸에 <b>"대장"</b>이라고 적어서 보내주세요<br>
-추후 안내해 드리겠습니다.`;   // 여기 문구 바꾸면 됨
+<a href="${HOOK_LINK}" target="_blank" rel="noopener" style="color:inherit;font-weight:700;text-decoration:underline">누룽지쌤 종목탈출 무료 주식 공부방🥳</a><br>
+이 링크 누르고 다음 페이지 종목명 입력칸에<br>
+<b>오늘날짜/대장</b> 이라고 적어서 보내주세요<br>
+순차적으로 안내 도와드리겠습니다`;   // 여기 문구 바꾸면 됨
 const RANK_N=20;                        // 랭킹에 보여줄 개수
 const norm=s=>(s||"").replace(/\s+/g,"").toLowerCase();
 const fmt=v=>{v=Math.round(v);return (v>0?"+":"")+v.toLocaleString()};
@@ -112,10 +113,11 @@ function renderGauge(){
 }
 function renderRank(){
   const R=document.getElementById("rank");
-  const rows=D.rows.filter(r=>r.bot).sort((a,b)=>b.bot[0]-a.bot[0]||a.bot[2]-b.bot[2]||a.bot[1]-b.bot[1]).slice(0,RANK_N);
+  const ok=r=>r.bot&&!r.bot[6]&&(r.bot[8]==null||r.bot[8]>=30)&&((r.cat===1||r.cat===2)||r.days[0].hold>=3);   // 사건 종목 제외 · 거래대금 30억↑ · ①② 또는 외인보유 3%↑
+  const rows=D.rows.filter(ok).sort((a,b)=>b.bot[0]-a.bot[0]||(a.cat&&a.cat<=2?0:1)-(b.cat&&b.cat<=2?0:1)||a.bot[2]-b.bot[2]||a.bot[1]-b.bot[1]).slice(0,RANK_N);
   if(!rows.length) return; R.style.display="block";
   const fake=["■■■■■","■■■■","■■■■■■"];
-  R.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:16px">바닥 점수 랭킹</b><span class="meta">점수 → 이격도 낮은 순 → RSI 낮은 순</span></div>`+
+  R.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px"><b style="font-size:16px">바닥 점수 랭킹</b><span class="meta">회사 사건·거래 없는 종목 제외 · 점수 → ①② 우선 → 이격도 낮은 순</span></div>`+
     rows.map((r,i)=>{const hid=i<HIDE_TOP;
       return `<div class="rk"${hid?"":` data-n="${r.name}" style="cursor:pointer"`}><span class="no">${i+1}</span>
 <span class="nm">${hid?`<span class="blur">${fake[i%3]}</span><span class="lock">🔒 비공개</span>`:`${r.name} <span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span>`}</span>
@@ -126,17 +128,20 @@ function renderRank(){
 function renderList(){
   const L=document.getElementById("list");
   const zc=r=>r.macd&&r.macd[2]>=0&&r.macd[2]<=2;
-  let rows=D.rows.filter(r=>(mkt==="all"||r.mkt===mkt)&&(filt==="all"||(filt==="hot"?r.mark==="●":filt==="half"?r.mark==="◐":filt==="macd"?zc(r):filt==="hotmacd"?(zc(r)&&r.mark==="●"):filt==="bot"?(r.bot&&r.bot[0]>=3):r.cat==+filt)));
+  let rows=D.rows.filter(r=>(mkt==="all"||r.mkt===mkt)&&(filt==="all"||(filt==="hot"?r.mark==="●":filt==="half"?r.mark==="◐":filt==="macd"?zc(r):filt==="hotmacd"?(zc(r)&&r.mark==="●"):filt==="bot"?(r.bot&&r.bot[0]>=3&&!r.bot[6]):r.cat==+filt)));
   if(filt==="bot") rows=rows.slice().sort((a,b)=>b.bot[0]-a.bot[0]||a.bot[2]-b.bot[2]);
   if(filt==="macd"||filt==="hotmacd") rows=rows.slice().sort((a,b)=>a.macd[2]-b.macd[2]||b.st-a.st);
   const total=rows.length; rows=rows.slice(0,300);
   if(!total){L.innerHTML=`<div class="empty">${filt==="hot"?"외국인이 사흘 연속 산 종목이 없습니다":filt==="macd"||filt==="hotmacd"?"최근 3일 안에 MACD 0선을 올라탄 종목이 없습니다":filt==="bot"?"바닥 점수 3점 이상 종목이 없습니다":"없음"}</div>`;return;}
   L.innerHTML=`<div class="meta" style="padding:0 0 6px">${total.toLocaleString()}종목${total>300?" (상위 300개 표시, 나머지는 검색)":""}</div>`+rows.map(r=>`<div class="row" data-n="${r.name}"><div class="l"><span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span><span class="n">${r.name}</span></div>
-<div class="r">${r.bot&&r.bot[0]>=3?`<span class="tag" style="background:var(--c3bg);color:var(--c3)">바닥 ${r.bot[0]}점</span> `:""}${zc(r)?`<span class="tag" style="background:var(--c1bg);color:var(--c1)">0선 ${r.macd[2]===0?"오늘":r.macd[2]+"일 전"}</span> `:""}<span class="${vcls(r.mark)}">${r.mark} ${r.txt}</span> <span class="${r.days[0].frgn>0?"up":"dn"}">${fmt(r.days[0].frgn)}</span></div></div>`).join("");
+<div class="r">${r.bot&&r.bot[6]?`<span class="tag" style="background:var(--c4bg);color:var(--c4)">제외</span> `:r.bot&&r.bot[0]>=3?`<span class="tag" style="background:var(--c3bg);color:var(--c3)">바닥 ${r.bot[0]}점</span> `:""}${zc(r)?`<span class="tag" style="background:var(--c1bg);color:var(--c1)">0선 ${r.macd[2]===0?"오늘":r.macd[2]+"일 전"}</span> `:""}<span class="${vcls(r.mark)}">${r.mark} ${r.txt}</span> <span class="${r.days[0].frgn>0?"up":"dn"}">${fmt(r.days[0].frgn)}</span></div></div>`).join("");
   L.querySelectorAll(".row").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);show(r);window.scrollTo({top:0,behavior:"smooth"});});
 }
+const BAD={1:"평균보다 25% 넘게 빠짐 — 수급이 아니라 회사 사건",2:"두 달 새 40% 넘게 빠짐 — 회사 사건",3:"거래가 거의 없는 종목"};
 function bottomLine(r){
   const b=r.bot; if(!b) return "";
+  if(b[6]) return `<div style="margin:2px 0 6px"><b style="color:var(--muted);font-size:16px">바닥 점수 제외</b> <span class="tag" style="background:var(--c4bg);color:var(--c4)">${BAD[b[6]]}</span>
+<div class="meta" style="margin-top:4px">이격도 ${b[2]} · RSI ${b[1]}${b[7]!=null?` · 60일 고점 대비 −${b[7]}%`:""} — 점수 공식이 안 맞는 종목이라 수급·실적으로 따로 봐야 합니다.</div></div>`;
   const chip=(on,l)=>`<span class="tag" style="background:${on?"var(--c3bg)":"var(--bg)"};color:${on?"var(--c3)":"var(--muted)"}">${on?"✓":"·"} ${l}</span>`;
   const col=b[0]>=3?"var(--red)":b[0]===2?"var(--accent)":"var(--muted)";
   return `<div style="margin:2px 0 6px"><b style="color:${col};font-size:16px">바닥 점수 ${b[0]} / 4</b>
