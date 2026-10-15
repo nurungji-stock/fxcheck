@@ -235,7 +235,15 @@ def bottom_info(cd, inv):
     rise = round((hi60 / c120 - 1) * 100, 1) if c120 else 0
     ma120 = sum(closes[-120:]) / min(120, len(closes))
     above120 = 1 if last["c"] >= ma120 else 0
-    return [score, round(rsi, 1), round(gap, 1), climax, exhaust, newlow, bad, drop60, round(tv, 1), rise, above120]
+    # 종합 점수 100점: 이격도 30 · RSI 25 · 거래량/꼬리 20 · 외국인 10 · 주도주 15
+    def lin(x, x0, x1, p):          # x0→0점, x1→p점 (사이는 비례, 밖은 잘라냄)
+        r = (x - x0) / (x1 - x0)
+        return p * max(0.0, min(1.0, r))
+    volx = last["v"] / avgv if avgv else 0
+    total = (lin(gap, 100, 80, 30) + lin(rsi, 50, 20, 25) + lin(volx, 1, 3, 15) + (5 if lower_wick >= 0.4 else 0)
+             + (10 if exhaust else (5 if len(f) >= 2 and f[0] < 0 and f[1] < 0 and abs(f[0]) < abs(f[1]) else 0))
+             + lin(rise, 0, 100, 15))
+    return [score, round(rsi, 1), round(gap, 1), climax, exhaust, newlow, bad, drop60, round(tv, 1), rise, above120, round(total)]
 
 
 def kospi_history(cd):

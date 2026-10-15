@@ -119,16 +119,17 @@ function renderRank(){
   const hasM=D.rows.some(r=>r.bot&&r.bot.length>10);
   const lead=r=>r.sec?LEAD_SECTORS.includes(r.sec):(hasM&&r.bot[9]>=RANK_MIN_RISE);   // 주도 섹터 종목, 또는 섹터 태그 없으면 올해 고점까지 많이 올랐던 종목
   const ok=r=>r.bot&&!r.bot[6]&&r.mkt===rankMkt&&(r.bot[8]==null||r.bot[8]>=30)&&lead(r);   // 사건 종목 제외 · 거래대금 30억↑ · 주도 섹터
-  const rows=D.rows.filter(ok).sort((a,b)=>b.bot[0]-a.bot[0]||(hasM?b.bot[9]-a.bot[9]:0)||a.bot[2]-b.bot[2]).slice(0,RANK_N);
+  const hasT=D.rows.some(r=>r.bot&&r.bot.length>11);
+  const rows=D.rows.filter(ok).sort((a,b)=>hasT?(b.bot[11]-a.bot[11]||b.bot[0]-a.bot[0]):(b.bot[0]-a.bot[0]||(hasM?b.bot[9]-a.bot[9]:0)||a.bot[2]-b.bot[2])).slice(0,RANK_N);
   R.style.display="block";
   const fake=["■■■■■","■■■■","■■■■■■"];
   const tabs=["코스닥","코스피"].map(m=>`<button data-m="${m}" style="font:inherit;font-size:13px;padding:5px 14px;border-radius:14px;border:1px solid var(--line);background:${m===rankMkt?"var(--fg)":"var(--card)"};color:${m===rankMkt?"var(--bg)":"var(--fg)"};cursor:pointer">${m}</button>`).join(" ");
   R.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><b style="font-size:16px">바닥 점수 랭킹</b><span>${tabs}</span></div>
-<div class="meta" style="margin:4px 0 2px">최근 주도 섹터(반도체·소부장·2차전지·전력·조선·로봇·우주·바이오 등)만 · 점수 → 고점까지 많이 올랐던 순 · 회사 사건·거래 없는 종목 제외</div>`+
+<div class="meta" style="margin:4px 0 2px">최근 주도 섹터만 · 종합점수 100점 (이격도 30 · RSI 25 · 거래량·꼬리 20 · 외국인 10 · 주도주 15) · 회사 사건·거래 없는 종목 제외</div>`+
     (rows.length?rows.map((r,i)=>{const hid=i<HIDE_TOP;
       return `<div class="rk"${hid?"":` data-n="${r.name}" style="cursor:pointer"`}><span class="no">${i+1}</span>
 <span class="nm">${hid?`<span class="blur">${fake[i%3]}</span><span class="lock">🔒 비공개</span>`:`${r.name} <span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span>${r.sec?` <small style="color:var(--muted)">${r.sec}</small>`:""}`}</span>
-<span class="sub">${hid?"":`${r.bot[9]!=null?`고점까지 +${r.bot[9]}% · `:""}이격도 ${r.bot[2]} · RSI ${r.bot[1]}`}</span><span class="sc">${hid?`<span class="blur">■점</span>`:r.bot[0]+"점"}</span></div>`;}).join(""):`<div class="empty">조건에 맞는 종목이 없습니다</div>`)+
+<span class="sub">${hid?"":`${r.bot[9]!=null?`고점까지 +${r.bot[9]}% · `:""}이격도 ${r.bot[2]} · RSI ${r.bot[1]}`}</span><span class="sc">${hid?`<span class="blur">■■점</span>`:(hasT?r.bot[11]+"점":r.bot[0]+"점")}</span></div>`;}).join(""):`<div class="empty">조건에 맞는 종목이 없습니다</div>`)+
     `<div class="hook">${HOOK_TEXT}</div>`;
   R.querySelectorAll("button[data-m]").forEach(b=>b.onclick=()=>{rankMkt=b.dataset.m;renderRank();});
   R.querySelectorAll(".rk[data-n]").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);show(r);window.scrollTo({top:0,behavior:"smooth"});});
@@ -153,7 +154,7 @@ function bottomLine(r){
   const lead=b.length>10?`<div class="meta" style="margin-top:4px">6개월 전 대비 최근 고점 <b style="color:${b[9]>=20?"var(--red)":"var(--muted)"}">+${b[9]}%</b> · 고점에서 −${b[7]}% · 120일선 ${b[10]?"<b>위</b> (추세 살아있음)":"아래 (추세 꺾임)"}</div>`:"";
   const chip=(on,l)=>`<span class="tag" style="background:${on?"var(--c3bg)":"var(--bg)"};color:${on?"var(--c3)":"var(--muted)"}">${on?"✓":"·"} ${l}</span>`;
   const col=b[0]>=3?"var(--red)":b[0]===2?"var(--accent)":"var(--muted)";
-  return `<div style="margin:2px 0 6px"><b style="color:${col};font-size:16px">바닥 점수 ${b[0]} / 4</b>
+  return `<div style="margin:2px 0 6px"><b style="color:${col};font-size:16px">바닥 점수 ${b[0]} / 4</b>${b.length>11?` <span class="meta">· 종합 <b>${b[11]}점</b>/100</span>`:""}
 <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${chip(b[2]<=90,`이격도 ${b[2]}`)}${chip(b[1]<=30,`RSI ${b[1]}`)}${chip(b[3],"투매거래량+아래꼬리")}${chip(b[4],"외국인 매도 소진")}</div>${lead}</div>`;
 }
 function macdLine(r){
