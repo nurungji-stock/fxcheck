@@ -343,12 +343,42 @@ def judge(rows):
     if st == 0 and t["inst"] > 0: txt += " · 기관은 매수"
     return dict(mark=mark, txt=txt, st=st, ss=ss, s3=sum(f[:3]), s5=sum(f[:5]))
 
+# ───────── KRX 당일 투자자별 순매수 (장 마감 후 잠정치, 전 종목 한 번에) ─────────
+def krx_investor_today(ymd):
+    """{종목코드: {'frgn': 외국인 순매수 수량, 'inst': 기관 순매수 수량}} — 실패하면 {}"""
+    url = "https://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd"
+    h = {"Referer": "https://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020303",
+         "X-Requested-With": "XMLHttpRequest", "Origin": "https://data.krx.co.kr"}
+    out = {}
+    try: S.get("https://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020303", timeout=15)
+    except Exception: pass
+    for mkt in ("STK", "KSQ"):
+        for key, inv in (("frgn", "9000"), ("inst", "7050")):
+            try:
+                r = S.post(url, headers=h, timeout=30, data=dict(
+                    bld="dbms/MDC/STAT/standard/MDCSTAT02401", locale="ko_KR", mktId=mkt, invstTpCd=inv,
+                    strtDd=ymd, endDd=ymd, share="1", money="1", csvxls_isNo="false"))
+                rows = (r.json() or {}).get("output", []) if r.status_code == 200 else []
+                for it in rows:
+                    c = str(it.get("ISU_SRT_CD", "")).zfill(6)
+                    v = num(it.get("NETBID_TRDVOL", 0))
+                    out.setdefault(c, {})[key] = v
+                print(f"KRX {mkt} {key}: {len(rows)}건 (HTTP {r.status_code})")
+            except Exception as e:
+                print(f"KRX {mkt} {key} 실패: {e}")
+    return out
+
 def main():
     stocks = json.load(open("stocks.json", encoding="utf-8"))          # [[이름, 분류], ...]
     try: SEC = json.load(open("sectors.json", encoding="utf-8"))        # {이름: 섹터}
     except Exception: SEC = {}
     SECN = {norm(k): v for k, v in SEC.items()}
     ALIAS = {"에코프로머티": "에코프로머티리얼즈"}
+    _kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
+    KRX_TODAY = {}
+    if _kst.weekday() < 5 and (_kst.hour, _kst.minute) >= (15, 40):
+        KRX_TODAY = krx_investor_today(_kst.strftime("%Y%m%d"))
+    KRX_DATE = _kst.strftime("%Y.%m.%d")
 
     # 코드 캐시 (이전 실행 결과 재사용)
     try: cache = json.load(open("codes.json", encoding="utf-8"))
@@ -407,8 +437,9 @@ def main():
                         cdd = cd[-1]["d"].replace("-", ".")
                         if rows and cdd > rows[0]["d"]:
                             prev = rows[0]["close"] or cd[-2]["c"]
+                            k = KRX_TODAY.get(code, {}) if cdd == KRX_DATE else {}
                             rows.insert(0, dict(d=cdd, close=cd[-1]["c"], rate=(cd[-1]["c"] / prev - 1) * 100 if prev else 0,
-                                                inst=None, frgn=None, hold=rows[0]["hold"]))
+                                                inst=k.get("inst"), frgn=k.get("frgn"), hold=rows[0]["hold"]))
                         mi = macd_info(cd); bi = bottom_info(cd, rows)
                         si = state_info(cd, rows, bi)
                         if si is not None and bi:
@@ -475,7 +506,7 @@ def main():
         print("GAUGE", gauge)
     inv_base = next((d["d"] for d in ok[0]["days"] if d["frgn"] is not None), "") if ok else ""
     px_base = ok[0]["days"][0]["d"] if ok else ""
-    data = dict(updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지"), count=len(ok),
+    data = dict(updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
                 gauge=gauge, rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
