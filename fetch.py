@@ -285,7 +285,8 @@ def state_info(cd, inv, bot):
     elif f1 is not None and f1 < 0 and abs(f0) < abs(f1) * 0.5: fstate = 2
     else: fstate = 0
     tail = [round(last), fstate, f0, f1, fst]
-    if bot[6]: return [3, "", 0, 0, "", "회사 사건 종목 — 수급이 아니라 회사 문제라 이 진단이 안 맞습니다", 0, 0, 0, 0, 0] + tail
+    if bot[6] == 3: return [0, "", 0, 0, "", "하루 거래가 거의 없는 종목 — 이 진단을 쓰기 어렵습니다", 0, 0, 0, 0, 0] + tail
+    if bot[6]: return [3, "", 0, 0, "", f"두 달 새 {bot[7]:.0f}% 빠진 종목 — 시장 때문이 아니라 회사 문제일 가능성이 큽니다", 0, 0, 0, 0, 0] + tail
     flows = {r["d"]: r for r in fl}
     best = None   # 바닥 신호가 있던 날 중 종가가 제일 낮은 날
     for back in range(0, 10):
