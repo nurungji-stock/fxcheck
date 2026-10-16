@@ -148,7 +148,7 @@ function renderList(){
 }
 const BAD={1:"평균보다 25% 넘게 빠짐 — 수급이 아니라 회사 사건",2:"두 달 새 40% 넘게 빠짐 — 회사 사건",3:"거래가 거의 없는 종목"};
 function bottomLine(r){
-  const b=r.bot; if(!b) return "";
+  const b=r.bot; if(!b) return `<div style="margin:2px 0 6px"><b style="color:var(--muted);font-size:16px">바닥 점수 계산 불가</b> <span class="tag" style="background:var(--c4bg);color:var(--c4)">상장 40일 미만이거나 거래정지·데이터 없음</span><div class="meta" style="margin-top:4px">과거 가격이 충분하지 않아 이격도·RSI를 못 구하는 종목입니다. 외국인 수급만 참고하세요.</div></div>`;
   if(b[6]) return `<div style="margin:2px 0 6px"><b style="color:var(--muted);font-size:16px">바닥 점수 제외</b> <span class="tag" style="background:var(--c4bg);color:var(--c4)">${BAD[b[6]]}</span>
 <div class="meta" style="margin-top:4px">이격도 ${b[2]} · RSI ${b[1]}${b[7]!=null?` · 60일 고점 대비 −${b[7]}%`:""} — 점수 공식이 안 맞는 종목이라 수급·실적으로 따로 봐야 합니다.</div></div>`;
   const lead=b.length>10?`<div class="meta" style="margin-top:4px">6개월 전 대비 최근 고점 <b style="color:${b[9]>=20?"var(--red)":"var(--muted)"}">+${b[9]}%</b> · 고점에서 −${b[7]}% · 120일선 ${b[10]?"<b>위</b> (추세 살아있음)":"아래 (추세 꺾임)"}</div>`:"";
