@@ -262,6 +262,66 @@ def kospi_history(cd):
                         vol_x=round(last["v"] / avgv, 2) if avgv else None, wick=wick, low=last["l"]))
     return out
 
+
+def state_info(cd, inv, bot):
+    """상태 판정 + 내 종목 진단
+    반환 [0 state(1 들고/2 하루더/3 줄임/0 해당없음), 1 바닥일, 2 바닥대비%, 3 바닥점수, 4 바닥일(동일),
+          5 사유, 6 반등기대점수(job에서 채움), 7 바닥일 이격도, 8 바닥일 RSI, 9 바닥일 투매꼬리(0/1),
+          10 바닥 종가, 11 현재가, 12 외국인 상태(1 매수·2 매도 급감·0 매도 중·-1 집계없음), 13 최근 외국인 수량, 14 직전 외국인 수량,
+          15 외국인 연속 매수일]"""
+    closes = [r["c"] for r in cd]
+    n = len(closes)
+    if n < 40 or not bot: return None
+    last = closes[-1]
+    fl = [r for r in inv if r.get("frgn") is not None]
+    f0 = fl[0]["frgn"] if fl else None
+    f1 = fl[1]["frgn"] if len(fl) > 1 else None
+    fst = 0
+    for r in fl:
+        if r["frgn"] > 0: fst += 1
+        else: break
+    if f0 is None: fstate = -1
+    elif f0 > 0: fstate = 1
+    elif f1 is not None and f1 < 0 and abs(f0) < abs(f1) * 0.5: fstate = 2
+    else: fstate = 0
+    tail = [round(last), fstate, f0, f1, fst]
+    if bot[6]: return [3, "", 0, 0, "", "회사 사건 종목 — 수급이 아니라 회사 문제라 이 진단이 안 맞습니다", 0, 0, 0, 0, 0] + tail
+    flows = {r["d"]: r for r in fl}
+    best = None   # 바닥 신호가 있던 날 중 종가가 제일 낮은 날
+    for back in range(0, 10):
+        i = n - 1 - back
+        if i < 25: break
+        cl = closes[:i + 1]; ma20 = sum(cl[-20:]) / 20
+        gap = cl[-1] / ma20 * 100 if ma20 else 100
+        rsi = rsi14(cl) or 50
+        d = cd[i]["d"].replace("-", ".")
+        rng = cd[i]["h"] - cd[i]["l"]
+        vols = [r["v"] for r in cd[max(0, i - 20):i]]; avgv = sum(vols) / len(vols) if vols and sum(vols) > 0 else 0
+        wick = (min(cd[i]["o"], cd[i]["c"]) - cd[i]["l"]) / rng if rng > 0 else 0
+        climax = 1 if (avgv and cd[i]["v"] >= 2 * avgv and wick >= 0.4) else 0
+        f = flows.get(d)
+        pts = (1 if gap <= 90 else 0) + (1 if rsi <= 30 else 0) + climax + (1 if f and f["frgn"] > 0 else 0)
+        if pts >= 2 or gap <= 92 or rsi <= 35:
+            if best is None or cd[i]["c"] < best["c"]:
+                best = dict(d=d, c=cd[i]["c"], gap=round(gap, 1), rsi=round(rsi, 1), climax=climax, pts=pts)
+    if best is None:
+        rise5 = last / closes[-6] - 1 if n > 6 else 0
+        if rise5 >= 0.15:
+            return [3, "", round(rise5 * 100, 1), 0, "", f"바닥 신호 없이 5일 만에 {rise5*100:.0f}% 급등 — 급등 뒤엔 조정이 옵니다", 0, 0, 0, 0, 0] + tail
+        return [0, "", 0, 0, "", "최근 열흘 동안 크게 눌린 적이 없는 종목 — 평소대로 대응", 0, 0, 0, 0, 0] + tail
+    rebound = (last / best["c"] - 1) * 100
+    ma5 = sum(closes[-5:]) / 5
+    head = [best["d"], round(rebound, 1), best["pts"], best["d"]]
+    mid = [0, best["gap"], best["rsi"], best["climax"], round(best["c"])]
+    if last < best["c"] * 0.97:
+        return [3] + head + [f"{best['d'][5:]} 바닥을 다시 깼습니다 — 바닥이 아니었습니다"] + mid + tail
+    rebounded = rebound >= 3 or (last > ma5 and rebound > 0)
+    if rebounded and fstate in (1, 2):
+        return [1] + head + ["바닥 확인 · 반등 확인 · 외국인 매도 멈춤"] + mid + tail
+    if rebounded:
+        return [2] + head + ["바닥 확인 · 반등 확인 · 외국인은 아직 파는 중"] + mid + tail
+    return [2] + head + ["바닥 신호는 나왔지만 아직 반등 전"] + mid + tail
+
 def judge(rows):
     rows = [r for r in rows if r.get("frgn") is not None]
     if not rows: return dict(mark="○", txt="수급 집계 전", st=0, ss=0, s3=0, s5=0)
@@ -338,7 +398,7 @@ def main():
         for i in range(3):
             try:
                 rows = source(code)
-                mi = bi = None
+                mi = bi = si = None
                 try:
                     cd = candles_daum(code)
                     if cd:
@@ -349,11 +409,18 @@ def main():
                             rows.insert(0, dict(d=cdd, close=cd[-1]["c"], rate=(cd[-1]["c"] / prev - 1) * 100 if prev else 0,
                                                 inst=None, frgn=None, hold=rows[0]["hold"]))
                         mi = macd_info(cd); bi = bottom_info(cd, rows)
+                        si = state_info(cd, rows, bi)
+                        if si is not None and bi:
+                            # 반등 기대 점수 100: 고점 대비 낙폭 40 · 올해 주도주 25 · 바닥 상태 15 · 지금 눌림 20
+                            def _lin(x, x0, x1, p):
+                                r = (x - x0) / (x1 - x0); return p * max(0.0, min(1.0, r))
+                            pot = _lin(bi[7], 10, 50, 40) + _lin(bi[9], 0, 100, 25) + (15 if si[0] == 1 else 8 if si[0] == 2 else 0) + _lin(100 - bi[2], 0, 25, 20)
+                            si[6] = round(pot)
                 except Exception as e:
                     print("candle err", code, e)
                 j = judge(rows)
                 sec = SECN.get(norm(name)) or SECN.get(norm(disp)) or ""
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, **j)
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
@@ -375,7 +442,9 @@ def main():
     ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", "")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state")] for r in ok]
+    import collections as _c
+    print("STATE", _c.Counter((r.get("state") or [None])[0] for r in ok))
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
     # 시장 패닉 게이지
     withb = [r for r in ok if r.get("bottom")]

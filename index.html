@@ -36,7 +36,9 @@ th:first-child,td:first-child{text-align:left}.up{color:var(--red)}.dn{color:var
 .row .r{font-size:13px;white-space:nowrap}
 .empty{color:var(--muted);text-align:center;padding:12px}
 .g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.g div{background:var(--bg);border-radius:10px;padding:8px 10px}.g b{display:block;font-size:20px}.g small{color:var(--muted);font-size:12px}.bar{height:6px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
-.rk{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.rk:last-child{border-bottom:0}.rk .no{width:26px;font-weight:700;color:var(--muted);text-align:center}.rk .nm{flex:1;font-weight:500;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rk .sc{font-weight:700;color:var(--red);white-space:nowrap}.rk .sub{font-size:12px;color:var(--muted);white-space:nowrap}.blur{filter:blur(6px);user-select:none;pointer-events:none;color:var(--fg)}.lock{display:inline-block;font-size:12px;color:var(--accent);margin-left:6px}.hook{margin-top:10px;padding:12px 14px;background:var(--c1bg);color:var(--c1);border-radius:10px;font-size:14px;font-weight:500;line-height:1.7}
+.rk{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.rk:last-child{border-bottom:0}.rk .no{width:26px;font-weight:700;color:var(--muted);text-align:center}.rk .nm{flex:1;font-weight:500;min-width:72px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rk .sc{font-weight:700;color:var(--red);white-space:nowrap}.rk .sub{font-size:12px;color:var(--muted);white-space:nowrap}.blur{filter:blur(6px);user-select:none;pointer-events:none;color:var(--fg)}.lock{display:inline-block;font-size:12px;color:var(--accent);margin-left:6px}.hook{margin-top:10px;padding:12px 14px;background:var(--c1bg);color:var(--c1);border-radius:10px;font-size:14px;font-weight:500;line-height:1.7}
+.dg{font-size:14px;margin:3px 0}.nx{margin-top:8px;padding-top:8px;border-top:1px solid currentColor;border-color:rgba(0,0,0,.12);font-size:13px;line-height:1.7}.st{border-radius:12px;padding:12px 14px;margin:6px 0 10px}.st>b{font-size:18px;display:block}.st>span{font-size:13px;opacity:.9}.dg b{display:inline;font-size:14px;margin-right:4px}.nx>b{display:block;font-size:13px}.st1{background:#E6F4EA;color:#1B6B3A}.st2{background:#FBF3E0;color:#8A6400}.st3{background:#FBE6E3;color:#A32A1E}.st0{background:var(--bg);color:var(--muted)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .st1{background:#163a24;color:#9fe0b4}:root:not([data-theme="light"]) .st2{background:#3a3012;color:#f0d27a}:root:not([data-theme="light"]) .st3{background:#45201c;color:#f4a79b}}
 .foot{color:var(--muted);font-size:12px;margin-top:16px;line-height:1.6}
 </style>
 </head>
@@ -45,13 +47,14 @@ th:first-child,td:first-child{text-align:left}.up{color:var(--red)}.dn{color:var
 <h1>외국인 연속매수 체크</h1>
 <p class="sub" id="upd">불러오는 중…</p>
 
-<div class="card legend"><span><b>●</b> 3일 연속 순매수 = 진짜 수급</span><span><b>◐</b> 1~2일째 = 확인 전</span><span><b>○</b> 순매도 = 안 들어옴</span><span><b>0선</b> = MACD 0선 상향돌파 3일 내</span><span><b>바닥 점수</b> = 이격도·RSI·투매거래량·외국인 소진 중 몇 개</span></div>
+<div class="card legend"><span><b>●</b> 3일 연속 순매수 = 진짜 수급</span><span><b>◐</b> 1~2일째 = 확인 전</span><span><b>○</b> 순매도 = 안 들어옴</span><span><b>0선</b> = MACD 0선 상향돌파 3일 내</span><span><b>✅ 들고 간다 · ⏸ 하루 더 · ⚠ 반등 때 줄임</b> = 바닥 찍었나 → 반등했나 → 외국인 멈췄나</span></div>
 
 <div class="card" id="gauge" style="display:none"></div>
 <div class="sbox"><input id="q" placeholder="종목명 입력 (코스피·코스닥 전 종목)" autocomplete="off"><div id="sugg"></div></div>
 
 <div class="card" id="verdict" style="display:none;margin-top:12px"></div>
 <div class="card" id="rank" style="display:none;margin-top:12px"></div>
+<div class="card" id="rank2" style="display:none;margin-top:12px"></div>
 
 <div class="card" style="margin-top:12px">
 <div class="filt" id="filt"></div>
@@ -82,7 +85,7 @@ const vcls=m=>m==="●"?"vh":m==="◐"?"vm":"vl";
 let D=null, filt="hot", mkt="all";
 fetch("data.json?t="+Date.now()).then(r=>r.json()).then(d=>{
   D=d; D.rows=d.rows.map(r=>Array.isArray(r)?{name:r[0],cat:r[1],code:r[2],mkt:r[3],mark:r[4],txt:r[5],st:r[6],ss:r[7],s3:r[8],s5:r[9],
-    days:r[10].map(x=>({d:x[0],close:x[1],rate:x[2],inst:x[3],frgn:x[4],hold:x[5]})),macd:r[11]||null,bot:r[12]||null,sec:r[13]||""}:r);
+    days:r[10].map(x=>({d:x[0],close:x[1],rate:x[2],inst:x[3],frgn:x[4],hold:x[5]})),macd:r[11]||null,bot:r[12]||null,sec:r[13]||"",state:r[14]||null}:r);
   init();
 }).catch(()=>{document.getElementById("upd").textContent="데이터를 불러오지 못했습니다. 잠시 후 다시 열어주세요.";});
 
@@ -92,11 +95,12 @@ function init(){
   const mk=(k,l,group)=>{const b=document.createElement("button");b.textContent=l;b.dataset.k=k;b.dataset.g=group;
     if((group==="f"&&k===filt)||(group==="m"&&k===mkt))b.classList.add("on");
     b.onclick=()=>{if(group==="f")filt=k;else mkt=k;[...F.children].forEach(x=>{if(x.dataset.g===group)x.classList.toggle("on",x.dataset.k===k)});renderList();};F.appendChild(b);};
-  [["hot","● 3일 연속"],["half","◐ 들어오는 중"],["macd","MACD 0선 돌파"],["hotmacd","● + 0선 돌파"],["bot","바닥 3점+"],["all","전체"],["1","①"],["2","②"],["3","③"],["4","?"]].forEach(([k,l])=>mk(k,l,"f"));
+  [["hot","● 3일 연속"],["half","◐ 들어오는 중"],["macd","MACD 0선 돌파"],["hotmacd","● + 0선 돌파"],["bot","바닥 3점+"],["s1","✅ 들고간다"],["s2","⏸ 하루 더"],["all","전체"],["1","①"],["2","②"],["3","③"],["4","?"]].forEach(([k,l])=>mk(k,l,"f"));
   const sep=document.createElement("span");sep.style.cssText="width:100%;height:0";F.appendChild(sep);
   [["all","코스피+코스닥"],["코스피","코스피"],["코스닥","코스닥"]].forEach(([k,l])=>mk(k,l,"m"));
   renderGauge();
   renderRank();
+  renderRank2();
   renderList();
   const q=document.getElementById("q");
   const h=location.hash.slice(1); if(h){const r=D.rows.find(x=>norm(x.name)===norm(decodeURIComponent(h)));if(r)show(r);}
@@ -129,24 +133,69 @@ function renderRank(){
     (rows.length?rows.map((r,i)=>{const hid=i<HIDE_TOP;
       return `<div class="rk"${hid?"":` data-n="${r.name}" style="cursor:pointer"`}><span class="no">${i+1}</span>
 <span class="nm">${hid?`<span class="blur">${fake[i%3]}</span><span class="lock">🔒 비공개</span>`:`${r.name} <span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span>${r.sec?` <small style="color:var(--muted)">${r.sec}</small>`:""}`}</span>
-<span class="sub">${hid?"":`${r.bot[9]!=null?`고점까지 +${r.bot[9]}% · `:""}이격도 ${r.bot[2]} · RSI ${r.bot[1]}`}</span><span class="sc">${hid?`<span class="blur">■■점</span>`:(hasT?r.bot[11]+"점":r.bot[0]+"점")}</span></div>`;}).join(""):`<div class="empty">조건에 맞는 종목이 없습니다</div>`)+
+<span class="sub">${hid?"":`${r.bot[9]!=null?`+${Math.round(r.bot[9])}% 갔던 종목 · `:""}이격도 ${Math.round(r.bot[2])}`}</span><span class="sc">${hid?`<span class="blur">■■점</span>`:(hasT?r.bot[11]+"점":r.bot[0]+"점")}</span></div>`;}).join(""):`<div class="empty">조건에 맞는 종목이 없습니다</div>`)+
     `<div class="hook">${HOOK_TEXT}</div>`;
   R.querySelectorAll("button[data-m]").forEach(b=>b.onclick=()=>{rankMkt=b.dataset.m;renderRank();});
+  R.querySelectorAll(".rk[data-n]").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);show(r);window.scrollTo({top:0,behavior:"smooth"});});
+}
+let rank2Mkt="코스닥";
+function renderRank2(){
+  const R=document.getElementById("rank2");
+  const rows=D.rows.filter(r=>r.state&&r.state.length>6&&(r.state[0]===1||r.state[0]===2)&&r.bot&&!r.bot[6]&&r.mkt===rank2Mkt&&(r.bot[8]==null||r.bot[8]>=30)&&!!r.sec&&LEAD_SECTORS.includes(r.sec))
+    .sort((a,b)=>b.state[6]-a.state[6]||b.state[0]-a.state[0]).slice(0,RANK_N);
+  if(!D.rows.some(r=>r.state&&r.state.length>6)) return;
+  R.style.display="block";
+  const fake=["■■■■■","■■■■","■■■■■■"];
+  const tabs=["코스닥","코스피"].map(m=>`<button data-m="${m}" style="font:inherit;font-size:13px;padding:5px 14px;border-radius:14px;border:1px solid var(--line);background:${m===rank2Mkt?"var(--fg)":"var(--card)"};color:${m===rank2Mkt?"var(--bg)":"var(--fg)"};cursor:pointer">${m}</button>`).join(" ");
+  R.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><b style="font-size:16px">반등 기대 랭킹</b><span>${tabs}</span></div>
+<div class="meta" style="margin:4px 0 2px">바닥 찍은 주도 섹터 종목 중 올라올 여지가 큰 순 — 고점 대비 낙폭 40 · 올해 주도주 25 · 반등 확인 15 · 지금 눌림 20</div>`+
+    (rows.length?rows.map((r,i)=>{const hid=i<HIDE_TOP;
+      return `<div class="rk"${hid?"":` data-n="${r.name}" style="cursor:pointer"`}><span class="no">${i+1}</span>
+<span class="nm">${hid?`<span class="blur">${fake[i%3]}</span><span class="lock">🔒 비공개</span>`:`${r.name} <span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span><small style="color:var(--muted)"> ${r.sec}</small>`}</span>
+<span class="sub">${hid?"":`${r.state[0]===1?"✅":"⏸"} 고점 −${Math.round(r.bot[7])}% · 반등 +${r.state[2]}%`}</span><span class="sc">${hid?`<span class="blur">■■점</span>`:r.state[6]+"점"}</span></div>`;}).join(""):`<div class="empty">조건에 맞는 종목이 없습니다</div>`)+
+    `<div class="hook">${HOOK_TEXT}</div>`;
+  R.querySelectorAll("button[data-m]").forEach(b=>b.onclick=()=>{rank2Mkt=b.dataset.m;renderRank2();});
   R.querySelectorAll(".rk[data-n]").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);show(r);window.scrollTo({top:0,behavior:"smooth"});});
 }
 function renderList(){
   const L=document.getElementById("list");
   const zc=r=>r.macd&&r.macd[2]>=0&&r.macd[2]<=2;
-  let rows=D.rows.filter(r=>(mkt==="all"||r.mkt===mkt)&&(filt==="all"||(filt==="hot"?r.mark==="●":filt==="half"?r.mark==="◐":filt==="macd"?zc(r):filt==="hotmacd"?(zc(r)&&r.mark==="●"):filt==="bot"?(r.bot&&r.bot[0]>=3&&!r.bot[6]):r.cat==+filt)));
+  let rows=D.rows.filter(r=>(mkt==="all"||r.mkt===mkt)&&(filt==="all"||(filt==="hot"?r.mark==="●":filt==="half"?r.mark==="◐":filt==="macd"?zc(r):filt==="hotmacd"?(zc(r)&&r.mark==="●"):filt==="bot"?(r.bot&&r.bot[0]>=3&&!r.bot[6]):filt==="s1"?(r.state&&r.state[0]===1):filt==="s2"?(r.state&&r.state[0]===2):r.cat==+filt)));
   if(filt==="bot") rows=rows.slice().sort((a,b)=>b.bot[0]-a.bot[0]||a.bot[2]-b.bot[2]);
   if(filt==="macd"||filt==="hotmacd") rows=rows.slice().sort((a,b)=>a.macd[2]-b.macd[2]||b.st-a.st);
   const total=rows.length; rows=rows.slice(0,300);
   if(!total){L.innerHTML=`<div class="empty">${filt==="hot"?"외국인이 사흘 연속 산 종목이 없습니다":filt==="macd"||filt==="hotmacd"?"최근 3일 안에 MACD 0선을 올라탄 종목이 없습니다":filt==="bot"?"바닥 점수 3점 이상 종목이 없습니다":"없음"}</div>`;return;}
   L.innerHTML=`<div class="meta" style="padding:0 0 6px">${total.toLocaleString()}종목${total>300?" (상위 300개 표시, 나머지는 검색)":""}</div>`+rows.map(r=>`<div class="row" data-n="${r.name}"><div class="l"><span class="tag ${CAT[r.cat].c}">${r.cat?CAT[r.cat].l.slice(0,1):"·"}</span><span class="n">${r.name}</span></div>
-<div class="r">${r.bot&&r.bot[6]?`<span class="tag" style="background:var(--c4bg);color:var(--c4)">제외</span> `:r.bot&&r.bot[0]>=3?`<span class="tag" style="background:var(--c3bg);color:var(--c3)">바닥 ${r.bot[0]}점</span> `:""}${zc(r)?`<span class="tag" style="background:var(--c1bg);color:var(--c1)">0선 ${r.macd[2]===0?"오늘":r.macd[2]+"일 전"}</span> `:""}<span class="${vcls(r.mark)}">${r.mark} ${r.txt}</span> <span class="${(r.days.find(d=>d.frgn!=null)||{}).frgn>0?"up":"dn"}">${fmt((r.days.find(d=>d.frgn!=null)||{}).frgn)}</span></div></div>`).join("");
+<div class="r">${r.state&&r.state[0]===1?`<span class="tag" style="background:#E6F4EA;color:#1B6B3A">✅</span> `:r.state&&r.state[0]===3?`<span class="tag" style="background:var(--c3bg);color:var(--c3)">⚠</span> `:""}${r.bot&&r.bot[6]?`<span class="tag" style="background:var(--c4bg);color:var(--c4)">제외</span> `:r.bot&&r.bot[0]>=3?`<span class="tag" style="background:var(--c3bg);color:var(--c3)">바닥 ${r.bot[0]}점</span> `:""}${zc(r)?`<span class="tag" style="background:var(--c1bg);color:var(--c1)">0선 ${r.macd[2]===0?"오늘":r.macd[2]+"일 전"}</span> `:""}<span class="${vcls(r.mark)}">${r.mark} ${r.txt}</span> <span class="${(r.days.find(d=>d.frgn!=null)||{}).frgn>0?"up":"dn"}">${fmt((r.days.find(d=>d.frgn!=null)||{}).frgn)}</span></div></div>`).join("");
   L.querySelectorAll(".row").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n);show(r);window.scrollTo({top:0,behavior:"smooth"});});
 }
 const BAD={1:"평균보다 25% 넘게 빠짐 — 수급이 아니라 회사 사건",2:"두 달 새 40% 넘게 빠짐 — 회사 사건",3:"거래가 거의 없는 종목"};
+const ST={1:"✅ 들고 갑니다",2:"⏸ 하루 더 봅니다",3:"⚠ 반등 때 줄입니다",0:"◻ 평소대로 대응"};
+const won=v=>{const u=v>=500000?1000:v>=50000?100:v>=5000?10:1;return (Math.round(v/u)*u).toLocaleString()+"원"};
+const shr=v=>{const a=Math.abs(v);return (v>0?"+":"−")+(a>=1e4?(a/1e4).toFixed(a>=1e5?0:1)+"만주":a.toLocaleString()+"주")};
+function stateBox(r){
+  const s=r.state; if(!s) return "";
+  const k=s[0], ok=(c,t)=>`<span style="display:inline-block;width:20px;font-weight:700">${c?"✓":"✗"}</span>${t}`;
+  let rows="";
+  if(s.length>11 && s[10]){
+    const sig=[s[7]<=90?`이격도 ${Math.round(s[7])}`:"",s[8]<=30?`RSI ${Math.round(s[8])}`:"",s[9]?"투매 꼬리":""].filter(Boolean).join(" · ")||`이격도 ${Math.round(s[7])} · RSI ${Math.round(s[8])}`;
+    const fx=s[12]===1?ok(1,`외국인 ${s[15]>=3?s[15]+"일 연속 매수":"매도 멈춤"} (${s[14]!=null?shr(s[14])+" → ":""}${shr(s[13])})`):
+             s[12]===2?ok(1,`외국인 매도 급감 (${shr(s[14])} → ${shr(s[13])})`):
+             s[12]===0?ok(0,`외국인 아직 파는 중 (${shr(s[13])})`):ok(0,"외국인 수급 집계 전");
+    const reb=s[11]>=s[10];
+    rows=`<div class="dg">${ok(1,`<b>바닥</b> ${s[1].slice(5)} · 바닥 신호 ${s[3]}/4 (${sig})`)}</div>
+<div class="dg">${ok(k!==3&&s[2]>0,`<b>반등</b> ${won(s[10])} → ${won(s[11])} (${s[2]>=0?"+":""}${s[2]}%)`)}</div>
+<div class="dg">${fx.replace("외국인","<b>외국인</b>")}</div>
+<div class="nx"><b>이렇게 되면 바뀝니다</b>
+${k===1?`<div>⏸ 외국인이 다시 크게 팔면 → 하루 더 봅니다</div>`:""}
+${k===2&&s[12]!==1?`<div>✅ 외국인이 매도를 멈추면 → 들고 갑니다</div>`:""}
+${k!==3?`<div>⚠ ${won(s[10]*0.97)} (바닥 −3%) 깨지면 → 반등 때 줄입니다</div>`:`<div>⏸ ${won(s[10])} 위로 다시 올라오면 → 하루 더 봅니다</div>`}
+${k!==3?`<div>➕ 외국인 사흘 연속 사면 → 추가 매수 가능${s[15]?` (지금 ${s[15]}일째)`:""}</div>`:""}</div>`;
+  } else {
+    rows=`<div class="dg" style="opacity:.9">${s[5]}</div>`;
+  }
+  return `<div class="st st${k}"><b>${ST[k]}</b>${s.length>11&&s[10]?`<span>${s[5]}</span>`:""}<div style="margin-top:8px">${rows}</div></div>`;
+}
 function bottomLine(r){
   const b=r.bot; if(!b) return `<div style="margin:2px 0 6px"><b style="color:var(--muted);font-size:16px">바닥 점수 계산 불가</b> <span class="tag" style="background:var(--c4bg);color:var(--c4)">상장 40일 미만이거나 거래정지·데이터 없음</span><div class="meta" style="margin-top:4px">과거 가격이 충분하지 않아 이격도·RSI를 못 구하는 종목입니다. 외국인 수급만 참고하세요.</div></div>`;
   if(b[6]) return `<div style="margin:2px 0 6px"><b style="color:var(--muted);font-size:16px">바닥 점수 제외</b> <span class="tag" style="background:var(--c4bg);color:var(--c4)">${BAD[b[6]]}</span>
@@ -154,7 +203,8 @@ function bottomLine(r){
   const lead=b.length>10?`<div class="meta" style="margin-top:4px">6개월 전 대비 최근 고점 <b style="color:${b[9]>=20?"var(--red)":"var(--muted)"}">+${b[9]}%</b> · 고점에서 −${b[7]}% · 120일선 ${b[10]?"<b>위</b> (추세 살아있음)":"아래 (추세 꺾임)"}</div>`:"";
   const chip=(on,l)=>`<span class="tag" style="background:${on?"var(--c3bg)":"var(--bg)"};color:${on?"var(--c3)":"var(--muted)"}">${on?"✓":"·"} ${l}</span>`;
   const col=b[0]>=3?"var(--red)":b[0]===2?"var(--accent)":"var(--muted)";
-  return `<div style="margin:2px 0 6px"><b style="color:${col};font-size:16px">바닥 점수 ${b[0]} / 4</b>${b.length>11?` <span class="meta">· 종합 <b>${b[11]}점</b>/100</span>`:""}
+  const pk=r.state&&r.state[3]?` <span class="meta">· 최근 열흘 최고 <b>${r.state[3]}점</b> (${r.state[4].slice(5)})</span>`:"";
+  return `<div style="margin:2px 0 6px"><b style="color:${col};font-size:15px">지금 눌림 ${b[0]}/4</b> <span class="meta">(바닥 찾을 때 쓰는 점수 — 반등하면 낮아지는 게 정상)</span>${pk}${b.length>11?` <span class="meta">· 종합 <b>${b[11]}점</b>/100</span>`:""}
 <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${chip(b[2]<=90,`이격도 ${b[2]}`)}${chip(b[1]<=30,`RSI ${b[1]}`)}${chip(b[3],"투매거래량+아래꼬리")}${chip(b[4],"외국인 매도 소진")}</div>${lead}</div>`;
 }
 function macdLine(r){
@@ -170,9 +220,9 @@ function show(r){
   const c=CAT[r.cat], t=r.days[0];
   V.innerHTML=`<div><span class="name">${r.name}<span class="code">${r.code}${r.mkt?" · "+r.mkt:""}${r.sec?" · "+r.sec:""}</span></span> <span class="tag ${c.c}">${c.l}</span></div>
 <div class="verdict ${vcls(r.mark)}">${r.mark} ${r.txt}</div>
-${bottomLine(r)}${macdLine(r)}<div class="meta">외국인 3일합 ${fmt(r.s3)}주 · 5일합 ${fmt(r.s5)}주 · 기관 ${fmt(t.inst)}주 · 외인 보유율 ${t.hold.toFixed(2)}%</div>
+${stateBox(r)}<details style="margin:4px 0 6px"><summary class="meta" style="cursor:pointer">세부 지표 보기 (지금 눌림 점수 · MACD)</summary><div style="margin-top:6px">${bottomLine(r)}${macdLine(r)}</div></details><div class="meta">외국인 3일합 ${fmt(r.s3)}주 · 5일합 ${fmt(r.s5)}주 · 기관 ${fmt(t.inst)}주 · 외인 보유율 ${t.hold.toFixed(2)}%</div>
 <table><tr><th>날짜</th><th>종가</th><th>등락률</th><th>기관</th><th>외국인</th></tr>${r.days.map(d=>`<tr><td>${d.d.slice(5)}</td><td>${d.close.toLocaleString()}</td><td class="${d.rate>0?"up":d.rate<0?"dn":""}">${d.rate.toFixed(2)}%</td><td class="${d.inst==null?"":d.inst>0?"up":"dn"}">${fmt(d.inst)}</td><td class="${d.frgn==null?"":d.frgn>0?"up":"dn"}"><b>${fmt(d.frgn)}</b></td></tr>`).join("")}</table>
-<div class="act">${c.act}</div>`;
+${r.state&&r.state[0]!==0?"":`<div class="act">${c.act}</div>`}`;
   history.replaceState(null,"","#"+encodeURIComponent(r.name));
   document.getElementById("sugg").style.display="none";
 }
