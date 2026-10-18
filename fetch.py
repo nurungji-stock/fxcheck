@@ -263,7 +263,7 @@ def kospi_history(cd):
     return out
 
 
-def state_info(cd, inv, bot):
+def state_info(cd, inv, bot, idx=None):
     """상태 판정 + 내 종목 진단
     반환 [0 state(1 들고/2 하루더/3 줄임/0 해당없음), 1 바닥일, 2 바닥대비%, 3 바닥점수, 4 바닥일(동일),
           5 사유, 6 반등기대점수(job에서 채움), 7 바닥일 이격도, 8 바닥일 RSI, 9 바닥일 투매꼬리(0/1),
@@ -289,7 +289,7 @@ def state_info(cd, inv, bot):
     if bot[6]: return [3, "", 0, 0, "", f"두 달 새 {bot[7]:.0f}% 빠진 종목 — 시장 때문이 아니라 회사 문제일 가능성이 큽니다", 0, 0, 0, 0, 0] + tail
     flows = {r["d"]: r for r in fl}
     best = None   # 바닥 신호가 있던 날 중 종가가 제일 낮은 날
-    for back in range(0, 10):
+    for back in range(1 if n > 30 else 0, 10):   # 오늘은 빼고 지난 열흘에서 바닥을 찾음 (오늘 빠진 걸 새 바닥으로 덮어쓰지 않게)
         i = n - 1 - back
         if i < 25: break
         cl = closes[:i + 1]; ma20 = sum(cl[-20:]) / 20
@@ -314,14 +314,28 @@ def state_info(cd, inv, bot):
     ma5 = sum(closes[-5:]) / 5
     head = [best["d"], round(rebound, 1), best["pts"], best["d"]]
     mid = [0, best["gap"], best["rsi"], best["climax"], round(best["c"])]
-    if last < best["c"] * 0.97:
-        return [3] + head + [f"{best['d'][5:]} 바닥을 다시 깼습니다 — 바닥이 아니었습니다"] + mid + tail
+    # 바닥선: 이 종목이 평소 하루에 움직이는 폭의 2.5배 (최소 7% · 최대 15%)
+    rets = [closes[i] / closes[i - 1] - 1 for i in range(max(1, n - 20), n) if closes[i - 1]]
+    vol = (sum(r * r for r in rets) / len(rets)) ** 0.5 if rets else 0.03
+    k = min(0.15, max(0.07, 2.5 * vol))
+    line = best["c"] * (1 - k)
+    # 같은 기간 시장(코스피/코스닥) 변화 — 시장 따라 빠진 건 회사 문제가 아님
+    mk = None
+    if idx and best["d"] in idx and idx.get("_last"):
+        mk = (idx["_last"] / idx[best["d"]] - 1) * 100
+    tail2 = [round(line)]
+    if last < line:
+        if mk is not None and rebound - mk > -5:
+            return [2] + head + [f"시장 전체가 같이 빠졌습니다 (시장 {mk:+.1f}% · 이 종목 {rebound:+.1f}%) — 회사 문제가 아니라 시장 흔들림"] + mid + tail + tail2
+        return [3] + head + [f"{best['d'][5:]} 바닥선을 시장보다 더 크게 깼습니다" + (f" (시장 {mk:+.1f}% · 이 종목 {rebound:+.1f}%)" if mk is not None else "")] + mid + tail + tail2
     rebounded = rebound >= 3 or (last > ma5 and rebound > 0)
     if rebounded and fstate in (1, 2):
-        return [1] + head + ["바닥 확인 · 반등 확인 · 외국인 매도 멈춤"] + mid + tail
+        return [1] + head + ["바닥 확인 · 반등 확인 · 외국인 매도 멈춤"] + mid + tail + tail2
     if rebounded:
-        return [2] + head + ["바닥 확인 · 반등 확인 · 외국인은 아직 파는 중"] + mid + tail
-    return [2] + head + ["바닥 신호는 나왔지만 아직 반등 전"] + mid + tail
+        return [2] + head + ["바닥 확인 · 반등 확인 · 외국인은 아직 파는 중"] + mid + tail + tail2
+    if last < best["c"]:
+        return [2] + head + ["바닥 근처에서 다시 흔들리는 중 — 바닥선 위면 하루 더 봅니다"] + mid + tail + tail2
+    return [2] + head + ["바닥 신호는 나왔지만 아직 반등 전"] + mid + tail + tail2
 
 def judge(rows):
     rows = [r for r in rows if r.get("frgn") is not None]
@@ -399,6 +413,15 @@ def main():
         except Exception as e: print(name, "불가:", e)
     if source is None: sys.exit("데이터 소스 전부 실패")
 
+    IDX = {}
+    for label, sym in (("코스피", "069500"), ("코스닥", "229200")):      # KODEX200 · KODEX 코스닥150 로 시장 대신
+        try:
+            ic = candles_daum(sym, 40)
+            if ic:
+                m = {r["d"].replace("-", "."): r["c"] for r in ic}; m["_last"] = ic[-1]["c"]; IDX[label] = m
+                print("index proxy", label, sym, len(ic))
+        except Exception as e: print("index err", label, e)
+
     def resolve(name):
         k = norm(ALIAS.get(name, name))
         if k in codes: return codes[k]
@@ -441,7 +464,7 @@ def main():
                             rows.insert(0, dict(d=cdd, close=cd[-1]["c"], rate=(cd[-1]["c"] / prev - 1) * 100 if prev else 0,
                                                 inst=k.get("inst"), frgn=k.get("frgn"), hold=rows[0]["hold"]))
                         mi = macd_info(cd); bi = bottom_info(cd, rows)
-                        si = state_info(cd, rows, bi)
+                        si = state_info(cd, rows, bi, IDX.get(mkt))
                         if si is not None and bi:
                             # 반등 기대 점수 100: 고점 대비 낙폭 40 · 올해 주도주 25 · 바닥 상태 15 · 지금 눌림 20
                             def _lin(x, x0, x1, p):
