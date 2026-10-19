@@ -79,10 +79,21 @@ const CAT={0:{l:"분류 없음",c:"t4",act:"분류기에 없는 종목입니다.
 3:{l:"③ 테마 중소형주",c:"t3",act:"반등 때 정리합니다. 본전이 아니라 반등이 기준(−20%가 −10%로 올라온 날). 외국인 안 들어온 급등은 갭상승 후 조정입니다."},
 4:{l:"? 판단 필요",c:"t4",act:"확정 재료가 확인되기 전까지는 ③처럼 대응합니다."}};
 const TODAY_NOTE="10/19 · 코스피 3% 넘게 빠지고 출발(5,488) → 10시 플러스 전환 · 삼성전자 장 전 −6% → 반등 · 오후 1시 45분 잠정: 외국인 코스피 +4,217억 · 기관 +7,733억 순매수, 개인 −1.5조 — 아침에 던진 분들이 제일 싸게 던졌습니다";   // 오늘 시장 한 줄 (직접 고쳐 쓰면 됨, 비우면 안 보임)
-const EVENTS=[   // [날짜, 내용] — 지난 날짜는 자동으로 안 보임
-  ["2026-10-29","빅테크 실적 주간 (메타·MS·구글)"],
-  ["2026-10-29","삼성전자 실적 발표"],
-  ["2026-11-03","미국 중간선거"]];
+const EVENTS=[   // [한국 날짜, 일정, 왜 중요한지, 별(★ 많을수록 중요)] — 지난 날짜는 자동으로 숨김 · 미국 장 마감 후 발표는 한국 다음 날 아침으로 적음
+  ["2026-10-21","10월 1~20일 수출 (반도체)","반도체 수출이 계속 늘면 '회사 문제 아님'이 숫자로 확인",2],
+  ["2026-10-22","한국은행 기준금리 결정","동결 예상 · 총재 발언이 원화·외국인 흐름에 영향",2],
+  ["2026-10-23","미국·유럽 10월 PMI 속보치","미국 경기 숫자 → 금리 걱정이 커지냐 줄어드냐",1],
+  ["2026-10-28","SK하이닉스 3분기 실적 발표","HBM 수요·내년 장기계약·추가 주주환원 — 반도체 방향 1순위",3],
+  ["2026-10-28","마이크로소프트·구글 실적 (아침)","내년에도 데이터센터에 돈 쓴다고 하면 AI 공포 해소",3],
+  ["2026-10-28","삼성전기 실적 발표","AI 서버용 기판(MLCC·FC-BGA) 수요 확인",1],
+  ["2026-10-29","메타·아마존·애플 실적 (아침)","빅테크 투자 계획 → 메모리·장비 주문으로 연결",3],
+  ["2026-10-29","미국 FOMC 금리 결정 (새벽 3시)","금리 올리면 빚 많은 AI 회사 부담 ↑ — 이번 하락의 핵심 변수",3],
+  ["2026-10-29","삼성SDI 실적 발표","ESS·2차전지 방향 확인",1],
+  ["2026-10-29","삼성전자 3분기 실적 발표 (예정)","내년 이익 전망 유지되면 '원금회수 3년' 계산이 맞는 것",3],
+  ["2026-11-01","10월 수출입 동향","반도체 수출 한 달 성적표",2],
+  ["2026-11-04","미국 중간선거 결과 (현지 11/3)","결과에 따라 원전·반도체·방산 vs 2차전지·태양광 갈림",3],
+  ["2026-11-12","11월 옵션 만기일","만기일 전후 대형주 변동성 커짐",1],
+  ["2026-11-18","엔비디아 실적 (아침)","AI 칩 수요 최종 확인 — 하이닉스·삼성 HBM과 직결",3]];
 const HIDE_TOP=3;                       // 상위 몇 종목을 가릴지
 const HOOK_LINK="https://docs.google.com/forms/d/e/1FAIpQLSfwjeWhSGrFjBdtnWSijc4xu_PPPzxVUcUr9-h21Sgx8L8k7w/viewform";   // 안내 링크
 const HOOK_TEXT=`1~3위 종목이 궁금하시면<br>
@@ -136,10 +147,16 @@ function renderGauge(){
 let rankMkt="코스닥";
 function renderEvents(){
   const E=document.getElementById("events"), now=new Date(); now.setHours(0,0,0,0);
-  const ev=EVENTS.map(([d,t])=>({d,t,n:Math.round((new Date(d+"T00:00:00")-now)/864e5)})).filter(e=>e.n>=0);
+  const ev=EVENTS.map(([d,t,w,s])=>({d,t,w,s,n:Math.round((new Date(d+"T00:00:00")-now)/864e5)})).filter(e=>e.n>=0);
   if(!ev.length) return;
+  const wk=e=>e.n<=6-((now.getDay()+6)%7)?"이번 주":e.n<=13-((now.getDay()+6)%7)?"다음 주":"그 다음";
+  let open=false;
+  const row=e=>`<div class="rk" style="align-items:flex-start"><span class="no" style="min-width:52px;font-weight:800;color:${e.n<=1?"var(--red)":"var(--fg)"}">${e.n===0?"오늘":"D-"+e.n}</span>
+<span class="nm" style="white-space:normal">${"★".repeat(e.s)}<span style="color:var(--muted);font-size:11px">${"☆".repeat(3-e.s)}</span> <b>${e.t}</b><br><span class="meta">${e.w}</span></span><span class="sub">${e.d.slice(5).replace("-","/")}</span></div>`;
+  const groups=["이번 주","다음 주","그 다음"].map(g=>[g,ev.filter(e=>wk(e)===g)]).filter(x=>x[1].length);
   E.style.display="block";
-  E.innerHTML=`<b style="font-size:16px">📅 방향을 정할 날짜</b>`+ev.map(e=>`<div class="rk"><span class="no" style="min-width:56px;font-weight:800;color:var(--red)">${e.n===0?"D-day":"D-"+e.n}</span><span class="nm">${e.t}</span><span class="sub">${e.d.slice(5).replace("-","/")}</span></div>`).join("");
+  E.innerHTML=`<b style="font-size:16px">📅 방향을 정할 날짜</b><div class="meta" style="margin:2px 0 4px">★★★ = 반도체·내 계좌에 직접 영향 · 미국 발표는 한국 시간 기준</div>`+
+    groups.map(([g,l],i)=>`<div style="margin-top:8px;font-weight:700;font-size:13px;color:var(--accent)">${g}</div>`+(i<2?l.map(row).join(""):`<details><summary class="meta" style="cursor:pointer">${l.length}개 더 보기</summary>${l.map(row).join("")}</details>`)).join("");
 }
 function frgnAmt(r){let s=0;for(const x of r.days.slice(0,r.st)){if(x.frgn!=null)s+=x.frgn*x.close;}return s/1e8;}
 function renderRank(){
