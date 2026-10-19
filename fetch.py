@@ -529,7 +529,12 @@ def main():
         print("GAUGE", gauge)
     inv_base = next((d["d"] for d in ok[0]["days"] if d["frgn"] is not None), "") if ok else ""
     px_base = ok[0]["days"][0]["d"] if ok else ""
-    data = dict(updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
+    mktchg = {}
+    for lb, m in IDX.items():
+        ks = sorted(k for k in m if k != "_last")
+        if len(ks) >= 2 and m[ks[-2]]:
+            mktchg[lb] = [ks[-1], round((m[ks[-1]] / m[ks[-2]] - 1) * 100, 2)]
+    data = dict(mkt=mktchg, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
                 gauge=gauge, rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
