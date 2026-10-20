@@ -160,6 +160,35 @@ def candles_daum(code, n=130):
     return None
 CANDLE_DEBUG = [False]
 
+def ind_info(cd, idx=None):
+    """세부 지표: [ma5,ma20,ma60,ma120(현재가 대비 %), 배열(1정/-1역/0), 6개월고점, 고점대비%, 6개월저점, 저점대비%,
+    거래량배수(오늘/20일평균), 평소흔들림%(20일 평균 일간 변동폭), 20일수익률%, 시장20일수익률%, 20일최저, 20일최고]"""
+    try:
+        cl = [x["c"] for x in cd]; vs = [x.get("v") or 0 for x in cd]; px = cl[-1]
+        def ma(n): return sum(cl[-n:]) / n if len(cl) >= n else None
+        mas = [ma(5), ma(20), ma(60), ma(120)]
+        pos = [None if m is None else round((px / m - 1) * 100, 1) for m in mas]
+        arr = 0
+        if all(m is not None for m in mas):
+            arr = 1 if mas[0] > mas[1] > mas[2] > mas[3] else -1 if mas[0] < mas[1] < mas[2] < mas[3] else 0
+        hi = max(x["h"] for x in cd); lo = min(x["l"] for x in cd)
+        v20 = [v for v in vs[-21:-1] if v]
+        volx = round(vs[-1] / (sum(v20) / len(v20)), 1) if v20 and vs[-1] else None
+        ch = [abs(cl[i] / cl[i - 1] - 1) * 100 for i in range(max(1, len(cl) - 20), len(cl)) if cl[i - 1]]
+        swing = round(sum(ch) / len(ch), 1) if ch else None
+        ret20 = round((px / cl[-21] - 1) * 100, 1) if len(cl) > 21 and cl[-21] else None
+        mret = None
+        if idx:
+            ks = sorted(k for k in idx if k != "_last")
+            d20 = cd[-21]["d"].replace("-", ".") if len(cd) > 21 else None
+            if d20 and d20 in idx and ks:
+                mret = round((idx[ks[-1]] / idx[d20] - 1) * 100, 1)
+        l20 = min(x["l"] for x in cd[-20:]); h20 = max(x["h"] for x in cd[-20:])
+        return [pos[0], pos[1], pos[2], pos[3], arr, round(hi), round((px / hi - 1) * 100, 1), round(lo), round((px / lo - 1) * 100, 1),
+                volx, swing, ret20, mret, round(l20), round(h20)]
+    except Exception as e:
+        print("ind err", e); return None
+
 def macd_calc(closes, fast=12, slow=26, sig=9):
     def ema(xs, n):
         k = 2 / (n + 1); e = xs[0]; out = [e]
@@ -452,7 +481,7 @@ def main():
         for i in range(3):
             try:
                 rows = source(code)
-                mi = bi = si = None
+                mi = bi = si = ii = None
                 try:
                     cd = candles_daum(code)
                     if cd:
@@ -463,7 +492,7 @@ def main():
                             k = KRX_TODAY.get(code, {}) if cdd == KRX_DATE else {}
                             rows.insert(0, dict(d=cdd, close=cd[-1]["c"], rate=(cd[-1]["c"] / prev - 1) * 100 if prev else 0,
                                                 inst=k.get("inst"), frgn=k.get("frgn"), hold=rows[0]["hold"]))
-                        mi = macd_info(cd); bi = bottom_info(cd, rows)
+                        mi = macd_info(cd); bi = bottom_info(cd, rows); ii = ind_info(cd, IDX.get(mkt))
                         si = state_info(cd, rows, bi, IDX.get(mkt))
                         if si is not None and bi:
                             # 반등 기대 점수 100: 고점 대비 낙폭 40 · 올해 주도주 25 · 바닥 상태 15 · 지금 눌림 20
@@ -475,7 +504,7 @@ def main():
                     print("candle err", code, e)
                 j = judge(rows)
                 sec = SECN.get(norm(name)) or SECN.get(norm(disp)) or ""
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, **j)
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
@@ -497,7 +526,7 @@ def main():
     ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind")] for r in ok]
     import collections as _c
     print("STATE", _c.Counter((r.get("state") or [None])[0] for r in ok))
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
