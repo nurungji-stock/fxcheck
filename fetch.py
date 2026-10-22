@@ -411,6 +411,23 @@ def krx_investor_today(ymd):
                 print(f"KRX {mkt} {key} 실패: {e}")
     return out
 
+ELEC_SLUGS = {"house": "which-party-will-win-the-house-in-2026", "senate": "which-party-will-win-the-senate-in-2026"}
+def elec_odds():
+    """미국 중간선거 하원·상원 민주당 승리 확률(폴리마켓). 실패하면 None."""
+    out = {}
+    try:
+        for k, slug in ELEC_SLUGS.items():
+            ev = requests.get("https://gamma-api.polymarket.com/events", params={"slug": slug}, timeout=15).json()[0]
+            for m in ev["markets"]:
+                if (m.get("groupItemTitle") or "").startswith("Democratic") and m.get("outcomePrices"):
+                    out[k] = round(float(json.loads(m["outcomePrices"])[0]) * 100, 1)
+        if len(out) == 2:
+            out["at"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).astimezone(datetime.timezone(datetime.timedelta(hours=9))).strftime("%m/%d %H:%M")
+            print("ELEC", out); return out
+    except Exception as e:
+        print("ELEC FAIL", e)
+    return None
+
 def main():
     stocks = json.load(open("stocks.json", encoding="utf-8"))          # [[이름, 분류], ...]
     try: SEC = json.load(open("sectors.json", encoding="utf-8"))        # {이름: 섹터}
@@ -564,7 +581,7 @@ def main():
         if len(ks) >= 2 and m[ks[-2]]:
             mktchg[lb] = [ks[-1], round((m[ks[-1]] / m[ks[-2]] - 1) * 100, 2)]
     data = dict(mkt=mktchg, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
-                gauge=gauge, rows=compact, missing=[b["name"] for b in bad if b["cat"]])
+                gauge=gauge, elec=elec_odds(), rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
 

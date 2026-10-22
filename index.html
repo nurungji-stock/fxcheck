@@ -140,6 +140,19 @@ th:first-child,td:first-child{text-align:left}.up{color:var(--red)}.dn{color:var
 .vleg div.on{color:var(--fg);font-weight:700}
 .kw{display:inline-block;font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:10px;background:var(--bg);color:var(--fg);margin:3px 4px 0 0}
 .kws{display:flex;flex-wrap:wrap}
+.eh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}.eh b{font-size:16px}.eh .dd{font-size:13px;font-weight:800;color:var(--red)}
+.ech{margin:12px 0 4px}.ech .el{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}.ech .el b{font-size:14px}
+.eb{display:flex;height:22px;border-radius:6px;overflow:hidden;font-size:12px;font-weight:700;color:#fff}.eb i{display:flex;align-items:center;font-style:normal;padding:0 8px;white-space:nowrap;transition:width .6s}
+.eb .d{background:#2F5FD0}.eb .r{background:#D0352B;justify-content:flex-end}
+.esrc{font-size:11.5px;color:var(--muted);margin-top:6px}
+.elike{margin:14px 0 4px;padding:12px 14px;border-radius:12px;background:var(--bg)}.elike small{font-size:12px;color:var(--muted)}.elike b{display:block;font-size:18px;letter-spacing:-.3px;margin-top:1px}
+.et{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 8px}.et button{font:inherit;font-size:12.5px;font-weight:600;line-height:1.3;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;position:relative}
+.et button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}.et button em{position:absolute;top:-8px;right:6px;font-style:normal;font-size:10px;font-weight:800;background:var(--red);color:#fff;border-radius:8px;padding:1px 6px}
+.ehd{font-size:14px;font-weight:700;line-height:1.5;margin:4px 0 6px}
+.es{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)}.es .n{flex:0 0 22px;height:22px;border-radius:11px;background:var(--fg);color:var(--bg);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.es .s{font-size:15px;font-weight:800}.es .k{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:1px}
+.ew{font-size:13px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}.ew b{color:var(--blue)}
+.ehist{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;text-align:center}.ehist div{background:var(--bg);border-radius:10px;padding:8px 2px}.ehist small{display:block;font-size:11px;color:var(--muted)}.ehist b{font-size:16px}.ehist span{display:block;font-size:11px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -165,6 +178,9 @@ th:first-child,td:first-child{text-align:left}.up{color:var(--red)}.dn{color:var
 <div class="card" id="verdict" style="display:none"></div>
 <div class="card" id="mine"></div>
 <div class="card" id="board" style="display:none"></div>
+
+<div class="sec">미국 중간선거</div>
+<div class="card" id="elec"></div>
 
 <div class="sec">랭킹</div>
 <div class="tabs" id="tabs">
@@ -228,6 +244,47 @@ const EVENTS=[   // [한국 날짜, 일정, 왜 중요한지, 별(★ 많을수�
   ["2026-11-04","미국 중간선거 결과 (현지 11/3)","결과에 따라 원전·반도체·방산 vs 2차전지·태양광 갈림",3],
   ["2026-11-12","11월 옵션 만기일","만기일 전후 대형주 변동성 커짐",1],
   ["2026-11-18","엔비디아 실적 (아침)","AI 칩 수요 최종 확인 — 하이닉스·삼성 HBM과 직결",3]];
+const ELEC_DAY="2026-11-04";           // 한국 시간 결과 나오는 날 (현지 11/3)
+const ELEC_FALLBACK={house:92.5,senate:66.5,at:"10/22 15:03"};   // 실시간 못 불러올 때 쓰는 값 (민주당 승리 확률 %)
+const ELEC_SC={   // 시나리오별 섹터 순위 — 여기 고치면 됨 [섹터, 키워드]
+ dd:{t:"민주당<br>상·하원",h:"트럼프 정책이 의회에서 막힘 — 관세·감세 연장 제동, 친환경 지원 축소 멈춤",
+  s:[["2차전지·ESS","IRA 보조금 축소 제동 · 북미 공장 수혜"],["태양광·풍력","친환경 예산 방어"],["반도체","양당 공통 지원 · 불확실성 해소"],["바이오시밀러","약가 인하 압박 → 저가 복제약 수요"],["조선","미국 조선업 재건 · 양당 공통"]],
+  w:"방산 · 석유화학"},
+ dr:{t:"하원 민주<br>상원 공화",h:"법은 잘 안 바뀌고 예산 싸움 — 양당이 같이 미는 쪽만 갑니다",
+  s:[["반도체","양당 공통 지원 · 불확실성 해소"],["조선","미국 조선업 재건 · 초당적"],["원전·전력설비","양당 모두 원전 확대 · AI 전력 수요"],["방산","상원 공화가 국방예산 방어"],["2차전지","하원 민주가 보조금 축소 일부 방어"]],
+  w:"바이오(약가) · 관세 민감 소비재"},
+ rr:{t:"공화당<br>상·하원",h:"트럼프 정책 그대로 — 감세·규제 완화·관세 유지",
+  s:[["방산","국방예산 확대 지속"],["원전·전력설비","에너지 규제 완화 · 원전 확대"],["조선","미국 조선업 재건 정책 지속"],["LNG·가스설비","화석연료 수출 확대"],["반도체","AI 규제 완화 · 단, 관세 변수"]],
+  w:"2차전지 · 태양광 (IRA 축소 가속)"}};
+let elecSel=null, elecOdds=null;
+function elecKey(o){return o.house>=50?(o.senate>=50?"dd":"dr"):(o.senate>=50?"dr":"rr");}
+function renderElec(){
+  const E=document.getElementById("elec"); if(!E) return;
+  const o=elecOdds||(D&&D.elec)||ELEC_FALLBACK, live=!!elecOdds, like=elecKey(o); if(!elecSel) elecSel=like;
+  const now=new Date(); now.setHours(0,0,0,0); const dd=Math.round((new Date(ELEC_DAY+"T00:00:00")-now)/864e5);
+  const bar=(lb,p)=>{const d=Math.round(p),r=100-d;return `<div class="ech"><div class="el"><b>${lb}</b><span><span style="color:#2F5FD0;font-weight:700">민주 ${d}%</span> · <span style="color:#D0352B;font-weight:700">공화 ${r}%</span></span></div><div class="eb"><i class="d" style="width:${d}%">${d>=15?d+"%":""}</i><i class="r" style="width:${r}%">${r>=15?r+"%":""}</i></div></div>`;};
+  const sc=ELEC_SC[elecSel];
+  E.innerHTML=`<div class="eh"><b>누가 이길까</b><span class="dd">${dd>0?"D-"+dd:dd===0?"오늘 결과":"결과 발표됨"} · 한국시간 11/4</span></div>
+${bar("하원",o.house)}${bar("상원",o.senate)}
+<div class="esrc">폴리마켓 베팅 확률 · ${live?"실시간":o.at+" 기준"} · 1분마다 갱신</div>
+<div class="elike"><small>지금 가장 유력한 결과</small><b>${ELEC_SC[like].t.replace("<br>"," ")}</b></div>
+<div class="et">${Object.entries(ELEC_SC).map(([k,v])=>`<button data-k="${k}" class="${k===elecSel?"on":""}">${v.t}${k===like?"<em>유력</em>":""}</button>`).join("")}</div>
+<div class="ehd">${sc.h}</div>
+${sc.s.map(([n,k],i)=>`<div class="es"><span class="n">${i+1}</span><div><div class="s">${n}</div><div class="k">${k}</div></div></div>`).join("")}
+<div class="ew">약해질 수 있는 쪽 · <b>${sc.w}</b></div>
+<details class="sub2"><summary>선거 끝나면 시장은 어땠나 ▾</summary>
+<div class="meta">1962년 이후 중간선거 16번, 미국 S&P500 평균 (US뱅크)</div>
+<div class="ehist"><div><small>선거 전 1년</small><b class="dn">−1.0%</b><span>평소 +11.2%</span></div><div><small>선거 후 3개월</small><b class="up">+7.3%</b><span>평소 +2.9%</span></div><div><small>6개월</small><b class="up">+15.1%</b><span>평소 +4.2%</span></div><div><small>1년</small><b class="up">+16.3%</b><span>평소 +6.4%</span></div></div>
+<div class="meta" style="margin-top:6px">선거 전엔 흔들리고, 결과가 정해지면 돈이 다시 움직였습니다.</div></details>
+<div class="rwarn" style="margin-top:8px">⚠ 확률은 해외 예측시장 베팅 가격이고, 섹터 순위는 정책 방향을 바탕으로 정리한 참고용 시나리오입니다. 매수 추천이 아닙니다.</div>`;
+  E.querySelectorAll(".et button").forEach(b=>b.onclick=()=>{elecSel=b.dataset.k;renderElec();});
+}
+function loadElec(){
+  const S={house:"which-party-will-win-the-house-in-2026",senate:"which-party-will-win-the-senate-in-2026"};
+  Promise.all(Object.entries(S).map(([k,slug])=>fetch("https://gamma-api.polymarket.com/events?slug="+slug).then(r=>r.json()).then(d=>{
+    const m=d[0].markets.find(x=>(x.groupItemTitle||"").startsWith("Democratic")&&x.outcomePrices);return [k,parseFloat(JSON.parse(m.outcomePrices)[0])*100];})))
+  .then(a=>{const o=Object.fromEntries(a);if(o.house>=0&&o.senate>=0){elecOdds=o;renderElec();}}).catch(()=>{});
+}
 const HIDE_TOP=0;                       // 상위 몇 종목을 가릴지
 const HOOK_LINK="https://docs.google.com/forms/d/e/1FAIpQLSfwjeWhSGrFjBdtnWSijc4xu_PPPzxVUcUr9-h21Sgx8L8k7w/viewform";   // 안내 링크
 const HOOK_TEXT=`1~3위 종목이 궁금하시면<br>
@@ -242,6 +299,7 @@ const norm=s=>(s||"").replace(/\s+/g,"").toLowerCase();
 const fmt=v=>{if(v==null)return "집계 중";v=Math.round(v);return (v>0?"+":"")+v.toLocaleString()};
 const vcls=m=>m==="●"?"vh":m==="◐"?"vm":"vl";
 let D=null, filt="hot", mkt="all";
+renderElec(); loadElec(); setInterval(loadElec,60000);
 fetch("data.json?t="+Date.now()).then(r=>r.json()).then(d=>{
   D=d; D.rows=d.rows.map(r=>Array.isArray(r)?{name:r[0],cat:r[1],code:r[2],mkt:r[3],mark:r[4],txt:r[5],st:r[6],ss:r[7],s3:r[8],s5:r[9],
     days:r[10].map(x=>({d:x[0],close:x[1],rate:x[2],inst:x[3],frgn:x[4],hold:x[5]})),macd:r[11]||null,bot:r[12]||null,sec:r[13]||"",state:r[14]||null,ind:r[15]||null}:r);
@@ -260,6 +318,7 @@ function init(){
   if(TODAY_NOTE){const n=document.getElementById("todaynote");n.innerHTML=`<span class="nt"></span>`;n.firstChild.textContent=TODAY_NOTE;n.style.display="block";n.title="눌러서 전체 보기";}
   renderGauge();
   renderEvents();
+  renderElec();
   renderMine();
   renderBoard();
   renderRank();
