@@ -140,6 +140,7 @@ th:first-child,td:first-child{text-align:left}.up{color:var(--red)}.dn{color:var
 .vleg div.on{color:var(--fg);font-weight:700}
 .kw{display:inline-block;font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:10px;background:var(--bg);color:var(--fg);margin:3px 4px 0 0}
 .kws{display:flex;flex-wrap:wrap}
+.eh2{display:flex;justify-content:space-between;align-items:center}.eh2 .link{padding:0;font-size:13px;font-weight:500}
 .eh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}.eh b{font-size:16px}.eh .dd{font-size:13px;font-weight:800;color:var(--red)}
 .ech{margin:12px 0 4px}.ech .el{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}.ech .el b{font-size:14px}
 .eb{display:flex;height:22px;border-radius:6px;overflow:hidden;font-size:12px;font-weight:700;color:#fff}.eb i{display:flex;align-items:center;font-style:normal;padding:0 8px;white-space:nowrap;transition:width .6s}
@@ -179,8 +180,8 @@ th:first-child,td:first-child{text-align:left}.up{color:var(--red)}.dn{color:var
 <div class="card" id="mine"></div>
 <div class="card" id="board" style="display:none"></div>
 
-<div class="sec">미국 중간선거</div>
-<div class="card" id="elec"></div>
+<div id="elecwrap"><div class="sec eh2">미국 중간선거<button class="link" id="elecTog"></button></div>
+<div class="card" id="elec"></div></div>
 
 <div class="sec">랭킹</div>
 <div class="tabs" id="tabs">
@@ -244,6 +245,7 @@ const EVENTS=[   // [한국 날짜, 일정, 왜 중요한지, 별(★ 많을수�
   ["2026-11-04","미국 중간선거 결과 (현지 11/3)","결과에 따라 원전·반도체·방산 vs 2차전지·태양광 갈림",3],
   ["2026-11-12","11월 옵션 만기일","만기일 전후 대형주 변동성 커짐",1],
   ["2026-11-18","엔비디아 실적 (아침)","AI 칩 수요 최종 확인 — 하이닉스·삼성 HBM과 직결",3]];
+const SHOW_ELEC=true;                 // false 로 바꾸면 중간선거 칸 전체가 사이트에서 사라짐
 const ELEC_DAY="2026-11-04";           // 한국 시간 결과 나오는 날 (현지 11/3)
 const ELEC_FALLBACK={house:92.5,senate:66.5,at:"10/22 15:03"};   // 실시간 못 불러올 때 쓰는 값 (민주당 승리 확률 %)
 const ELEC_SC={   // 시나리오별 섹터 순위 — 여기 고치면 됨 [섹터, 키워드]
@@ -258,8 +260,13 @@ const ELEC_SC={   // 시나리오별 섹터 순위 — 여기 고치면 됨 [섹
   w:"2차전지 · 태양광 (IRA 축소 가속)"}};
 let elecSel=null, elecOdds=null;
 function elecKey(o){return o.house>=50?(o.senate>=50?"dd":"dr"):(o.senate>=50?"dr":"rr");}
+let elecHide=false; try{elecHide=localStorage.getItem("nurungji_elec_hide")==="1"}catch(e){}
 function renderElec(){
-  const E=document.getElementById("elec"); if(!E) return;
+  const W=document.getElementById("elecwrap"), E=document.getElementById("elec"), T=document.getElementById("elecTog"); if(!E) return;
+  if(!SHOW_ELEC){W.style.display="none";return;}
+  T.textContent=elecHide?"펼치기 ▾":"접기 ▴";
+  T.onclick=()=>{elecHide=!elecHide;try{localStorage.setItem("nurungji_elec_hide",elecHide?"1":"0")}catch(e){}renderElec();};
+  E.style.display=elecHide?"none":"block"; if(elecHide) return;
   const o=elecOdds||(D&&D.elec)||ELEC_FALLBACK, live=!!elecOdds, like=elecKey(o); if(!elecSel) elecSel=like;
   const now=new Date(); now.setHours(0,0,0,0); const dd=Math.round((new Date(ELEC_DAY+"T00:00:00")-now)/864e5);
   const bar=(lb,p)=>{const d=Math.round(p),r=100-d;return `<div class="ech"><div class="el"><b>${lb}</b><span><span style="color:#2F5FD0;font-weight:700">민주 ${d}%</span> · <span style="color:#D0352B;font-weight:700">공화 ${r}%</span></span></div><div class="eb"><i class="d" style="width:${d}%">${d>=15?d+"%":""}</i><i class="r" style="width:${r}%">${r>=15?r+"%":""}</i></div></div>`;};
