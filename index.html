@@ -141,6 +141,50 @@ th:first-child,td:first-child{text-align:left}.up{color:var(--red)}.dn{color:var
 .kw{display:inline-block;font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:10px;background:var(--bg);color:var(--fg);margin:3px 4px 0 0}
 .kws{display:flex;flex-wrap:wrap}
 .nx2{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)}.nx2:first-of-type{border-top:0}.nx2 .tag{flex:0 0 auto;margin-top:2px}.nx2 b{font-size:14.5px}.nx2 .meta{line-height:1.5;margin-top:1px}
+.mq{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.mq>div{border:1px solid var(--line);border-radius:12px;padding:8px 6px;min-height:92px;overflow:hidden}
+.mq .ml{font-size:12px;color:var(--muted);text-align:center}.mq .fb{text-align:center;font-size:18px;font-weight:800;margin-top:10px}.mq .fb small{display:block;font-size:12px;font-weight:600}
+.mguide{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:8px}.mguide b{color:var(--fg)}
+@media(max-width:420px){.mq{grid-template-columns:1fr}}
+.warn{margin-top:8px;padding:10px 12px;border-radius:10px;background:#fbf1d6;color:#5a4300;font-size:13.5px;line-height:1.65}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .warn{background:#3a3012;color:#f0d27a}}:root[data-theme="dark"] .warn{background:#3a3012;color:#f0d27a}
+.pl3{margin-top:10px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.p3{display:grid;grid-template-columns:10px 1fr;column-gap:10px;padding:10px 12px;border-top:1px solid var(--line);font-size:15px}.p3:first-child{border-top:0}
+.p3 i{grid-row:1/3;border-radius:5px}.p3.q3u i{background:#C0392B}.p3.q3n i{background:var(--muted)}.p3.q3d i{background:#3B5BC4}.p3.q3n{background:var(--bg)}.p3>div{border:0;padding:0;margin:0;background:none}
+.p3 .pr{font-size:14px;color:var(--muted)}.p3 .pr b.up{color:#C0392B}.p3 .pr b.dn{color:#3B5BC4}
+.why{margin-top:10px;font-size:13.5px}.why summary{cursor:pointer;color:var(--muted);font-weight:700}.why summary small{font-weight:400}
+.p3{display:grid;grid-template-columns:10px 1fr;column-gap:10px;row-gap:2px}.p3>i{grid-row:1/6}.p3 .ph small{font-size:13px;color:var(--muted);margin-left:2px}
+.p3 .pa2{font-size:17px;font-weight:800;letter-spacing:-.3px}.q3u .pa2{color:#C0392B}.q3d .pa2{color:#3B5BC4}
+.more{margin-top:4px;font-size:13.5px;line-height:1.65}.more summary{cursor:pointer;color:var(--muted);font-size:12.5px;font-weight:700;list-style:none}.more summary::before{content:"▸ "}.more[open] summary::before{content:"▾ "}
+.more p{margin:6px 0}.more ul{margin:4px 0;padding-left:16px}.more li{margin:3px 0}
+.lnow2{padding:7px 12px;background:var(--bg);font-size:14px;font-weight:700;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.myp{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.myp>div{background:var(--bg);border-radius:10px;padding:8px 10px}.myp small{display:block;font-size:12px;color:var(--muted)}.myp b{font-size:17px}.myp b.up{color:#C0392B}.myp b.dn{color:#3B5BC4}
+.ssc{margin-top:2px}.cmf{font-size:16px;font-weight:700;line-height:1.55;letter-spacing:-.2px;padding:12px 14px;border-radius:12px;background:var(--bg)}
+.cmf small{display:block;font-size:13px;font-weight:400;color:var(--muted);margin-top:3px}
+.todo{margin-top:10px;padding:12px 14px;border-radius:12px;border:2px solid var(--line)}.todo .tdl{font-size:12px;color:var(--muted)}.todo .tw{font-size:19px;font-weight:800;letter-spacing:-.3px;margin:2px 0}.todo .tn{font-size:13.5px;line-height:1.6}
+.todo.kg{border-color:#1B7A3E}.todo.kg .tw{color:#1B7A3E}.todo.ky{border-color:#D4A017}.todo.ky .tw{color:#A86B00}.todo.kr{border-color:#C0392B}.todo.kr .tw{color:#C0392B}
+.wk{margin-top:12px}.wkt{font-size:13px;font-weight:700;margin-bottom:6px}.wkb{position:relative;height:10px;border-radius:6px;background:linear-gradient(90deg,#e8a29a,#e3e4e8 45%,#e3e4e8 55%,#9ccfae)}
+.wkb i{position:absolute;top:-4px;width:4px;height:18px;margin-left:-2px;border-radius:2px;background:var(--fg)}.wkb i.av{background:var(--blue)}
+.wkl{display:flex;justify-content:space-between;font-size:12.5px;margin-top:5px}.wkl b{font-size:14px}.wkl .r{text-align:right}
+.wkp{font-size:14px;line-height:1.6;margin-top:8px}.lean{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:10px;margin-right:4px}.lean.g{background:#e3f4e9;color:#1B7A3E}.lean.y{background:#fbf1d6;color:#8a5a00}.lean.r{background:#fbe6e3;color:#C0392B}
+.sigs{margin-top:12px}.sigt{font-size:13px;font-weight:700;margin-bottom:6px}.sg{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;line-height:1.5;padding:5px 0;border-top:1px dashed var(--line)}.sg:first-of-type{border-top:0}
+.sg em{flex:none;width:auto;display:inline-block;font-style:normal;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:9px;margin-top:1px}.sg em.sgg{background:#e3f4e9;color:#1B7A3E}.sg em.sgb{background:#fbe6e3;color:#C0392B}.sg em.sgn{background:var(--bg);color:var(--muted)}
+.sg small{color:var(--muted)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .todo.kg .tw{color:#7fd39b}:root:not([data-theme="light"]) .todo.ky .tw{color:#e8c167}:root:not([data-theme="light"]) .todo.kr .tw{color:#f19585}:root:not([data-theme="light"]) .sg em.sgg,:root:not([data-theme="light"]) .lean.g{background:#163a24;color:#9fe0b4}:root:not([data-theme="light"]) .sg em.sgb,:root:not([data-theme="light"]) .lean.r{background:#45201c;color:#f4a79b}:root:not([data-theme="light"]) .lean.y{background:#3a3012;color:#f0d27a}:root:not([data-theme="light"]) .wkb{background:linear-gradient(90deg,#7a3a33,#33343a 45%,#33343a 55%,#2f6b45)}}
+:root[data-theme="dark"] .todo.kg .tw{color:#7fd39b}:root[data-theme="dark"] .todo.ky .tw{color:#e8c167}:root[data-theme="dark"] .todo.kr .tw{color:#f19585}:root[data-theme="dark"] .sg em.sgg,:root[data-theme="dark"] .lean.g{background:#163a24;color:#9fe0b4}:root[data-theme="dark"] .sg em.sgb,:root[data-theme="dark"] .lean.r{background:#45201c;color:#f4a79b}:root[data-theme="dark"] .lean.y{background:#3a3012;color:#f0d27a}:root[data-theme="dark"] .wkb{background:linear-gradient(90deg,#7a3a33,#33343a 45%,#33343a 55%,#2f6b45)}
+.ladder{border-left:3px solid var(--line);margin:6px 0 0 6px;padding-left:14px}
+.ld{position:relative;padding:8px 0}.ld:before{content:"";position:absolute;left:-21px;top:14px;width:11px;height:11px;border-radius:6px;background:var(--line)}
+.ld.lu:before{background:#1B7A3E}.ld.lb:before{background:#C0392B}.ld.lmid:before{background:#D4A017}
+.lp{font-size:13.5px;color:var(--muted)}.lp b{color:var(--fg);font-size:15px}.lp small{font-size:12px;margin-left:4px}
+.la{font-size:19px;font-weight:800;letter-spacing:-.3px;margin-top:2px}.la.kg{color:#1B7A3E}.la.ky{color:#A86B00}.la.kr{color:#C0392B}
+.ln{font-size:12.5px;color:var(--muted)}
+.lnow{position:relative;margin:4px 0;font-size:12.5px;font-weight:700}.lnow span{background:var(--fg);color:var(--bg);padding:3px 10px;border-radius:10px;display:inline-block}.lnow:before{content:"";position:absolute;left:-22px;top:6px;width:13px;height:13px;border-radius:7px;background:var(--fg);box-shadow:0 0 0 3px var(--card)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .la.kg{color:#7fd39b}:root:not([data-theme="light"]) .la.ky{color:#e8c167}:root:not([data-theme="light"]) .la.kr{color:#f19585}}
+.avg{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;border:1px dashed var(--line);border-radius:10px;font-size:13px}.avg input{width:120px;padding:6px 8px;font-size:14px;border-width:1px;border-radius:8px}
+.bigp{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--bg)}.bpt{font-size:13px;font-weight:700;margin-bottom:8px}
+.bpbar{position:relative;height:8px;border-radius:4px;background:linear-gradient(90deg,#3B5BC4,#ddd,#C0392B);margin:6px 4px}
+.bpbar i{position:absolute;top:-5px;width:4px;height:18px;border-radius:2px;transform:translateX(-2px)}
+i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
+.bpl{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:4px}
+.bpk{display:flex;gap:10px;font-size:11.5px;color:var(--muted);margin-top:4px}.bpk i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px;vertical-align:0}
 .eh2{display:flex;justify-content:space-between;align-items:center}.eh2 .link{padding:0;font-size:13px;font-weight:500}
 .eh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}.eh b{font-size:16px}.eh .dd{font-size:13px;font-weight:800;color:var(--red)}
 .ech{margin:12px 0 4px}.ech .el{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}.ech .el b{font-size:14px}
@@ -179,6 +223,7 @@ th:first-child,td:first-child{text-align:left}.up{color:var(--red)}.dn{color:var
 
 <div class="card" id="verdict" style="display:none"></div>
 <div class="card" id="next" style="display:none"></div>
+<div class="card" id="macro"></div>
 <div class="card" id="mine"></div>
 <div class="card" id="board" style="display:none"></div>
 
@@ -267,6 +312,25 @@ function renderNext(){
    (rest.length?`<details class="sub2"><summary>${rest.length}개 더 보기 ▾</summary>${rest.map(row).join("")}</details>`:"");
   E.style.display="block";
 }
+const MACRO=[["us10y","미국 10년물 금리","PYTH:US10Y","%"],["wti","WTI 유가","TVC:USOIL","$"],["brent","브렌트 유가","TVC:UKOIL","$"]];
+function renderMacro(){
+  const E=document.getElementById("macro"); if(!E) return;
+  const dark=matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.dataset.theme!=="light";
+  const m=(D&&D.macro)||null;
+  E.innerHTML=`<div class="mh"><b>유가 · 미국 금리</b><span class="meta">실시간</span></div>
+<div class="mq">${MACRO.map(([k,lb,sym,u])=>{const f=m&&m[k];return `<div><div class="ml">${lb}</div><div class="tvw" data-sym="${sym}"></div><div class="fb" data-fb="${k}" style="display:none">${f?(u==="$"?"$":"")+f[0]+(u==="%"?"%":"")+`<small class="${f[1]>0?"up":"dn"}">${f[1]>0?"+":""}${f[1]}%</small>`:"-"}</div></div>`}).join("")}</div>
+<div class="mguide">※ 이 칸은 미국식 색깔이라 <b>초록 = 오름</b>, 빨강 = 내림입니다<br>둘 다 <b>오르는 날</b> → 다음 날 아침 우리 시장 갭 하락 가능성 ↑ (기름값 → 물가 → 금리 걱정 → 반도체·성장주 부담)<br>둘 다 <b>내리는 날</b> → 외국인이 돌아오기 편한 날</div>
+${m?`<div class="esrc">위젯이 안 보이면 ${m.at} 저장값이 대신 표시됩니다</div>`:""}`;
+  let loaded=0;
+  E.querySelectorAll(".tvw").forEach(el=>{
+    const sc=document.createElement("script"); sc.src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js"; sc.async=true;
+    sc.textContent=JSON.stringify({symbol:el.dataset.sym,width:"100%",isTransparent:true,colorTheme:dark?"dark":"light",locale:"kr"});
+    const w=document.createElement("div"); w.className="tradingview-widget-container"; const ww=document.createElement("div"); ww.className="tradingview-widget-container__widget";
+    w.appendChild(ww); w.appendChild(sc); el.appendChild(w);
+    sc.onload=()=>{loaded++;}; sc.onerror=()=>{};
+  });
+  setTimeout(()=>{ if(!E.querySelector(".tvw iframe")) E.querySelectorAll(".fb").forEach(x=>x.style.display="block"); },6000);
+}
 const SHOW_ELEC=true;                 // false 로 바꾸면 중간선거 칸 전체가 사이트에서 사라짐
 const ELEC_DAY="2026-11-04";           // 한국 시간 결과 나오는 날 (현지 11/3)
 const ELEC_FALLBACK={house:92.5,senate:66.5,at:"10/22 15:03"};   // 실시간 못 불러올 때 쓰는 값 (민주당 승리 확률 %)
@@ -347,6 +411,7 @@ function init(){
   if(TODAY_NOTE){const n=document.getElementById("todaynote");n.innerHTML=`<span class="nt"></span>`;n.firstChild.textContent=TODAY_NOTE;n.style.display="block";n.title="눌러서 전체 보기";}
   renderGauge();
   renderEvents();
+  renderMacro();
   renderElec();
   renderMine();
   renderBoard();
@@ -607,26 +672,170 @@ function detailBox(r){
   const grid=`<div class="tg4">${tiles.map(([n,c,w,s,pos])=>`<div class="tl k${c}"><div class="tn"><i></i>${n}</div><div class="tw">${w}</div><div class="ts">${s}</div>${pos!=null?`<div class="tb"><span style="left:${Math.max(2,Math.min(98,pos))}%"></span></div><div class="tbl"><span>싸다</span><span>비싸다</span></div>`:""}</div>`).join("")}</div>`;
   let extra="";
   if(I){const [,,,,,hi,,lo,,volx,swing,,,l20,h20]=I;
-    extra=`<div class="dx"><div><span>평소 하루 흔들림</span><b>±${swing??"-"}%</b></div><div><span>오늘 거래량</span><b>${volx!=null?"평소의 "+volx+"배":"-"}</b></div><div><span>20일 버팀목</span><b>${l20?won(l20):"-"}</b></div><div><span>20일 넘을 벽</span><b>${h20?won(h20):"-"}</b></div></div>
+    extra=`<div class="dx"><div><span>평소 하루 흔들림</span><b>±${swing??"-"}%</b></div><div><span>오늘 거래량</span><b>${volx!=null?"평소의 "+volx+"배":"-"}</b></div>${(()=>{const L=nearLv(r);return `<div><span>가까운 버팀목</span><b>${L?L.dn.toLocaleString()+"원":"-"}</b></div><div><span>가까운 벽</span><b>${L?L.up.toLocaleString()+"원":"-"}</b></div>`})()}</div>
     <div class="meta" style="margin-top:6px">하루 ±${swing??"-"}% 안쪽 움직임은 이 종목에겐 평소예요. 그보다 크게 빠진 날만 신경 쓰세요.</div>`;}
   return head+grid+extra+`<details class="sub2"><summary>바닥 점수 · MACD 보기</summary>${bottomLine(r)}${macdLine(r)}</details>`;
 }
 // ── 앞으로 이렇게 하세요 (이 종목 숫자로 만든 조건) ──
+function tickOf(p){return p<2000?1:p<5000?5:p<20000?10:p<50000?50:p<200000?100:p<500000?500:1000}
+function nearLv(r){   // 지금 가격 기준 '가까운 벽(위)'과 '가까운 버팀목(아래)' — 어떤 가격인지 이름도 같이
+  const c=r.days&&r.days[0]&&r.days[0].close; if(!c) return null;
+  const I=r.ind||[], s=r.state||[], cand=[];
+  [[I[0],"5일선"],[I[1],"20일선"],[I[2],"60일선"]].forEach(([p,n])=>{if(p!=null&&isFinite(p))cand.push([c/(1+p/100),n])});
+  if(I[14]) cand.push([I[14],"h20"]); if(I[13]) cand.push([I[13],"l20"]); if(s[16]) cand.push([s[16],"bline"]);
+  const ups=cand.filter(([v,n])=>n!=="l20"&&n!=="bline"&&v>c*1.015&&v<=c*1.15).sort((a,b)=>a[0]-b[0]);
+  const dns=cand.filter(([v,n])=>n!=="h20"&&v<c*0.985&&v>=c*0.85).sort((a,b)=>b[0]-a[0]);
+  const u=ups[0]||[c*1.07,"swing"], d=dns[0]||[c*0.93,"swing"];
+  const tu=tickOf(u[0]), td=tickOf(d[0]);
+  return {c, up:Math.ceil(u[0]/tu)*tu, dn:Math.floor(d[0]/td)*td, upPct:Math.round((u[0]/c-1)*100), dnPct:Math.round((1-d[0]/c)*100), upWhy:u[1], dnWhy:d[1]};
+}
+function getAvg(n){try{return (JSON.parse(localStorage.getItem("nurungji_avg")||"{}"))[n]||null}catch(e){return null}}
+function setAvg(n,v){try{const m=JSON.parse(localStorage.getItem("nurungji_avg")||"{}");if(v)m[n]=v;else delete m[n];localStorage.setItem("nurungji_avg",JSON.stringify(m))}catch(e){}}
+function sigList(r){   // 여러 지표를 초보 말로 바꾼 신호 목록 [g/b/n, 제목, 설명]
+  const I=r.ind||[], b=r.bot||[], m=r.macd, t=r.days[0]||{}, out=[];
+  if(I[4]===1) out.push(["g","추세 위로","짧은·긴 평균 가격선이 위로 줄 서 있어요 (이동평균 정배열)"]);
+  else if(I[4]===-1) out.push(["b","추세 아래로","평균 가격선이 아래로 줄 서 있어요 — 한 번에 회복은 어려워요 (역배열)"]);
+  else out.push(["n","추세 섞임","평균 가격선이 엉켜 있어요 — 방향을 정하는 중"]);
+  const rsi=b[1], gap=b[2];
+  if((rsi!=null&&rsi<=30)||(gap!=null&&gap<=88)) out.push(["g","너무 많이 빠짐",`단기간에 과하게 빠진 자리예요 — 되돌림이 나오기 쉬워요 (RSI ${rsi!=null?Math.round(rsi):"-"} · 이격도 ${gap!=null?Math.round(gap):"-"})`]);
+  else if(rsi!=null&&rsi<=40) out.push(["n","빠진 편",`과매도 직전이에요 (RSI ${Math.round(rsi)})`]);
+  else if(rsi!=null&&rsi>=70) out.push(["b","너무 많이 오름",`단기간에 과하게 올랐어요 — 쉬어갈 수 있어요 (RSI ${Math.round(rsi)})`]);
+  if(m){ if(m[3]>=0&&m[3]<=3) out.push(["g","내려가는 힘 꺾임",`${m[3]===0?"오늘":m[3]+"일 전"} 하락 힘이 약해지는 신호가 나왔어요 (MACD 골든크로스)`]);
+    else if(m[0]<m[1]) out.push(["b","아직 내려가는 힘",`내려가는 힘이 아직 더 세요 (MACD 시그널 아래)`]);
+    else out.push(["g","올라가는 힘",`올라가는 힘이 더 세요 (MACD 시그널 위)`]); }
+  const vx=I[9];
+  if(vx!=null&&vx>=2){ if(t.rate<0) out.push([b[3]?"g":"b",b[3]?"투매 뒤 아래꼬리":"거래량 터진 하락",b[3]?`평소 ${vx}배 거래 + 아래꼬리 — 겁먹은 매물이 쏟아진 뒤 받쳐준 모양이에요`:`평소 ${vx}배 거래로 빠졌어요 — 하루 이틀 더 흔들릴 수 있어요`]);
+    else out.push(["g","거래량 실린 상승",`평소 ${vx}배 거래로 올랐어요 — 진짜 돈이 들어온 상승`]); }
+  if(r.st>=3) out.push(["g",`외국인 ${r.st}일 연속 매수`,"큰돈이 꾸준히 사고 있어요"]);
+  else if(r.ss>=3) out.push(["b",`외국인 ${r.ss}일 연속 매도`,b[4]?"다만 파는 양은 줄어드는 중이에요":"큰돈이 계속 빠지는 중이에요"]);
+  else if(r.st>0) out.push(["n","외국인 오늘 매수","하루로는 판단 일러요 — 이틀 연속인지 보세요"]);
+  const rel=(I[11]!=null&&I[12]!=null)?I[11]-I[12]:null;
+  if(rel!=null){ if(rel>=5) out.push(["g","시장보다 강함",`최근 한 달 시장 ${I[12]>0?"+":""}${I[12]}% · 이 종목 ${I[11]>0?"+":""}${I[11]}%`]);
+    else if(rel<=-5) out.push(["b","시장보다 약함",`최근 한 달 시장 ${I[12]>0?"+":""}${I[12]}% · 이 종목 ${I[11]>0?"+":""}${I[11]}%`]);
+    else out.push(["n","시장 따라 움직임",`최근 한 달 시장 ${I[12]>0?"+":""}${I[12]}% · 이 종목 ${I[11]>0?"+":""}${I[11]}% — 이 종목만의 문제는 아니에요`]); }
+  return out;
+}
+function shortScenario(r){
+  const v=simple(r), L=nearLv(r); if(!L) return "";
+  const I=r.ind||[], b=r.bot||[], s=r.state||[], c=L.c, a=getAvg(r.name), f=x=>Math.round(x).toLocaleString()+"원";
+  const sig=sigList(r), G=sig.filter(x=>x[0]==="g").length, B=sig.filter(x=>x[0]==="b").length, sc=G-B;
+  const rel=(I[11]!=null&&I[12]!=null)?I[11]-I[12]:null, pos=(I[5]&&I[7]&&I[5]>I[7])?(c-I[7])/(I[5]-I[7])*100:null;
+  const oversold=(b[1]!=null&&b[1]<=35)||(b[2]!=null&&b[2]<=90);
+  // ① 위로 한 줄 — 가장 힘이 되는 '사실'부터
+  let cm, cs="";
+  if(v.c==="sv3"){ cm=s[0]===1?"반등이 나왔어요. 지금이 정리하기 좋은 타이밍이에요":"오늘 급하게 던질 필요는 없어요"; cs="다만 이 종목은 시장이 좋아져도 혼자 늦게 올라올 수 있어요. 반등 때 줄여서 강한 종목으로 옮기는 게 계획이에요"; }
+  else if(rel!=null&&rel>-5&&I[12]<-3){ cm="이 종목이 잘못한 게 아니에요. 시장 전체가 같이 빠진 거예요"; cs=`최근 한 달 시장 ${I[12]}% · 이 종목 ${I[11]>0?"+":""}${I[11]}%. 시장이 돌아서면 같이 돌아옵니다`; }
+  else if(oversold){ cm="이미 많이 빠진 자리예요. 여기서 던지면 제일 싼 값에 파는 거예요"; cs="과하게 빠진 뒤엔 되돌림이 나오는 경우가 많아요"; }
+  else if(r.st>=2){ cm=`외국인이 ${r.st}일째 사고 있어요`; cs="큰돈이 들어오는 종목은 흔들려도 다시 올라오는 힘이 있어요"; }
+  else if(pos!=null&&pos<25){ cm="6개월 중 가장 싼 쪽에 와 있어요"; cs="꼭대기에서 산 게 아니라면 버틸 자리예요"; }
+  else if(sc>=2){ cm="흐름이 살아 있어요. 흔들림은 쉬어가는 거예요"; }
+  else { cm="급하게 움직일 자리가 아니에요"; cs="정해 둔 가격만 지키면 됩니다"; }
+  const sw=Math.max(1,I[10]||2.5), rng=sw*2.2/100;
+  const hiW=Math.min(L.up,c*(1+rng*1.3)), loW=Math.max(L.dn,c*(1-rng*1.3));
+  const upP=Math.round((hiW/c-1)*100), dnP=Math.round((1-loW/c)*100);
+  // ② 지금 이 가격에서 할 일 — 평단을 넣으면 '판정 색 × 내 손익 구간'으로 완전히 다른 처방
+  const pl=a?Math.round((c/a-1)*100):null, plUp=a?Math.round((L.up/a-1)*100):null, plDn=a?Math.round((L.dn/a-1)*100):null;
+  const band=!a?null:pl>=0?"P":pl>-10?"S":pl>-25?"M":"L";   // 수익·소폭손실·중간손실·큰손실
+  const over=a&&I[5]&&a>I[5];   // 평단이 6개월 최고가보다 위
+  let tw, tn, tk={sv1:"kg",sv2:"ky",sv3:"kr",sv0:"ky"}[v.c];
+  if(!a){
+    if(v.c==="sv1"){ tw="팔지 마세요. 그냥 들고 계세요"; tn=`새로 사실 거면 ${f(L.dn)} 근처에서 나눠서 사세요. 지금 가격에서 한 번에 다 사지 마세요.`; }
+    else if(v.c==="sv2"){ tw="지금은 사지도 팔지도 마세요"; tn=`방향이 정해질 때까지 그대로 두세요.`; }
+    else if(v.c==="sv3"){ tw="지금 던지지 마세요. 더 사지도 마세요"; tn=`시장보다 약한 종목이에요. ${f(L.up)} 근처 반등이 오면 그때 비중을 줄일지 정하세요.`; }
+    else { tw="새로 사지 마세요"; tn="거래가 적어 가격이 튈 수 있어요. 갖고 계시면 반등 때 줄이세요."; }
+  } else {
+    const W=`${f(L.up)} 오면 ${plUp>=0?"본전 이상이에요":"손실이 "+plUp+"%로 줄어요"}`;
+    const P={   // 평단을 넣은 사람에게는 '파세요'를 절대 말하지 않는다 — 팔지 말 것·더 사지 말 것만 말하고, 위험은 아래 '미리 알아두세요'로 정직하게 알려준다
+     sv1:{P:["팔지 마세요. 그대로 두세요",`수익 +${pl}% 중이에요. 흔들려도 수익 구간이에요. 급하게 챙길 이유가 없어요.`],
+          S:["팔지 마세요",`${W}. 이 정도 손실에서 던지는 게 제일 아까운 선택이에요.`],
+          M:["팔지 마세요. 기다리세요",`지금 ${pl}%. 시장 따라 빠진 종목은 시장이 돌면 같이 돌아와요. 지금 팔면 그 손실이 확정돼요.`],
+          L:["오늘 팔지 마세요",`지금 팔면 ${pl}% 손실이 그대로 확정돼요. 시장 따라 빠진 종목은 시장이 돌면 같이 돌아와요.`]},
+     sv2:{P:["팔지 마세요. 그대로 두세요",`수익 +${pl}% 중이에요. 방향이 정해질 때까지 그냥 두시면 돼요.`],
+          S:["팔지도 사지도 마세요",`${W}. 방향이 정해질 때까지 그대로 두세요.`],
+          M:["팔지 마세요. 더 사지도 마세요",`지금 ${pl}%. 지금은 물타기도 손절도 할 자리가 아니에요. 그대로 두세요.`],
+          L:["팔지 마세요. 더 사지도 마세요",`지금 ${pl}%. 바닥에서 던지지 마시고, 더 사서 금액을 키우지도 마세요.`]},
+     sv3:{P:["팔지 마세요. 더 사지도 마세요",`수익 +${pl}% 중이에요. 다만 이 종목은 시장보다 약해서 더 사서 키울 종목은 아니에요.`],
+          S:["오늘 팔지 마세요",`${W}. 지금 바닥에서 던지지 마세요. 반등이 먼저예요.`],
+          M:["팔지 마세요. 물타기도 마세요",`지금 ${pl}%. 바닥에서 던지면 제일 싸게 파는 거예요. 대신 시장보다 약한 종목이라 더 사지는 마세요.`],
+          L:["팔지 마세요. 물타기도 마세요",`지금 ${pl}%. 바닥에서 던지면 제일 싸게 파는 거예요. 대신 시장보다 약한 종목이라 더 사지는 마세요.`]},
+     sv0:{P:["더 사지 마세요","거래가 적어 가격이 튈 수 있어요. 급하게 팔 필요는 없어요."],S:["더 사지 마세요","거래가 적어 가격이 튈 수 있어요. 급하게 팔 필요는 없어요."],M:["더 사지 마세요","거래가 적어 가격이 튈 수 있어요. 급하게 팔 필요는 없어요."],L:["더 사지 마세요","거래가 적어 가격이 튈 수 있어요. 급하게 팔 필요는 없어요."]}
+    }[v.c][band];
+    tw=P[0]; tn=P[1]+(over?` <b>내 평단이 6개월 최고가(${f(I[5])})보다 위라 본전까지는 오래 걸려요.</b>`:"");
+  }
+  // 가격별 행동 [위 가격 오면, 아래 가격 밑으로 끝나면] — 평단 구간별. '파세요' 명령은 쓰지 않는다
+  const bk=band||"N";
+  const RA={
+   sv1:{P:["그대로 두세요","더 갈 수 있는 종목이에요. 수익을 더 키우는 구간이에요"],S:["그대로 두세요",plUp>=0?"본전을 넘어요. 여기서 팔 이유가 없어요":"손실이 거의 없어져요. 팔지 마세요"],M:["팔지 마세요","손실이 줄어드는 중이에요. 반등의 시작이에요"],L:["팔지 마세요","손실이 줄어드는 중이에요. 반등의 시작이에요"],N:["그대로 두세요","흐름이 살아나는 신호예요"]},
+   sv2:{P:["그대로 두세요","이 가격 넘어서 끝나면 이제 안심하셔도 돼요"],S:["그대로 두세요","이 가격 넘어서 끝나면 이제 안심하셔도 돼요"],M:["팔지 마세요","이 가격 넘어서 끝나면 흐름이 돌아선 거예요"],L:["팔지 마세요","이 가격 넘어서 끝나면 흐름이 돌아선 거예요"],N:["그대로 두세요","이 가격 넘어서 끝나면 안심하셔도 돼요"]},
+   sv3:{P:["비중 줄일지 정하세요","수익 구간이에요. 이 종목은 시장보다 약해서 여기서 일부 챙겨도 손해 보는 자리가 아니에요"],S:[plUp>=0?"비중 줄일지 정하세요":"팔지 마세요",plUp>=0?"본전 이상이에요. 여기서 줄여도 손해가 아니에요":"손실이 줄어드는 반등이에요. 더 사지는 마세요"],M:["팔지 마세요","손실이 줄어드는 반등이에요. 더 사지는 마세요"],L:["팔지 마세요","손실이 줄어드는 반등이에요. 더 사지는 마세요"],N:["더 사지 마세요","반등이 와도 따라 사지 마세요. 시장보다 약한 종목이에요"]},
+   sv0:{P:["그대로 두세요",""],S:["그대로 두세요",""],M:["그대로 두세요",""],L:["그대로 두세요",""],N:["따라 사지 마세요","거래가 적은 종목이에요"]}
+  }[v.c][bk];
+  const DA={
+   sv1:{P:["그날은 팔지 마세요","시장 따라 깨진 거면 다시 올라와요. 아직 수익 구간이에요"],S:["그날은 팔지 마세요","시장 따라 깨진 거면 다시 올라와요"],M:["던지지 마세요","시장 따라 깨진 거면 다시 올라와요. 바닥에서 파는 게 제일 손해예요"],L:["던지지 마세요","시장 따라 깨진 거면 다시 올라와요. 바닥에서 파는 게 제일 손해예요"],N:["사지 마세요","깨진 날 바로 사지 말고 다시 올라오는 걸 보고 사세요"]},
+   sv2:{P:["더 사지 마세요","수익이 줄어드는 신호예요. 다음 날도 이 밑이면 수익을 지킬지 정하세요"],S:["더 사지 마세요","더 밀릴 수 있다는 신호예요. 그날 장중에 놀라서 던지지는 마세요"],M:["더 사지 마세요","물타기 하지 마세요. 그날 장중에 놀라서 던지지도 마세요"],L:["더 사지 마세요","물타기 하지 마세요. 그날 장중에 놀라서 던지지도 마세요"],N:["사지 마세요","더 밀릴 수 있다는 신호예요"]},
+   sv3:{P:["수익 지킬지 정하세요","수익이 줄어드는 신호예요. 이 종목은 회복이 느려요"],S:["물타기 하지 마세요","더 밀릴 수 있다는 신호예요. 다음 반등 때 비중을 줄일지 정하세요"],M:["물타기 하지 마세요","더 밀릴 수 있다는 신호예요. 다음 반등 때 비중을 줄일지 정하세요"],L:["물타기 하지 마세요","더 밀릴 수 있다는 신호예요. 다음 반등 때 비중을 줄일지 정하세요"],N:["사지 마세요","버팀목이 깨진 약한 종목이에요"]},
+   sv0:{P:["더 사지 마세요",""],S:["더 사지 마세요",""],M:["더 사지 마세요",""],L:["더 사지 마세요",""],N:["사지 마세요",""]}
+  }[v.c][bk];
+  // 근거(더보기) — 이 가격이 왜 벽·버팀목인지, 어떤 지표가 그쪽을 가리키는지
+  const WHY={"5일선":["5일 평균 가격 (5일선)","최근 일주일 동안 산 사람들의 평균 가격이에요"],"20일선":["20일 평균 가격 (20일선)","최근 한 달 동안 산 사람들의 평균 가격이에요"],"60일선":["60일 평균 가격 (60일선)","최근 석 달 동안 산 사람들의 평균 가격이에요"],
+    h20:["최근 한 달 최고가","최근 한 달 동안 이 위로는 못 올라갔어요"],l20:["최근 한 달 최저가","최근 한 달 동안 이 밑으로는 안 내려갔어요"],bline:["바닥선","바닥 신호가 나왔던 날 가격에서 이 종목이 평소 흔들리는 폭만큼 뺀 가격이에요"],swing:["평소 움직임 폭","가까운 벽·버팀목이 없어서 평소 흔들리는 폭으로 잡은 가격이에요"]};
+  const gS=sig.filter(x=>x[0]==="g"), bS=sig.filter(x=>x[0]==="b");
+  const li=x=>`<li><b>${x[1]}</b> — ${x[2]}</li>`;
+  const upMore=`<p><b>왜 ${f(L.up)}인가요?</b><br>${WHY[L.upWhy][0]}이에요. ${WHY[L.upWhy][1]}. ${L.upWhy==="h20"||L.upWhy==="swing"?"":"이 근처에 오면 본전이 된 사람들이 팔고 나와서 한 번 막히기 쉬워요."} 그래서 이 가격을 <b>넘어서 장이 끝나면</b> 막힌 걸 뚫었다는 뜻이에요.</p>${gS.length?`<p><b>올라갈 수 있는 근거</b></p><ul>${gS.map(li).join("")}</ul>`:""}`;
+  const dnMore=`<p><b>왜 ${f(L.dn)}인가요?</b><br>${WHY[L.dnWhy][0]}이에요. ${WHY[L.dnWhy][1]}. ${L.dnWhy==="swing"?"":"이 근처에서는 사려는 사람이 많아 받쳐주기 쉬워요."} 그래서 이 가격 <b>밑으로 장이 끝나면</b> 받쳐주던 힘이 없어졌다는 뜻이에요.</p><p>이번 주 평소 흔들림만 보면 <b>${f(loW)}</b>까지는 정상 범위예요. 장중에 잠깐 깨지는 건 신경 쓰지 마세요.</p>${bS.length?`<p><b>조심해야 할 근거</b></p><ul>${bS.map(li).join("")}</ul>`:""}`;
+  const nowMore=`<p><b>지금 상태 한눈에</b></p><ul>${sig.map(x=>`<li><b>${x[0]==="g"?"🔴 좋음":x[0]==="b"?"🔵 나쁨":"⚪ 보통"} · ${x[1]}</b> — ${x[2]}</li>`).join("")}</ul>${pos!=null?`<p>6개월로 보면 <b>${pos<25?"바닥 쪽":pos>75?"꼭대기 쪽":"가운데"}</b>이에요 (6개월 저점 ${f(I[7])} · 고점 ${f(I[5])}).</p>`:""}${a&&over?`<p>내 평단이 6개월 최고가보다 위라 본전까지는 시간이 걸려요. 그래서 '본전'보다 '손실 줄이기'를 목표로 보세요.</p>`:""}<p class="meta">좋은 신호 ${G}개 · 나쁜 신호 ${B}개 → ${sc>=2?"오를 쪽이 조금 더 유리":sc<=-2?"내릴 쪽을 조심":"위아래 반반"}</p>`;
+  const plLo=a?Math.round((loW/a-1)*100):null;
+  const warn=`<div class="warn"><b>미리 알아두세요</b><br>이번 주 나쁘면 <b>${f(loW)}</b>까지 밀릴 수 있어요${a?` (내 손익 ${plLo>=0?"+":""}${plLo}%)`:""}. <b>여기까지는 정상 흔들림</b>이니 놀라서 던지지 마세요.<br>다만 <b>${f(L.dn)}</b> 밑으로 <b>장이 끝나면</b> 그건 흔들림이 아니라 더 밀릴 수 있다는 신호예요. 그날은 시장 전체가 같이 빠졌는지 먼저 확인하세요.</div>`;
+  const myBox=a?`<div class="myp"><div><small>지금 내 손익</small><b class="${pl>=0?"up":"dn"}">${pl>=0?"+":""}${pl}%</b></div><div><small>본전 가격</small><b>${f(a)}</b><small>${a>c?`+${Math.round((a/c-1)*100)}% 남음`:"이미 넘음 ✓"}</small></div><div><small>${f(L.up)} 가면</small><b class="${plUp>=0?"up":"dn"}">${plUp>=0?"+":""}${plUp}%</b></div><div><small>${f(L.dn)} 가면</small><b class="${plDn>=0?"up":"dn"}">${plDn>=0?"+":""}${plDn}%</b></div></div>`:"";
+  // 평단이 있으면 위로 한 줄도 내 상황 기준으로
+  if(a&&band==="L"&&v.c!=="sv3"){ cm=`${pl}%면 마음 무거우시죠. 근데 지금 던지면 그게 제일 비싼 매도예요`; }
+  else if(a&&band==="P"&&v.c==="sv3"){ cm=`수익 중이에요 (+${pl}%). 급할 것 없어요`; cs="흔들려도 아직 수익 구간이에요"; }
+  else if(a&&band==="P"){ cm=`수익 중이에요 (+${pl}%). 흔들려도 아직 수익 구간이에요`; cs="수익 중에 흔들린다고 던지면 더 큰 상승을 놓쳐요"; }
+
+  // ③ 이번 주 예상 그림 (1주) — 평소 하루 움직임 × √5 를 가까운 벽·버팀목으로 자름
+  const lean=sc>=2?["g","오를 쪽이 조금 더 유리"]:sc<=-2?["r","내릴 쪽을 조심"]:["y","위아래 반반"];
+  const pic=sc>=2?`${f(loW)} 위에서 버티면서 ${f(hiW)} 쪽으로 올라가는 그림이 가장 유력해요.`
+           :sc<=-2?`${f(hiW)}을 못 넘고 ${f(loW)} 근처를 다시 확인하러 내려올 수 있어요. 거기서 버티는지가 핵심이에요.`
+           :`${f(loW)} ~ ${f(hiW)} 사이에서 오르내리는 그림이 가장 유력해요. 이 안에서는 흔들려도 신경 쓰지 마세요.`;
+  const pp=x=>Math.max(2,Math.min(98,(x-loW)/(hiW-loW)*100));
+  const bar=`<div class="wkb"><i style="left:${pp(c)}%"></i>${a&&a>=loW&&a<=hiW?`<i class="av" style="left:${pp(a)}%"></i>`:""}</div>
+<div class="wkl"><div>나쁘면<br><b>${f(loW)}</b> <small>−${dnP}%</small></div><div style="text-align:center">지금<br><b>${f(c)}</b>${a&&a>=loW&&a<=hiW?`<br><small style="color:var(--blue)">▲ 내 평단</small>`:""}</div><div class="r">좋으면<br><b>${f(hiW)}</b> <small>+${upP}%</small></div></div>`;
+  const tag=x=>x>=0?`<b class="up">+${x}%</b>`:`<b class="dn">${x}%</b>`;
+  return `<div class="ssc">
+<div class="avg"><span style="white-space:nowrap">내 평단</span><input inputmode="numeric" data-avg="${r.name}" placeholder="예: ${c.toLocaleString()}" value="${a?a.toLocaleString():""}"><span class="meta">${a?"":"넣으면 내 상황에 맞게 나와요"}</span></div>
+<div class="todo ${tk}">${a?`<div class="tdl">내 평단 ${f(a)} · 지금 ${pl>=0?"+":""}${pl}%</div>`:""}<div class="tw">${tw}</div><div class="tn">${cm}</div><div class="tn" style="margin-top:2px">${tn}</div><details class="more"><summary>더보기 — 왜 이렇게 판단했나요</summary>${nowMore}</details></div>
+<div class="pl3">
+<div class="p3 q3u"><i></i><div class="ph"><b>${f(L.up)}</b> 넘어서 끝나면 <small>${a?(plUp>=0?`내 손익 ${tag(plUp)} (본전 넘음)`:`내 손익 ${tag(plUp)}로 줄어요`):`지금보다 ${tag(L.upPct)}`}</small></div><div class="pa2">→ ${RA[0]}</div>${RA[1]?`<div class="pr">${RA[1]}</div>`:""}<details class="more"><summary>더보기</summary>${upMore}</details></div>
+<div class="lnow2">지금 ${f(c)}${a?` · 내 손익 ${tag(pl)}`:""}</div>
+<div class="p3 q3d"><i></i><div class="ph"><b>${f(L.dn)}</b> 밑으로 끝나면 <small>${a?`내 손익 ${tag(plDn)}`:`지금보다 ${tag(-L.dnPct)}`}</small></div><div class="pa2">→ ${DA[0]}</div>${DA[1]?`<div class="pr">${DA[1]}</div>`:""}<details class="more"><summary>더보기</summary>${dnMore}</details></div>
+</div>
+<div class="meta" style="margin-top:8px;opacity:.8;font-size:11.5px">※ 공개 시세로 자동 계산한 참고용이며 미래 가격을 보장하지 않습니다. 매매 판단과 책임은 본인에게 있습니다.</div>
+</div>`;
+}
 function plan(r){
-  const v=simple(r), s=r.state, I=r.ind, t=r.days&&r.days[0];
-  const line=s&&s[16]?won(s[16]):null, sw=I&&I[10]!=null?I[10]:null, wall=I&&I[14]?won(I[14]):null;
-  const c1=wall?`${wall} 넘어서 장이 끝나면`:"최근 20일 고점을 넘어서 끝나면";
-  const c2=sw!=null?`하루 −${sw}% 안쪽으로 빠지면`:"시장 따라 조금 빠지면";
-  const c3=line?`${line} 밑으로 장이 끝나면`:"최근 바닥 밑으로 장이 끝나면";
-  const st=r.st||0, c4=st>=3?"외국인이 계속 사면":st===2?"외국인이 내일도 사면 (3일 연속)":st===1?"외국인이 이틀 더 사면 (3일 연속)":"외국인이 3일 연속 사면";
-  const A={
-   sv1:[["들고 가세요","추격 매수 ✗","g"],["팔지 마세요","평소 흔들림","g"],["반등 때 일부 줄이기","당일 매도 ✗","y"],["나눠서 추가 매수","분할","g"]],
-   sv2:[["들고 가세요로 전환","바닥 확인","g"],["기다리세요","장 끝 가격만","y"],["반등 때 줄이기","들고 갈 종목으로 교체","r"],["들고 가세요","외국인 복귀","g"]],
-   sv3:[["그날 일부 매도","2~3번 나눠서","r"],["던지지 말고 기다리기","바닥 매도 ✗","y"],["반등 때 정리","종목 문제 가능성","r"],["판정 재확인","판정 바뀔 수 있음","y"]],
-   sv0:[["따라 사지 마세요","거래 적음","y"],["급매도 ✗","회사 소식 확인","y"],["반등 때 줄이기","비중 작게","r"],["다시 확인","판정 대기","y"]]
+  const v=simple(r), L=nearLv(r); if(!L) return '<div class="meta">가격 정보가 부족합니다</div>';
+  const U=L.up.toLocaleString()+"원", Dn=L.dn.toLocaleString()+"원";
+  const A={ // [위 가격 넘어서 끝나면, 그 사이면, 아래 가격 밑으로 끝나면] — 초보도 바로 알게 '가격'으로만 말하기
+   sv1:[["더 사도 됩니다","한 번에 다 말고 나눠서","g"],["그냥 두세요","아무것도 안 하셔도 됩니다","g"],["그날은 팔지 마세요",`시장 따라 깨진 거면 다시 올라옵니다. 시장 전체가 같이 빠졌는지 먼저 보세요`,"y"]],
+   sv2:[["들고 가세요","이제 안심하셔도 됩니다","g"],["그냥 두세요",`${U} 넘는지만 보세요`,"y"],["더 사지 마세요",`${Dn}이 깨지면 더 밀릴 수 있다는 신호예요. 그날 장중에 놀라서 던지지는 마세요`,"r"]],
+   sv3:[["비중 줄일지 생각할 자리",(()=>{const a=getAvg(r.name);return a?(a<=L.up?`내 평단 ${a.toLocaleString()}원보다 위 — 수익 구간이에요`:`내 평단 ${a.toLocaleString()}원까지는 아직이에요. 급하게 정할 필요 없어요`):"시장보다 약한 종목이라 더 사서 키울 자리는 아니에요"})(),"y"],["팔지 마세요",`바닥에서 던지지 마세요. ${U}까지 반등이 먼저예요`,"y"],["물타기 하지 마세요",`버팀목 깨진 빨강은 회복이 느릴 수 있어요. 더 사서 금액을 키우지 마세요`,"r"]],
+   sv0:[["따라 사지 마세요","거래가 적은 종목이에요","y"],["그냥 두세요","","y"],["더 사지 마세요","거래가 적어 더 튈 수 있어요","r"]]
   }[v.c];
-  const C=[c1,c2,c3,c4];
-  return A.map((a,i)=>`<div class="pr"><div class="pc">${C[i]}</div><div class="pw2 k${a[2]}">→ ${a[0]}</div><span class="kw">${a[1]}</span></div>`).join("");
+  const row=(cls,label,a)=>`<div class="ld ${cls}"><div class="lp">${label}</div><div class="la k${a[2]}">${a[0]}</div>${a[1]?`<div class="ln">${a[1]}</div>`:""}</div>`;
+  return `<div class="ladder">
+${row("lu",`<b>${L.up.toLocaleString()}원</b> 넘어서 장이 끝나면 <small>지금보다 +${L.upPct}%</small>`,A[0])}
+<div class="lnow"><span>지금 ${L.c.toLocaleString()}원</span></div>
+${row("lmid",`<b>${L.dn.toLocaleString()}원 ~ ${L.up.toLocaleString()}원</b> 사이면`,A[1])}
+${row("lb",`<b>${L.dn.toLocaleString()}원</b> 밑으로 장이 끝나면 <small>지금보다 −${L.dnPct}%</small>`,A[2])}
+</div>${(()=>{const I=r.ind||[], c=L.c, hi=I[5], lo=I[7], m120=I[3]!=null?c/(1+I[3]/100):null, a=getAvg(r.name);
+  if(!hi||!lo||hi<=lo) return "";
+  const pos=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100)), f=v=>Math.round(v).toLocaleString()+"원";
+  const lines=[`지금은 6개월 범위의 <b>${pos(c)<25?"바닥 쪽":pos(c)>75?"꼭대기 쪽":"가운데"}</b>에 있어요`];
+  if(m120) lines.push(`120일선(길게 본 평균 가격) ${f(m120)} — 지금이 ${c>=m120?"위 ✓":"아래"}`);
+  if(a) lines.push(`내 평단 ${f(a)}까지 ${a>c?`+${Math.round((a/c-1)*100)}% 올라야 본전`:"이미 수익 구간"}${a>hi?" · 6개월 고점보다 위라 오래 걸릴 수 있어요":""}`);
+  return `<div class="bigp"><div class="bpt">큰 차트로 보면 (6개월)</div><div class="bpbar"><i class="now" style="left:${pos(c)}%"></i>${m120?`<i class="m120" style="left:${pos(m120)}%"></i>`:""}${a&&a<=hi&&a>=lo?`<i class="avgm" style="left:${pos(a)}%"></i>`:""}</div><div class="bpl"><span>저점 ${f(lo)}</span><span>고점 ${f(hi)}</span></div><div class="bpk"><span><i class="now"></i>지금</span>${m120?`<span><i class="m120"></i>120일선</span>`:""}${a&&a<=hi&&a>=lo?`<span><i class="avgm"></i>내 평단</span>`:""}</div><div class="meta" style="line-height:1.6;margin-top:4px">${lines.join("<br>")}</div></div>`;})()}
+<div class="meta" style="margin-top:6px;opacity:.85">※ 가격·평단 시나리오는 공개 시세로 자동 계산한 참고용이며, 매매 판단과 책임은 본인에게 있습니다.</div>
+<div class="meta" style="margin-top:6px">장중에 잠깐 넘거나 깨지는 건 무시하세요. <b>장 끝난 가격</b>만 보면 됩니다. 아래 가격이 깨진 날은 더 사지 말고, 시장 전체가 같이 빠졌는지부터 확인하세요. 장중 패닉 매도만은 피하세요.</div>`;
 }
 function show(r){
   const V=document.getElementById("verdict"); V.style.display="block";
@@ -639,13 +848,15 @@ function show(r){
   V.innerHTML=`<div class="vh2"><div><span class="name">${r.name}</span><span class="code">${r.code}${r.mkt?" · "+r.mkt:""}${r.sec?" · "+r.sec:""}</span></div><button class="star" data-star="${r.name}">${isMine(r.name)?"★ 내 종목":"☆ 내 종목에 담기"}</button></div>
 ${(()=>{const v=simple(r);return `<div class="vd ${v.c}"><div class="vtop"><div><div class="vl2">판정</div><div class="vw">${v.w}</div></div><div class="vleg">${[["sv1","들고 가세요"],["sv2","지켜보세요"],["sv3","파세요·줄이세요"]].map(([c,w])=>`<div class="${c}${v.c===c?" on":""}"><i></i>${w}</div>`).join("")}</div></div><div class="vy">${v.why}</div></div>`})()}
 ${vsMarket(r)}
-<details class="acc"><summary>시나리오 <small>이렇게 되면 → 이렇게</small></summary><div class="in">${plan(r)}</div></details>
+<details class="acc" open><summary>단기 시나리오 <small>지금 할 일 · 이번 주 그림</small></summary><div class="in">${shortScenario(r)}</div></details>
+<details class="acc"><summary>가격별 할 일 <small>이 가격 오면 이렇게</small></summary><div class="in">${plan(r)}</div></details>
 ${x?`<details class="acc"><summary>판정 근거 <small>${x.why.length}가지</small></summary><div class="in"><div class="kws">${x.why.map(w=>`<span class="kw">${w.split(" — ")[0].replace(/^[①②③]\s*/,"")}</span>`).join("")}</div></div></details>`:""}
 ${s?`<details class="acc"><summary>지금 타이밍 · 내일 할 일 <small>바닥·반등·외국인</small></summary><div class="in">${stateBox(r)}</div></details>`:""}
 <details class="acc"><summary>외국인·기관 날짜별 <small>최근 ${r.days.length}일</small></summary><div class="in"><div class="meta">외국인 3일합 ${fmt(r.s3)}주 · 5일합 ${fmt(r.s5)}주${t&&t.hold!=null?` · 외인 보유율 ${t.hold.toFixed(2)}%`:""}</div>
 <table><tr><th>날짜</th><th>종가</th><th>등락률</th><th>기관</th><th>외국인</th></tr>${r.days.map(d=>`<tr><td>${d.d.slice(5)}</td><td>${d.close.toLocaleString()}</td><td class="${d.rate>0?"up":d.rate<0?"dn":""}">${d.rate.toFixed(2)}%</td><td class="${d.inst==null?"":d.inst>0?"up":"dn"}">${fmt(d.inst)}</td><td class="${d.frgn==null?"":d.frgn>0?"up":"dn"}"><b>${fmt(d.frgn)}</b></td></tr>`).join("")}</table></div></details>
 <details class="acc"><summary>세부 지표 <small>추세 · 가격 위치 · 힘 · 수급</small></summary><div class="in"><div class="kv"><div><small>외국인</small><b>${r.st>=3?`${r.st}일 연속 매수`:r.st>0?`${r.st}일째 매수`:r.ss>0?`${r.ss}일째 매도`:"집계 중"}</b></div><div><small>타이밍</small><b>${(timing||"-").replace(/^[^가-힣]+/,"")}</b></div><div><small>바닥선</small><b>${line?line.replace(/ [✓✗]$/,""):"-"}</b></div></div>${detailBox(r)}</div></details>`;
   const sb=V.querySelector(".star"); sb.onclick=()=>{toggleMine(r.name); sb.textContent=isMine(r.name)?"★ 내 종목":"☆ 내 종목에 담기"; sb.classList.toggle("on",isMine(r.name));}; sb.classList.toggle("on",isMine(r.name));
+  const ai=V.querySelector("[data-avg]"); if(ai) ai.onchange=()=>{const v=parseInt(ai.value.replace(/[^0-9]/g,""))||null; setAvg(r.name,v); const op=[...V.querySelectorAll("details.acc")].map(d=>d.open); show(r); V.querySelectorAll("details.acc").forEach((d,i)=>d.open=op[i]);};
   history.replaceState(null,"","#"+encodeURIComponent(r.name));
   document.getElementById("sugg").style.display="none";
   V.scrollIntoView({behavior:"smooth",block:"start"});
