@@ -291,24 +291,34 @@ const EVENTS=[   // [한국 날짜, 일정, 왜 중요한지, 별(★ 많을수�
   ["2026-11-04","미국 중간선거 결과 (현지 11/3)","결과에 따라 원전·반도체·방산 vs 2차전지·태양광 갈림",3],
   ["2026-11-12","11월 옵션 만기일","만기일 전후 대형주 변동성 커짐",1],
   ["2026-11-18","엔비디아 실적 (아침)","AI 칩 수요 최종 확인 — 하이닉스·삼성 HBM과 직결",3]];
-const NEXT_TITLE="월요일 장 전에 볼 것";    // 칸 제목 (비우면 칸 숨김)
-const NEXT_SUB="주말 동안 · 10/26(월) 장 시작 전";
-const NEXT=[   // [태그, 무엇, 어떻게 보면 되나, 중요도 1~3] — 매주 금요일에 고쳐 쓰면 됨
-  ["오늘 밤","미국 금요일 장 — 나스닥·반도체 반등하나","어제 나스닥 −2.6%, 반도체 −6.7%. 반등하면 월요일 반도체 출발이 편해짐",3],
-  ["주말","중동 — 후티의 사우디 석유시설 공격","유가(브렌트 113달러, 5월 이후 최고)가 더 오르면 금리 인상 걱정 → 기술주 부담",3],
-  ["주말","정부 증시 대책 발표 여부","대통령 '조만간 조치' 발언 이후 아직 없음. 나오면 월요일 시장 분위기 바뀜",2],
-  ["주말","김정은 공개 활동 보도 여부","북한 매체에 나오면 대북 테마주(스페코·빅텍) 월요일 급락 — 따라 사지 말 것",2],
-  ["매일","미국 중간선거 확률","아래 '미국 중간선거' 칸 — 민주당 쪽으로 더 기울면 2차전지 1순위 유지",2],
-  ["다음 주","10/28(수) 오전 9시 SK하이닉스 실적","'칩 없어서 못 판다'가 숫자로 찍히는 날 — 반도체 방향 1순위",3],
-  ["다음 주","10/29(목) 새벽 3시 미국 금리 결정","유가 때문에 인상 걱정이 커진 상태 — 동결이면 안도, 인상이면 한 번 더 흔들림",3],
-  ["다음 주","미국 빅테크 실적 (MS·구글·아마존·애플)","메타처럼 '돈 쓰는데 현금 적자'가 또 나오는지",2]];
+const NEXT_TITLE="auto";   // "auto"면 다음 장 요일로 자동 ("화요일 장 전에 볼 것"), 비우면 칸 숨김
+const NEXT_SUB="";        // 비우면 "10/27(화) 장 시작 전" 자동
+const NEXT=[   // [태그, 무엇, 어떻게 보면 되나, 중요도 1~3, (선택) 이 시각 지나면 자동으로 숨김 "YYYY-MM-DDTHH:MM"]
+  ["오늘 밤","미국 장 — 빅테크 실적 앞두고 반도체 버티나","금요일엔 기름값·금리 같이 올라 3대 지수 하락. 반도체가 버티면 내일 아침 출발이 편해짐",3,"2026-10-27T09:00"],
+  ["오늘 밤","유가 — 트럼프 '이란 한 번 더' 발언 이후","브렌트 116달러(4월 이후 최고). 더 오르면 금리 걱정 → 내일 또 외국인 매도",3,"2026-10-27T09:00"],
+  ["매일","외국인 매도가 줄어드나","월요일 외국인 5천억대 매도를 기관이 받아줌. 이틀 연속 매도가 줄면 바닥 신호",3],
+  ["이번 주","10/28(수) 오전 9시 SK하이닉스 실적 + 추가 주주환원","회사가 '특별배당은 확정된 바 없다, 28일 공개'라고 공시. 이날이 하이닉스 방향",3,"2026-10-28T12:00"],
+  ["이번 주","10/29(목) 새벽 3시 미국 금리 결정","유가 때문에 인상 걱정이 커진 상태 — 동결이면 안도, 인상이면 한 번 더 흔들림",3,"2026-10-29T09:00"],
+  ["이번 주","미국 빅테크 실적 (MS·구글·아마존·애플)","AI에 돈 쓰는 만큼 돈을 버는지 — 시장이 제일 걱정하는 부분",2,"2026-10-31T09:00"],
+  ["이번 주","삼성전자 실적 · 배당 확정","배당 30조 가까이 확정 예정 — 확정되면 삼성 바닥 근거",2,"2026-10-31T18:00"],
+  ["매일","미국 중간선거 확률","아래 '미국 중간선거' 칸 — 11/4(수) 결과 나오기 전까지 외국인은 하루 사고 하루 파는 장",2,"2026-11-04T18:00"]];
+function nextSession(){   // 다음 장 날짜 (한국 시간, 주말 건너뜀 · 장 시작 전이면 오늘)
+  const k=new Date(Date.now()+9*3600e3), d=new Date(Date.UTC(k.getUTCFullYear(),k.getUTCMonth(),k.getUTCDate()));
+  const wd=d.getUTCDay(), before=k.getUTCHours()<9;
+  if(!(wd>=1&&wd<=5&&before)){ do{d.setUTCDate(d.getUTCDate()+1)}while(d.getUTCDay()===0||d.getUTCDay()===6); }
+  return d;
+}
 function renderNext(){
   const E=document.getElementById("next"); if(!E) return;
-  if(!NEXT_TITLE||!NEXT.length){E.style.display="none";return;}
-  const tc={"오늘 밤":"t3","주말":"t1","매일":"t4","다음 주":"t2"};
+  const now=Date.now(), items=NEXT.filter(x=>!x[4]||now<new Date(x[4]+":00+09:00").getTime());
+  if(!NEXT_TITLE||!items.length){E.style.display="none";return;}
+  const ns=nextSession(), WD="일월화수목금토", wdn=WD[ns.getUTCDay()];
+  const title=NEXT_TITLE==="auto"?`${wdn}요일 장 전에 볼 것`:NEXT_TITLE;
+  const sub=NEXT_SUB||`${ns.getUTCMonth()+1}/${ns.getUTCDate()}(${wdn}) 장 시작 전`;
+  const tc={"오늘 밤":"t3","주말":"t1","매일":"t4","다음 주":"t2","이번 주":"t2"};
   const row=([t,h,w,s])=>`<div class="nx2"><span class="tag ${tc[t]||"t4"}">${t}</span><div><b>${"★".repeat(s)} ${h}</b><div class="meta">${w}</div></div></div>`;
-  const top=NEXT.slice(0,4), rest=NEXT.slice(4);
-  E.innerHTML=`<div class="mh"><b>${NEXT_TITLE}</b><span class="meta">${NEXT_SUB}</span></div>`+top.map(row).join("")+
+  const top=items.slice(0,4), rest=items.slice(4);
+  E.innerHTML=`<div class="mh"><b>${title}</b><span class="meta">${sub}</span></div>`+top.map(row).join("")+
    (rest.length?`<details class="sub2"><summary>${rest.length}개 더 보기 ▾</summary>${rest.map(row).join("")}</details>`:"");
   E.style.display="block";
 }
@@ -392,7 +402,7 @@ const norm=s=>(s||"").replace(/\s+/g,"").toLowerCase();
 const fmt=v=>{if(v==null)return "집계 중";v=Math.round(v);return (v>0?"+":"")+v.toLocaleString()};
 const vcls=m=>m==="●"?"vh":m==="◐"?"vm":"vl";
 let D=null, filt="hot", mkt="all";
-renderNext(); renderElec(); loadElec(); setInterval(loadElec,60000);
+renderNext(); setInterval(renderNext,60000); renderElec(); loadElec(); setInterval(loadElec,60000);
 fetch("data.json?t="+Date.now()).then(r=>r.json()).then(d=>{
   D=d; D.rows=d.rows.map(r=>Array.isArray(r)?{name:r[0],cat:r[1],code:r[2],mkt:r[3],mark:r[4],txt:r[5],st:r[6],ss:r[7],s3:r[8],s5:r[9],
     days:r[10].map(x=>({d:x[0],close:x[1],rate:x[2],inst:x[3],frgn:x[4],hold:x[5]})),macd:r[11]||null,bot:r[12]||null,sec:r[13]||"",state:r[14]||null,ind:r[15]||null}:r);
