@@ -286,6 +286,13 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 .crv .arr{color:var(--muted)}
 .crv .cgo{color:var(--fg);font-weight:600}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .crh em{background:#163a24;color:#9fe0b4}:root:not([data-theme="light"]) .crv .now{color:#f19585}}
+.avgw{margin-top:6px;padding:9px 12px;border-radius:10px;background:#fbe6e3;color:#9b2c20;font-size:13px;line-height:1.55}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .avgw{background:#45201c;color:#f4a79b}}
+
+.vd .vw{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}
+.vsc{display:inline-flex;align-items:baseline;gap:4px;padding:2px 10px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+.vsc b{font-size:24px;font-weight:900;letter-spacing:-.5px}
+.vsc small{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0}
+.msc{font-size:12px;font-weight:800;margin-left:2px;padding:0 6px;border-radius:8px;background:var(--bg)}
 </style>
 </head>
 <body>
@@ -725,7 +732,7 @@ function renderMine(){
   M.innerHTML=`<div class="mh"><b>내 종목</b>${rows.length?`<span class="meta">${rows.length}개</span>`:""}</div>`+
   (rows.length?`<div class="sum"><span class="sv1">들고 가세요 <b>${cnt.sv1}</b></span><span class="sv2">지켜보세요 <b>${cnt.sv2}</b></span><span class="sv3">반등 때 정리 <b>${cnt.sv3}</b></span></div>${distBar(cnt)}
   ${(()=>{let g=0,b=0;rows.forEach(r=>{const x=rebound(r);if(!x)return;if(x.g==="g")g++;else if(x.g==="r")b++;});return (g||b)?`<div class="rsum"><span>반등 따라오는 종목<b class="t-sv1">${g}</b></span><span>반등 못 따라오는 종목<b class="t-sv3">${b}</b></span></div>`:"";})()}
-  ${items.map(({r,v})=>`<div class="mr" data-n="${r.name}"><span class="mn">${r.name}${(()=>{const c=chipsOf(r,1);return c.length?`<span class="mc2">${c[0]}</span>`:""})()}</span><span class="mc">${vsShort(r)}</span><span class="svs ${v.c}"><i class="dot"></i>${v.w}</span><button class="x" data-x="${r.name}" aria-label="빼기">×</button></div>`).join("")}`
+  ${items.map(({r,v})=>`<div class="mr" data-n="${r.name}"><span class="mn">${r.name}${(()=>{const c=chipsOf(r,1);return c.length?`<span class="mc2">${c[0]}</span>`:""})()}</span><span class="mc">${vsShort(r)}</span><span class="svs ${v.c}"><i class="dot"></i>${v.w}${(()=>{const q=score100(r);return q?` <b class="msc">${q.sc}</b>`:""})()}</span><button class="x" data-x="${r.name}" aria-label="빼기">×</button></div>`).join("")}`
   :`<div class="meta" style="margin:4px 0 8px">들고 있는 종목을 한 번에 넣어두면, 들어올 때마다 계좌 전체 판정을 한눈에 보여드립니다.</div>`)+
   `<div class="madd"><input id="mineIn" placeholder="예: 삼성전자, 하이닉스, 에코프로" autocomplete="off"><button id="mineBtn">담기</button></div><div class="meta" id="mineMsg" style="min-height:1em"></div>`;
   M.querySelectorAll(".mr").forEach(e=>e.onclick=ev=>{if(ev.target.dataset.x){toggleMine(ev.target.dataset.x);return;}const r=D.rows.find(x=>x.name===e.dataset.n);show(r);});
@@ -788,13 +795,26 @@ function charOf(r){   // 적금형 / 중간형 / 단타형 — 여러 기준 점
 const chip=(c,t)=>`<span class="chip ${c}">${t}</span>`;
 function chipsOf(r,max){   // 중요한 순서대로 배지
   const out=[], rb=rebound(r), ch=charOf(r);
-  if(rb&&rb.todayBad) out.push(chip("cr","시장 올랐는데 혼자 빠짐"));
+  if(rb&&rb.todayBad) out.push(chip("cr","오른 날 혼자 빠짐"));
   else if(rb&&rb.g==="r") out.push(chip("cr","반등 못 따라옴"));
   if(ch.hot) out.push(chip("cy","급등 주의"));
   if(ch.age) out.push(chip("cb",`상장 ${ch.age}일차`));
   if(rb&&rb.g==="g") out.push(chip("cg","반등 따라옴"));
   if(ch.type==="save") out.push(chip("cg","적금형")); else if(ch.type==="trade"&&!ch.hot&&!ch.age) out.push(chip("cn","단타형"));
   return out.slice(0,max||9);
+}
+function score100(r){   // 100점 점수 — 판정이 범위를 정하고, 반등 성적·종목 성격·추세·외국인·바닥 신호로 그 안에서 위치를 정함
+  const v=simple(r); if(v.c==="sv0") return null; const rng={sv1:[45,95],sv2:[35,70],sv3:[15,50]}[v.c];
+  const rb=rebound(r), ch=charOf(r), I=r.ind||[], b=r.bot||[];
+  const parts=[
+    [0.30,"반등 성적", rb?({g:1,y:0.55,r:0.1})[rb.g]:0.5],
+    [0.20,"종목 성격", Math.max(0,Math.min(1,(ch.score+6)/12))],
+    [0.20,"추세", Math.min(1,(I[4]===1?1:I[4]===-1?0.15:0.55)+(I[3]!=null&&I[3]>=0?0.1:0))],
+    [0.15,"외국인", r.st>=3?1:r.st>=1?0.7:r.ss>=3?0.1:0.45],
+    [0.15,"바닥 신호", b[11]!=null?Math.max(0,Math.min(1,b[11]/100)):0.5]];
+  let k=parts.reduce((s,[w,,x])=>s+w*x,0); if(ch.hot) k-=0.1; if(ch.age) k-=0.05; k=Math.max(0,Math.min(1,k));
+  const sc=Math.round(rng[0]+(rng[1]-rng[0])*k);
+  return {sc, lv:sc>=80?"매우 좋음":sc>=60?"좋음":sc>=45?"보통":sc>=30?"약함":"매우 약함", parts};
 }
 function reboundBox(r){   // 판정 아래 '반등장 체크' — 한 줄 결론 + 신호등 3칸, 자세한 건 접어둠
   const rb=rebound(r), ch=charOf(r); if(!rb&&!ch.type&&!ch.hot&&!ch.age) return "";
@@ -826,6 +846,7 @@ function reboundBox(r){   // 판정 아래 '반등장 체크' — 한 줄 결론
   if(ch.hot&&!(ch.type&&ch.type!=="save")) cu.push(["급등 열기 식기", ch.run!=null&&ch.run>=35?`일주일 +${ch.run}%`:`한 달 +${Math.round(ch.ret20)}%`, "상승폭 +35% 아래로", "급등 주의 해제"]);
   const cushion=cu.length?`<div class="cush"><div class="ct">등급 전환 조건</div>${scoreLine?`<div class="cs">${scoreLine}</div>`:""}${cu.map(([a,b2,c,e])=>`<div class="cr"><div class="crh"><b>${a}</b><em>${e}</em></div><div class="crv"><span class="now">지금 ${b2}</span><span class="arr">→</span><span class="cgo">${c}</span></div></div>`).join("")}<div class="cf">현재 등급은 고정값이 아닙니다 · 매 거래일 종가 기준으로 다시 산출됩니다</div></div>`:"";
   const more=[];
+  { const q=score100(r); if(q) more.push(`<div class="rmk"><b>점수 ${q.sc}점은 어떻게 나왔나요?</b> 판정(${simple(r).w})이 점수 범위를 정하고, 그 안에서 아래 다섯 가지로 위치를 정해요.<div class="upd">${q.parts.map(([w,n,x])=>`<i class="${x>=0.66?"ok":x<=0.34?"no":""}">${n} ${Math.round(x*100)}점 · 비중 ${Math.round(w*100)}%</i>`).join("")}</div></div>`); }
   if(rb) more.push(`<div class="rmk"><b>어떻게 판단했나요?</b> 최근 7거래일 중 지수가 1% 넘게 오른 날, 이 종목도 보통 종목만큼 올랐는지 봤어요.${rb.rel!=null?` 그리고 최근 한 달 동안 시장보다 <b>${rb.rel>=0?"+":""}${rb.rel}%</b> ${rb.rel>=0?"강했어요":"약했어요"}.`:""}</div>`);
   if(rb) more.push(`<div class="rmk"><b>시장이 오른 날, 이 종목은?</b><div class="upd">${rb.list.map(x=>`<i class="${x.ok?"ok":"no"}">${x.ok?"✓":"✗"} ${x.d} 시장 ${x.m>0?"+":""}${x.m.toFixed(1)}% · 이 종목 ${x.s>0?"+":""}${x.s.toFixed(1)}%</i>`).join("")}</div></div>`);
   if(ch.type){ const desc={save:"하루에 크게 튀진 않지만 큰 흐름이 오면 천천히 계단 타듯 오르는 종목이에요. 흔들리는 날 나눠서 담는 쪽이에요.",mid:"적금처럼 길게 모을 만큼 무겁지도, 단타만 할 만큼 가볍지도 않은 종목이에요. 큰 흐름은 들고 가되, 크게 뜬 날은 일부 챙기는 쪽이에요.",trade:"하루에 크게 뜨고 크게 빠지는 종목이에요. 길게 들고 가면 물리기 쉽고, 짧게 먹고 나오는 쪽이에요."}[ch.type];
@@ -921,6 +942,15 @@ function nearLv(r){   // 지금 가격 기준 '가까운 벽(위)'과 '가까운
   const tu=tickOf(u[0]), td=tickOf(d[0]);
   return {c, up:Math.ceil(u[0]/tu)*tu, dn:Math.floor(d[0]/td)*td, upPct:Math.round((u[0]/c-1)*100), dnPct:Math.round((1-d[0]/c)*100), upWhy:u[1], dnWhy:d[1]};
 }
+function avgCheck(r,a){   // 평단이 말이 되는 숫자인지 — 지금가·6개월 고점·저점 기준
+  if(!a) return {ok:false,msg:""};
+  const c=r.days&&r.days[0]&&r.days[0].close, I=r.ind||[], hi=I[5]||c, lo=I[7]||c; if(!c) return {ok:true};
+  const max=Math.max(hi*2,c*4), min=Math.min(lo*0.5,c*0.25);
+  if(a>=min&&a<=max) return {ok:true};
+  let sug=null; const sl=lo*0.7, sh=hi*1.3; for(const k of [10,100,1000]){ if(a/k>=sl&&a/k<=sh){sug=Math.round(a/k);break;} if(a*k>=sl&&a*k<=sh){sug=Math.round(a*k);break;} }   // 0이 더 붙었거나 빠진 경우만 제안
+  return {ok:false,msg:`입력하신 ${a.toLocaleString()}원은 이 종목 최근 6개월 가격(${Math.round(lo).toLocaleString()}~${Math.round(hi).toLocaleString()}원)과 너무 달라요.${sug?` 혹시 <b>${sug.toLocaleString()}원</b>인가요?`:""} 숫자를 다시 확인해 주세요.`};
+}
+function avgFor(r){const a=getAvg(r.name);return a&&avgCheck(r,a).ok?a:null;}
 function getAvg(n){try{return (JSON.parse(localStorage.getItem("nurungji_avg")||"{}"))[n]||null}catch(e){return null}}
 function setAvg(n,v){try{const m=JSON.parse(localStorage.getItem("nurungji_avg")||"{}");if(v)m[n]=v;else delete m[n];localStorage.setItem("nurungji_avg",JSON.stringify(m))}catch(e){}}
 function sigList(r){   // 여러 지표를 초보 말로 바꾼 신호 목록 [g/b/n, 제목, 설명]
@@ -949,7 +979,7 @@ function sigList(r){   // 여러 지표를 초보 말로 바꾼 신호 목록 [g
 }
 function shortScenario(r){
   const v=simple(r), L=nearLv(r); if(!L) return "";
-  const I=r.ind||[], b=r.bot||[], s=r.state||[], c=L.c, a=getAvg(r.name), f=x=>Math.round(x).toLocaleString()+"원";
+  const I=r.ind||[], b=r.bot||[], s=r.state||[], c=L.c, a=avgFor(r), aRaw=getAvg(r.name), aChk=avgCheck(r,aRaw), f=x=>Math.round(x).toLocaleString()+"원";
   const sig=sigList(r), G=sig.filter(x=>x[0]==="g").length, B=sig.filter(x=>x[0]==="b").length, sc=G-B;
   const rel=(I[11]!=null&&I[12]!=null)?I[11]-I[12]:null, pos=(I[5]&&I[7]&&I[5]>I[7])?(c-I[7])/(I[5]-I[7])*100:null;
   const oversold=(b[1]!=null&&b[1]<=35)||(b[2]!=null&&b[2]<=90);
@@ -1036,7 +1066,7 @@ function shortScenario(r){
 <div class="wkl"><div>나쁘면<br><b>${f(loW)}</b> <small>−${dnP}%</small></div><div style="text-align:center">지금<br><b>${f(c)}</b>${a&&a>=loW&&a<=hiW?`<br><small style="color:var(--blue)">▲ 내 평단</small>`:""}</div><div class="r">좋으면<br><b>${f(hiW)}</b> <small>+${upP}%</small></div></div>`;
   const tag=x=>x>=0?`<b class="up">+${x}%</b>`:`<b class="dn">${x}%</b>`;
   return `<div class="ssc">
-<div class="avg"><span style="white-space:nowrap">내 평단</span><input inputmode="numeric" data-avg="${r.name}" placeholder="예: ${c.toLocaleString()}" value="${a?a.toLocaleString():""}"><span class="meta">${a?"":"넣으면 내 상황에 맞게 나와요"}</span></div>
+<div class="avg"><span style="white-space:nowrap">내 평단</span><input inputmode="numeric" data-avg="${r.name}" placeholder="예: ${c.toLocaleString()}" value="${aRaw?aRaw.toLocaleString():""}"><span class="meta">${a?"":aRaw?"":"넣으면 내 상황에 맞게 나와요"}</span></div>${aRaw&&!aChk.ok?`<div class="avgw">⚠ ${aChk.msg}</div>`:""}
 <div class="todo ${tk}">${a?`<div class="tdl">내 평단 ${f(a)} · 지금 ${pl>=0?"+":""}${pl}%</div>`:""}<div class="tw">${tw}</div><div class="tn">${cm}</div><div class="tn" style="margin-top:2px">${tn}</div><details class="more"><summary>더보기 — 왜 이렇게 판단했나요</summary>${nowMore}</details></div>
 <div class="pl3">
 <div class="p3 q3u"><i></i><div class="ph"><b>${f(L.up)}</b> 넘어서 끝나면 <small>${a?(plUp>=0?`내 손익 ${tag(plUp)} (본전 넘음)`:`내 손익 ${tag(plUp)}로 줄어요`):`지금보다 ${tag(L.upPct)}`}</small></div><div class="pa2">→ ${RA[0]}</div>${RA[1]?`<div class="pr">${RA[1]}</div>`:""}<details class="more"><summary>더보기</summary>${upMore}</details></div>
@@ -1052,7 +1082,7 @@ function plan(r){
   const A={ // [위 가격 넘어서 끝나면, 그 사이면, 아래 가격 밑으로 끝나면] — 초보도 바로 알게 '가격'으로만 말하기
    sv1:[["더 사도 됩니다","한 번에 다 말고 나눠서","g"],["그냥 두세요","아무것도 안 하셔도 됩니다","g"],["그날은 팔지 마세요",`시장 따라 깨진 거면 다시 올라옵니다. 시장 전체가 같이 빠졌는지 먼저 보세요`,"y"]],
    sv2:[["들고 가세요","이제 안심하셔도 됩니다","g"],["그냥 두세요",`${U} 넘는지만 보세요`,"y"],["더 사지 마세요",`${Dn}이 깨지면 더 밀릴 수 있다는 신호예요. 그날 장중에 놀라서 던지지는 마세요`,"r"]],
-   sv3:[["비중 줄일지 생각할 자리",(()=>{const a=getAvg(r.name);return a?(a<=L.up?`내 평단 ${a.toLocaleString()}원보다 위 — 수익 구간이에요`:`내 평단 ${a.toLocaleString()}원까지는 아직이에요. 급하게 정할 필요 없어요`):"시장보다 약한 종목이라 더 사서 키울 자리는 아니에요"})(),"y"],["팔지 마세요",`바닥에서 던지지 마세요. ${U}까지 반등이 먼저예요`,"y"],["물타기 하지 마세요",`버팀목 깨진 빨강은 회복이 느릴 수 있어요. 더 사서 금액을 키우지 마세요`,"r"]],
+   sv3:[["비중 줄일지 생각할 자리",(()=>{const a=avgFor(r);return a?(a<=L.up?`내 평단 ${a.toLocaleString()}원보다 위 — 수익 구간이에요`:`내 평단 ${a.toLocaleString()}원까지는 아직이에요. 급하게 정할 필요 없어요`):"시장보다 약한 종목이라 더 사서 키울 자리는 아니에요"})(),"y"],["팔지 마세요",`바닥에서 던지지 마세요. ${U}까지 반등이 먼저예요`,"y"],["물타기 하지 마세요",`버팀목 깨진 빨강은 회복이 느릴 수 있어요. 더 사서 금액을 키우지 마세요`,"r"]],
    sv0:[["따라 사지 마세요","거래가 적은 종목이에요","y"],["그냥 두세요","","y"],["더 사지 마세요","거래가 적어 더 튈 수 있어요","r"]]
   }[v.c];
   const row=(cls,label,a)=>`<div class="ld ${cls}"><div class="lp">${label}</div><div class="la k${a[2]}">${a[0]}</div>${a[1]?`<div class="ln">${a[1]}</div>`:""}</div>`;
@@ -1061,7 +1091,7 @@ ${row("lu",`<b>${L.up.toLocaleString()}원</b> 넘어서 장이 끝나면 <small
 <div class="lnow"><span>지금 ${L.c.toLocaleString()}원</span></div>
 ${row("lmid",`<b>${L.dn.toLocaleString()}원 ~ ${L.up.toLocaleString()}원</b> 사이면`,A[1])}
 ${row("lb",`<b>${L.dn.toLocaleString()}원</b> 밑으로 장이 끝나면 <small>지금보다 −${L.dnPct}%</small>`,A[2])}
-</div>${(()=>{const I=r.ind||[], c=L.c, hi=I[5], lo=I[7], m120=I[3]!=null?c/(1+I[3]/100):null, a=getAvg(r.name);
+</div>${(()=>{const I=r.ind||[], c=L.c, hi=I[5], lo=I[7], m120=I[3]!=null?c/(1+I[3]/100):null, a=avgFor(r);
   if(!hi||!lo||hi<=lo) return "";
   const pos=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100)), f=v=>Math.round(v).toLocaleString()+"원";
   const lines=[`지금은 6개월 범위의 <b>${pos(c)<25?"바닥 쪽":pos(c)>75?"꼭대기 쪽":"가운데"}</b>에 있어요`];
@@ -1080,7 +1110,7 @@ function show(r){
   const line=s&&s[16]?(s[11]>=s[16]?"바닥선 위 ✓":"바닥선 밑 ✗"):"";
   const t=r.days[0];
   V.innerHTML=`<div class="vh2"><div><span class="name">${r.name}</span><span class="code">${r.code}${r.mkt?" · "+r.mkt:""}${r.sec?" · "+r.sec:""}</span></div><button class="star" data-star="${r.name}">${isMine(r.name)?"★ 내 종목":"☆ 내 종목에 담기"}</button></div>
-${(()=>{const v=simple(r);return `<div class="vd ${v.c}"><div class="vtop"><div><div class="vl2">판정</div><div class="vw">${v.w}</div></div><div class="vleg">${[["sv1","들고 가세요"],["sv2","지켜보세요"],["sv3","파세요·줄이세요"]].map(([c,w])=>`<div class="${c}${v.c===c?" on":""}"><i></i>${w}</div>`).join("")}</div></div><div class="vy">${v.why}</div></div>`})()}
+${(()=>{const v=simple(r);return `<div class="vd ${v.c}"><div class="vtop"><div><div class="vl2">판정</div><div class="vw">${v.w}${(()=>{const q=score100(r);return q?`<span class="vsc"><b>${q.sc}</b><small>/100 · ${q.lv}</small></span>`:""})()}</div></div><div class="vleg">${[["sv1","들고 가세요"],["sv2","지켜보세요"],["sv3","파세요·줄이세요"]].map(([c,w])=>`<div class="${c}${v.c===c?" on":""}"><i></i>${w}</div>`).join("")}</div></div><div class="vy">${v.why}</div></div>`})()}
 ${vsMarket(r)}
 ${reboundBox(r)}
 <details class="acc" open><summary>단기 시나리오 <small>지금 할 일 · 이번 주 그림</small></summary><div class="in">${shortScenario(r)}</div></details>
