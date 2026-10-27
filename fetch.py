@@ -66,8 +66,8 @@ def daum_search(name):
     return None
 
 # ───────── 종목별 매매동향: 네이버 / 다음 ─────────
-def trend_naver(code):
-    r = S.get(f"https://finance.naver.com/item/frgn.naver?code={code}", headers={"Referer": "https://finance.naver.com/"}, timeout=15)
+def _naver_frgn_page(code, page):
+    r = S.get(f"https://finance.naver.com/item/frgn.naver?code={code}&page={page}", headers={"Referer": "https://finance.naver.com/"}, timeout=15)
     if r.status_code != 200: raise RuntimeError(f"HTTP {r.status_code}")
     r.encoding = "euc-kr"
     if "frgn" not in r.text and "외국인" not in r.text: raise RuntimeError("차단된 페이지")
@@ -77,13 +77,29 @@ def trend_naver(code):
         t = t[t[0].astype(str).str.match(r"\d{4}\.\d{2}\.\d{2}")]
         if len(t) == 0: continue
         return [dict(d=str(a), close=num(b), rate=num(c), inst=num(e), frgn=num(f), hold=num(g))
-                for a, b, c, e, f, g in zip(t[0], t[1], t[3], t[5], t[6], t[8])][:10]
+                for a, b, c, e, f, g in zip(t[0], t[1], t[3], t[5], t[6], t[8])]
     raise RuntimeError("표 없음")
+
+def _streak_open(rows):
+    """가져온 날짜 전부가 같은 방향(연속 매수 또는 연속 매도)이면 True — 더 과거를 봐야 정확한 연속 일수가 나옴"""
+    f = [r["frgn"] for r in rows if r.get("frgn") is not None]
+    return bool(f) and (all(v > 0 for v in f) or all(v < 0 for v in f))
+
+def trend_naver(code):
+    rows = _naver_frgn_page(code, 1)
+    page = 2
+    while _streak_open(rows) and page <= 4:          # 연속 매수·매도가 페이지 끝까지 이어지면 다음 페이지까지 (최대 약 80일)
+        try: more = _naver_frgn_page(code, page)
+        except Exception: break
+        if not more: break
+        rows += [m for m in more if m["d"] < rows[-1]["d"]]
+        page += 1
+    return rows
 
 DAUM_DEBUG = [False]
 def trend_daum(code):
     h = {"Referer": f"https://finance.daum.net/quotes/A{code}"}
-    r = S.get(f"https://finance.daum.net/api/investor/days?symbolCode=A{code}&perPage=10&page=1&pagination=true", headers=h, timeout=15)
+    r = S.get(f"https://finance.daum.net/api/investor/days?symbolCode=A{code}&perPage=60&page=1&pagination=true", headers=h, timeout=15)
     if r.status_code != 200: raise RuntimeError(f"daum HTTP {r.status_code}")
     data = r.json().get("data", [])
     if not data: raise RuntimeError("daum 빈 응답")
@@ -428,6 +444,26 @@ def elec_odds():
         print("ELEC FAIL", e)
     return None
 
+
+MACRO_SYMS = {"us10y": "^TNX", "wti": "CL=F", "brent": "BZ=F"}
+def macro_snap():
+    """미국 10년물 금리·WTI·브렌트 (야후, 실패하면 None) — 사이트에서 실시간 위젯이 안 뜰 때 대신 보여줌"""
+    out = {}
+    for k, sym in MACRO_SYMS.items():
+        try:
+            j = requests.get(f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}", params={"range": "5d", "interval": "1d"},
+                             headers={"User-Agent": "Mozilla/5.0"}, timeout=15).json()["chart"]["result"][0]
+            m = j["meta"]; px = m.get("regularMarketPrice"); prev = m.get("chartPreviousClose") or m.get("previousClose")
+            closes = [c for c in j["indicators"]["quote"][0]["close"] if c]
+            if len(closes) >= 2: prev = closes[-2]
+            out[k] = [round(px, 3 if k == "us10y" else 2), round((px / prev - 1) * 100, 2) if prev else None]
+        except Exception as e:
+            print("MACRO FAIL", k, e)
+    if out:
+        out["at"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).astimezone(datetime.timezone(datetime.timedelta(hours=9))).strftime("%m/%d %H:%M")
+        print("MACRO", out); return out
+    return None
+
 def main():
     stocks = json.load(open("stocks.json", encoding="utf-8"))          # [[이름, 분류], ...]
     try: SEC = json.load(open("sectors.json", encoding="utf-8"))        # {이름: 섹터}
@@ -581,7 +617,7 @@ def main():
         if len(ks) >= 2 and m[ks[-2]]:
             mktchg[lb] = [ks[-1], round((m[ks[-1]] / m[ks[-2]] - 1) * 100, 2)]
     data = dict(mkt=mktchg, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
-                gauge=gauge, elec=elec_odds(), rows=compact, missing=[b["name"] for b in bad if b["cat"]])
+                gauge=gauge, elec=elec_odds(), macro=macro_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
 
