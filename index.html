@@ -258,6 +258,34 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 .rtl .rtc.zg{background:#e3f4e9}.rtl .rtc.zg b{color:#1B7A3E}.rtl .rtc.zr{background:#fbe6e3}.rtl .rtc.zr b{color:#C0392B}.rtl .rtc.zy{background:#fbf1d6}.rtl .rtc.zy b{color:#8a5a00}.rtl .rtc.zb{background:#e8edfa}.rtl .rtc.zb b{color:#3B5BC4}
 .rmk{font-size:13px;line-height:1.6;margin-top:8px;color:var(--fg)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rtl .rtc.zg{background:#163a24}:root:not([data-theme="light"]) .rtl .rtc.zg b{color:#9fe0b4}:root:not([data-theme="light"]) .rtl .rtc.zr{background:#45201c}:root:not([data-theme="light"]) .rtl .rtc.zr b{color:#f4a79b}:root:not([data-theme="light"]) .rtl .rtc.zy{background:#3a3012}:root:not([data-theme="light"]) .rtl .rtc.zy b{color:#f0d27a}:root:not([data-theme="light"]) .rtl .rtc.zb{background:#1d2648}:root:not([data-theme="light"]) .rtl .rtc.zb b{color:#a9bbf2}:root:not([data-theme="light"]) .rbx2.kg .rhd{color:#7fd39b}:root:not([data-theme="light"]) .rbx2.kr .rhd{color:#f19585}:root:not([data-theme="light"]) .rbx2.ky .rhd{color:#e8c167}}
+
+.rtl .rtc.zn{background:var(--bg)}
+.why2{margin:6px 0 0;padding:0;list-style:none}.why2 li{font-size:12.5px;padding:3px 0;display:flex;gap:6px;align-items:baseline}
+.why2 em{flex:none;font-style:normal;font-size:11px;font-weight:700;padding:1px 6px;border-radius:8px}.why2 em.p{background:#e3f4e9;color:#1B7A3E}.why2 em.m{background:#fbf1d6;color:#8a5a00}
+
+.cush{margin-top:10px;border-radius:12px;padding:10px 12px;background:#eef5ff;border:1px dashed #9db4e8}
+.cush .ct{font-size:12.5px;font-weight:800;color:#3B5BC4;margin-bottom:4px}
+.cush .ci{font-size:13.5px;line-height:1.55;padding:2px 0}
+.cush .cf{font-size:11.5px;color:var(--muted);margin-top:4px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cush{background:#1a2238;border-color:#3b4f86}:root:not([data-theme="light"]) .cush .ct{color:#a9bbf2}}
+:root[data-theme="dark"] .cush{background:#1a2238;border-color:#3b4f86}:root[data-theme="dark"] .cush .ct{color:#a9bbf2}
+
+.cush .cs{font-size:12.5px;margin-bottom:6px}
+.ctb{width:100%;border-collapse:collapse;font-size:12.5px}
+.ctb th{text-align:left;font-weight:700;color:var(--muted);font-size:11.5px;padding:4px 4px;border-bottom:1px solid #c9d6f2}
+.ctb td{padding:6px 4px;border-bottom:1px solid #dde6f7;vertical-align:top;line-height:1.45;text-align:left}
+.ctb th{text-align:left}.ctb td:first-child{font-weight:700;width:31%}.ctb td:nth-child(2){width:23%}.ctb td:nth-child(3){color:var(--muted)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ctb th,:root:not([data-theme="light"]) .ctb td{border-color:#2d3a5e}}
+
+.cr{background:var(--card);border-radius:10px;padding:9px 11px;margin-top:6px}
+.crh{display:flex;justify-content:space-between;align-items:center}
+.crh b{font-size:14px}
+.crh em{font-style:normal;font-size:12px;font-weight:800;color:#1B7A3E;background:#e3f4e9;padding:2px 8px;border-radius:9px}
+.crv{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:5px;font-size:13px}
+.crv .now{font-weight:800;color:#C0392B}
+.crv .arr{color:var(--muted)}
+.crv .cgo{color:var(--fg);font-weight:600}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .crh em{background:#163a24;color:#9fe0b4}:root:not([data-theme="light"]) .crv .now{color:#f19585}}
 </style>
 </head>
 <body>
@@ -725,20 +753,37 @@ function rebound(r){   // 최근 시장이 오른 날, 이 종목도 같이 올�
   (r.days||[]).slice(0,7).forEach((x,i)=>{const mm=M[x.d]; if(!mm||!mm.up||x.rate==null) return;
     up++; const base=Math.max(0,mm.med); const ok=x.rate>0&&x.rate>=base*0.5; if(ok)fol++; if(i===0&&x.rate<=-1&&mm.med>=0.5) todayBad=true; /* 종목 중간값 기준: 보통 종목만큼 따라왔나 */ list.push({d:x.d.slice(5).replace(".","/"),m:mm.r,s:x.rate,ok});});
   if(!up) return null;
-  const g=todayBad?"r":up<2?(fol?"g":"y"):fol/up<=0.34?"r":fol/up>=0.66?"g":"y";   // 오른 날이 하루뿐이면 '못 따라옴'으로 단정하지 않음
-  return {up,fol,g,todayBad,list:list.reverse()};
+  const I=r.ind||[], rel=(I[11]!=null&&I[12]!=null)?Math.round(I[11]-I[12]):null;   // 최근 한 달: 이 종목 − 시장
+  const fr=fol/up;
+  let g=todayBad?"r":up<2?(fol?"g":"y"):fr<=0.34?"r":fr>=0.66?"g":"y";
+  if(g==="g"&&rel!=null&&rel<=-15) g="y";          // 오른 날엔 따라왔어도 한 달 내내 시장보다 크게 약하면 한 단계 낮춤
+  if(g==="y"&&rel!=null&&rel>=10&&!todayBad) g="g"; // 반반이어도 한 달 동안 시장보다 확실히 강하면 한 단계 올림
+  if(g==="y"&&rel!=null&&rel<=-20) g="r";   // 오른 날이 하루뿐이면 '못 따라옴'으로 단정하지 않음
+  return {up,fol,g,todayBad,rel,list:list.reverse()};
 }
-function charOf(r){
-  const I=r.ind||[], b=r.bot||[], d=r.days||[], sw=I[10], tv=b[8];
+function swingCut(){   // 전 종목 '평소 하루 움직임' 상위 10%·3% 기준선
+  if(D._swc) return D._swc; const a=D.rows.map(r=>r.ind&&r.ind[10]).filter(v=>v!=null).sort((x,y)=>x-y);
+  return D._swc=a.length?[a[Math.floor(a.length*0.9)],a[Math.floor(a.length*0.97)]]:[5,7];
+}
+function charOf(r){   // 적금형 / 중간형 / 단타형 — 여러 기준 점수 합산
+  const I=r.ind||[], b=r.bot||[], d=r.days||[], sw=I[10], tv=b[8], hold=d[0]&&d[0].hold;
   const r5=d[5]&&d[5].close&&d[0]?Math.round((d[0].close/d[5].close-1)*100):null;
-  const age=I[15]!=null?(I[15]<120?I[15]:null):(d.length&&d.length<7?d.length:null);   // 일봉 개수(없으면 거래일 수)로 상장 며칠째인지
-  let run=null; for(let i=1;i<d.length;i++)for(let j=0;j<i;j++){if(d[i].close&&d[j].close){const g=(d[j].close/d[i].close-1)*100; if(run==null||g>run) run=g;}}   // 최근 일주일 안 최대 상승폭
+  const age=I[15]!=null?(I[15]<120?I[15]:null):(d.length&&d.length<7?d.length:null);
+  let run=null; for(let i=1;i<d.length;i++)for(let j=0;j<i;j++){if(d[i].close&&d[j].close){const g=(d[j].close/d[i].close-1)*100; if(run==null||g>run) run=g;}}
   run=run!=null?Math.round(run):null;
   const hot=(run!=null&&run>=35)||(I[11]!=null&&I[11]>=60);
-  let type=null;
-  if(tv!=null&&tv>=100&&sw!=null&&sw<=3.5&&!hot&&!age) type="save";
-  else if((sw!=null&&sw>=4.5)||hot||age) type="trade";
-  return {type,hot,r5,run,ret20:I[11],age};
+  const pts=[], add=(n,t)=>pts.push([n,t]);
+  if(r.cat===1) add(2,"실적이 받쳐주는 대형주"); else if(r.cat===2) add(1,"수요가 확인된 장비·소부장"); else if(r.cat===3) add(-1,"테마 성격이 강한 종목");
+  if(tv!=null){ if(tv>=2000) add(2,`하루 거래대금 ${Math.round(tv).toLocaleString()}억 — 아주 많음`); else if(tv>=300) add(1,`하루 거래대금 ${Math.round(tv).toLocaleString()}억 — 많은 편`); else if(tv<30) add(-1,`하루 거래대금 ${Math.round(tv)}억 — 적음`); }
+  if(hold!=null){ if(hold>=30) add(2,`외국인이 ${hold.toFixed(0)}% 들고 있음 — 큰돈이 오래 들고 가는 종목`); else if(hold>=15) add(1,`외국인 보유 ${hold.toFixed(0)}%`); }
+  if(r.st>=3) add(1,`외국인 ${r.st}일 연속 매수 중`);
+  const [c90,c97]=swingCut();
+  if(sw!=null){ if(sw>=c97) add(-2,`평소 하루 ${sw}% 움직임 — 전체 상위 3%`); else if(sw>=c90) add(-1,`평소 하루 ${sw}% 움직임 — 전체 상위 10%`); }
+  if(hot) add(-2, run!=null&&run>=35?`최근 일주일 새 +${run}% 급등`:`한 달 새 +${Math.round(I[11])}% 급등`);
+  if(age) add(-2,`상장 ${age}일차 신규 상장주`);
+  const score=pts.reduce((s,x)=>s+x[0],0);
+  const type=score>=3?"save":score<=-1?"trade":"mid";
+  return {type,score,pts,hot,r5,run,ret20:I[11],age};
 }
 const chip=(c,t)=>`<span class="chip ${c}">${t}</span>`;
 function chipsOf(r,max){   // 중요한 순서대로 배지
@@ -758,17 +803,38 @@ function reboundBox(r){   // 판정 아래 '반등장 체크' — 한 줄 결론
   const sub=!rb&&(ch.age||ch.hot)?"지금 가격에 새로 따라 사는 건 조심하세요":ch.hot?"다만 최근에 크게 올라서, 지금 새로 따라 사는 건 조심하세요":ch.age?"상장한 지 얼마 안 돼서 위아래로 크게 출렁일 수 있어요":g==="r"?"시장이 올라도 내 계좌를 안 올려줄 수 있어요. 비중을 다시 보세요":g==="g"?"시장이 살아나면 같이 움직이는 종목이에요":"";
   const T=[];
   if(rb) T.push([g, "시장 오를 때", g==="g"?"같이 올라요":g==="r"?(rb.todayBad?"혼자 빠져요":"안 따라와요"):"반만 따라와요", `오른 날 ${rb.up}번 중 ${rb.fol}번`]);
-  if(ch.type) T.push([ch.type==="save"?"g":"y", "이 종목은", ch.type==="save"?"적금형":"단타형", ch.type==="save"?"나눠서 모으기":"짧게 먹기"]);
+  if(ch.type) T.push([ch.type==="save"?"g":ch.type==="mid"?"n":"y", "이 종목은", ch.type==="save"?"적금형":ch.type==="mid"?"중간형":"단타형", ch.type==="save"?"나눠서 모으기":ch.type==="mid"?"흐름 보며 대응":"짧게 먹기"]);
   if(ch.hot) T.push(["r","최근 움직임",`+${ch.run!=null&&ch.run>=35?ch.run:Math.round(ch.ret20)}% 급등`, ch.run!=null&&ch.run>=35?"일주일 새":"한 달 새"]);
   else if(ch.age) T.push(["b","최근 움직임",`상장 ${ch.age}일차`,"새로 상장"]);
+  // 쿠션: 등급 전환 조건 (수치 기준)
+  const cu=[];   // [조건, 지금 → 기준, 효과]
+  if(rb&&rb.g!=="g") cu.push(["시장 오른 날 따라왔나", `${rb.up}일 중 ${rb.fol}일`, "다음 상승일에 시장 평균의 절반 이상 오르기", "반등 성적 ↑"]);
+  if(rb&&rb.rel!=null&&rb.rel<=-15) cu.push(["한 달 시장 대비 성적", `${rb.rel}%p`, "−15%p 위로 회복", "반등 성적 ↑"]);
+  let scoreLine="";
+  if(ch.type&&ch.type!=="save"){
+    const tgt=ch.type==="trade"?0:3, next=ch.type==="trade"?"중간형":"적금형", need=tgt-ch.score, hasP=t=>ch.pts.some(p=>p[1].includes(t));
+    const I=r.ind||[], b=r.bot||[], [c90]=swingCut(), opt=[];
+    if(ch.hot) opt.push([2,"급등 열기 식기", ch.run!=null&&ch.run>=35?`일주일 +${ch.run}%`:`한 달 +${Math.round(ch.ret20)}%`, "상승폭 +35% 아래로", "+2점"]);
+    if(ch.age) opt.push([2,"상장 후 기간", `${ch.age}거래일`, "120거래일 지나기", "+2점"]);
+    if(r.st<3) opt.push([1,"외국인 연속 매수", `${r.st}일`, "3일 연속 사기", "+1점"]);
+    if(hasP("상위")&&I[10]!=null) opt.push([1,"하루 출렁임", `${I[10]}%`, `${c90}% 아래로 줄기`, "+1점"]);
+    if(hasP("적음")&&b[8]!=null) opt.push([1,"하루 거래대금", `${Math.round(b[8])}억`, "30억 넘기", "+1점"]);
+    if(r.cat===3) opt.push([0,"","",""]);
+    let acc=0; const pick=[]; for(const o of opt){ if(!o[0]) continue; pick.push(o); acc+=o[0]; if(acc>=need) break; }
+    if(pick.length){ pick.forEach(o=>cu.push([o[1],o[2],o[3],o[4]])); scoreLine=`지금 <b>${ch.score}점</b> · <b>${tgt}점</b>이 되면 <b>${next}</b>으로 바뀌어요${acc>=need?"":" (외국인 보유 확대 등 추가 개선 필요)"}`; }
+  }
+  if(ch.hot&&!(ch.type&&ch.type!=="save")) cu.push(["급등 열기 식기", ch.run!=null&&ch.run>=35?`일주일 +${ch.run}%`:`한 달 +${Math.round(ch.ret20)}%`, "상승폭 +35% 아래로", "급등 주의 해제"]);
+  const cushion=cu.length?`<div class="cush"><div class="ct">등급 전환 조건</div>${scoreLine?`<div class="cs">${scoreLine}</div>`:""}${cu.map(([a,b2,c,e])=>`<div class="cr"><div class="crh"><b>${a}</b><em>${e}</em></div><div class="crv"><span class="now">지금 ${b2}</span><span class="arr">→</span><span class="cgo">${c}</span></div></div>`).join("")}<div class="cf">현재 등급은 고정값이 아닙니다 · 매 거래일 종가 기준으로 다시 산출됩니다</div></div>`:"";
   const more=[];
+  if(rb) more.push(`<div class="rmk"><b>어떻게 판단했나요?</b> 최근 7거래일 중 지수가 1% 넘게 오른 날, 이 종목도 보통 종목만큼 올랐는지 봤어요.${rb.rel!=null?` 그리고 최근 한 달 동안 시장보다 <b>${rb.rel>=0?"+":""}${rb.rel}%</b> ${rb.rel>=0?"강했어요":"약했어요"}.`:""}</div>`);
   if(rb) more.push(`<div class="rmk"><b>시장이 오른 날, 이 종목은?</b><div class="upd">${rb.list.map(x=>`<i class="${x.ok?"ok":"no"}">${x.ok?"✓":"✗"} ${x.d} 시장 ${x.m>0?"+":""}${x.m.toFixed(1)}% · 이 종목 ${x.s>0?"+":""}${x.s.toFixed(1)}%</i>`).join("")}</div></div>`);
-  if(ch.type==="save") more.push(`<div class="rmk"><b>적금형이란?</b> 하루에 크게 튀진 않지만 큰 흐름이 오면 천천히 계단 타듯 오르는 종목이에요. 흔들리는 날 나눠서 담는 쪽이에요.</div>`);
-  if(ch.type==="trade") more.push(`<div class="rmk"><b>단타형이란?</b> 하루에 크게 뜨고 크게 빠지는 종목이에요. 길게 들고 가면 물리기 쉽고, 짧게 먹고 나오는 쪽이에요.</div>`);
+  if(ch.type){ const desc={save:"하루에 크게 튀진 않지만 큰 흐름이 오면 천천히 계단 타듯 오르는 종목이에요. 흔들리는 날 나눠서 담는 쪽이에요.",mid:"적금처럼 길게 모을 만큼 무겁지도, 단타만 할 만큼 가볍지도 않은 종목이에요. 큰 흐름은 들고 가되, 크게 뜬 날은 일부 챙기는 쪽이에요.",trade:"하루에 크게 뜨고 크게 빠지는 종목이에요. 길게 들고 가면 물리기 쉽고, 짧게 먹고 나오는 쪽이에요."}[ch.type];
+    more.push(`<div class="rmk"><b>왜 ${ch.type==="save"?"적금형":ch.type==="mid"?"중간형":"단타형"}인가요?</b> ${desc}<ul class="why2">${ch.pts.map(([n,t])=>`<li><em class="${n>0?"p":"m"}">${n>0?"적금 쪽":"단타 쪽"}</em>${t}</li>`).join("")}</ul></div>`); }
   if(ch.hot) more.push(`<div class="rmk"><b>급등 주의란?</b> 기대 하나로 크게 오른 뒤에는 조정이 자주 나와요. 지금 가격에 새로 따라 사는 건 조심하세요.</div>`);
   if(ch.age) more.push(`<div class="rmk"><b>신규 상장주란?</b> 위에 물린 사람이 없어 가볍게 뜨고 가볍게 빠져요. 상장 몇 달 뒤 묶여 있던 물량이 풀릴 수 있어요.</div>`);
   return `<div class="rbx2 k${g}"><div class="rt">반등장 체크</div><div class="rhd">${head}</div>${sub?`<div class="rsb">${sub}</div>`:""}
 <div class="rtl">${T.map(([c,k,v,n])=>`<div class="rtc z${c}"><small>${k}</small><b>${v}</b><span>${n}</span></div>`).join("")}</div>
+${cushion}
 <details class="more"><summary>자세히 보기</summary>${more.join("")}</details></div>`;
 }
 // ══════════ 오늘 시장: 지수 · 오른 업종 · 크게 오른 종목 ══════════
