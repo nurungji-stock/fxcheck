@@ -201,7 +201,7 @@ def ind_info(cd, idx=None):
                 mret = round((idx[ks[-1]] / idx[d20] - 1) * 100, 1)
         l20 = min(x["l"] for x in cd[-20:]); h20 = max(x["h"] for x in cd[-20:])
         return [pos[0], pos[1], pos[2], pos[3], arr, round(hi), round((px / hi - 1) * 100, 1), round(lo), round((px / lo - 1) * 100, 1),
-                volx, swing, ret20, mret, round(l20), round(h20)]
+                volx, swing, ret20, mret, round(l20), round(h20), len(cd)]   # 마지막 = 받아온 일봉 개수(130 미만이면 상장한 지 얼마 안 된 종목)
     except Exception as e:
         print("ind err", e); return None
 
@@ -611,12 +611,13 @@ def main():
         print("GAUGE", gauge)
     inv_base = next((d["d"] for d in ok[0]["days"] if d["frgn"] is not None), "") if ok else ""
     px_base = ok[0]["days"][0]["d"] if ok else ""
-    mktchg = {}
+    mktchg = {}; mkth = {}
     for lb, m in IDX.items():
         ks = sorted(k for k in m if k != "_last")
         if len(ks) >= 2 and m[ks[-2]]:
             mktchg[lb] = [ks[-1], round((m[ks[-1]] / m[ks[-2]] - 1) * 100, 2)]
-    data = dict(mkt=mktchg, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
+            mkth[lb] = [[ks[i], round((m[ks[i]] / m[ks[i-1]] - 1) * 100, 2)] for i in range(max(1, len(ks) - 8), len(ks))]   # 최근 지수 일별 등락 (반등장 성적표용)
+    data = dict(mkt=mktchg, mkth=mkth, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
                 gauge=gauge, elec=elec_odds(), macro=macro_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")

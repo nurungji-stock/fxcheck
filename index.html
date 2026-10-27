@@ -199,6 +199,65 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 .es .s{font-size:15px;font-weight:800}.es .k{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:1px}
 .ew{font-size:13px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}.ew b{color:var(--blue)}
 .ehist{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;text-align:center}.ehist div{background:var(--bg);border-radius:10px;padding:8px 2px}.ehist small{display:block;font-size:11px;color:var(--muted)}.ehist b{font-size:16px}.ehist span{display:block;font-size:11px;color:var(--muted)}
+
+/* ── 정리판 공통 ── */
+.sec{font-size:17px;font-weight:800;letter-spacing:-.4px;margin:22px 2px 8px}
+.fold{margin-top:16px}
+.evx{margin-top:4px}
+.chip{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;line-height:1.5}
+.chip.cg{background:#e3f4e9;color:#1B7A3E}.chip.cr{background:#fbe6e3;color:#C0392B}.chip.cy{background:#fbf1d6;color:#8a5a00}.chip.cb{background:#e8edfa;color:#3B5BC4}.chip.cn{background:var(--bg);color:var(--muted)}
+/* 반등장 체크 */
+.rbx{margin-top:12px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.rbx .rh{padding:10px 14px;font-size:14px;font-weight:800;background:var(--bg);display:flex;justify-content:space-between;align-items:center}
+.rbr{display:grid;grid-template-columns:76px 1fr;gap:10px;padding:11px 14px;border-top:1px solid var(--line);align-items:start}
+.rbr .k{font-size:12px;color:var(--muted);font-weight:700;padding-top:2px}
+.rbr .v b{display:block;font-size:15.5px;letter-spacing:-.3px}
+.rbr .v span{display:block;font-size:13px;color:var(--muted);line-height:1.55;margin-top:2px}
+.rbr .v b.g{color:#1B7A3E}.rbr .v b.r{color:#C0392B}.rbr .v b.y{color:#A86B00}
+.upd{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.upd i{font-style:normal;font-size:11.5px;padding:3px 7px;border-radius:8px;background:var(--bg);color:var(--muted)}
+.upd i.ok{background:#e3f4e9;color:#1B7A3E}.upd i.no{background:#fbe6e3;color:#C0392B}
+/* 오늘 시장 */
+.idx{display:flex;gap:8px}
+.idx div{flex:1;background:var(--bg);border-radius:12px;padding:10px 12px}
+.idx small{display:block;font-size:12px;color:var(--muted)}
+.idx b{font-size:22px;letter-spacing:-.5px}
+.th{font-size:13px;font-weight:800;margin:16px 0 6px;color:var(--fg)}
+.srow{display:grid;grid-template-columns:78px 58px 1fr;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.srow:first-of-type{border-top:0}
+.srow .sn{font-weight:800}
+.srow .sp{font-weight:800;text-align:right}
+.srow .ss{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hot{display:flex;flex-wrap:wrap;gap:6px}
+.hot button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:20px;padding:5px 11px;cursor:pointer}
+.hot button b{color:#C0392B;margin-left:3px}
+/* 앤트로픽 D-day */
+.dday{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,#1b1b1b,#2b2410);color:#fff;border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.dday .dn{font-size:22px;font-weight:900;color:#ffd21a;letter-spacing:-.5px;white-space:nowrap}
+.dday .dt b{display:block;font-size:15px}
+.dday .dt small{display:block;font-size:12px;color:#cfcfd4;margin-top:1px}
+/* 내 종목 */
+.mr .mc2{display:flex;gap:4px;margin-left:6px}
+.rsum{display:flex;gap:8px;margin:8px 0 2px;font-size:13px}
+.rsum span{flex:1;background:var(--bg);border-radius:10px;padding:8px 10px}
+.rsum b{font-size:17px;margin-left:4px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.cg,:root:not([data-theme="light"]) .upd i.ok{background:#163a24;color:#9fe0b4}:root:not([data-theme="light"]) .chip.cr,:root:not([data-theme="light"]) .upd i.no{background:#45201c;color:#f4a79b}:root:not([data-theme="light"]) .chip.cy{background:#3a3012;color:#f0d27a}:root:not([data-theme="light"]) .chip.cb{background:#1d2648;color:#a9bbf2}:root:not([data-theme="light"]) .rbr .v b.g{color:#7fd39b}:root:not([data-theme="light"]) .rbr .v b.r{color:#f19585}:root:not([data-theme="light"]) .rbr .v b.y{color:#e8c167}}
+:root[data-theme="dark"] .chip.cg,:root[data-theme="dark"] .upd i.ok{background:#163a24;color:#9fe0b4}:root[data-theme="dark"] .chip.cr,:root[data-theme="dark"] .upd i.no{background:#45201c;color:#f4a79b}:root[data-theme="dark"] .chip.cy{background:#3a3012;color:#f0d27a}:root[data-theme="dark"] .chip.cb{background:#1d2648;color:#a9bbf2}
+
+.rbx2{margin-top:12px;border-radius:14px;padding:14px;border:2px solid var(--line)}
+.rbx2.kg{border-color:#1B7A3E}.rbx2.kr{border-color:#C0392B}.rbx2.ky{border-color:#D4A017}
+.rbx2 .rt{font-size:12px;font-weight:700;color:var(--muted)}
+.rbx2 .rhd{font-size:18px;font-weight:800;letter-spacing:-.4px;margin-top:2px;line-height:1.35}
+.rbx2.kg .rhd{color:#1B7A3E}.rbx2.kr .rhd{color:#C0392B}.rbx2.ky .rhd{color:#A86B00}
+.rbx2 .rsb{font-size:13.5px;color:var(--muted);margin-top:3px;line-height:1.5}
+.rtl{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:6px;margin-top:10px}
+.rtl .rtc{border-radius:12px;padding:9px 8px;text-align:center;background:var(--bg)}
+.rtl .rtc small{display:block;font-size:11.5px;color:var(--muted)}
+.rtl .rtc b{display:block;font-size:16px;font-weight:800;letter-spacing:-.4px;margin:2px 0}
+.rtl .rtc span{display:block;font-size:11.5px;color:var(--muted);line-height:1.35}
+.rtl .rtc.zg{background:#e3f4e9}.rtl .rtc.zg b{color:#1B7A3E}.rtl .rtc.zr{background:#fbe6e3}.rtl .rtc.zr b{color:#C0392B}.rtl .rtc.zy{background:#fbf1d6}.rtl .rtc.zy b{color:#8a5a00}.rtl .rtc.zb{background:#e8edfa}.rtl .rtc.zb b{color:#3B5BC4}
+.rmk{font-size:13px;line-height:1.6;margin-top:8px;color:var(--fg)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rtl .rtc.zg{background:#163a24}:root:not([data-theme="light"]) .rtl .rtc.zg b{color:#9fe0b4}:root:not([data-theme="light"]) .rtl .rtc.zr{background:#45201c}:root:not([data-theme="light"]) .rtl .rtc.zr b{color:#f4a79b}:root:not([data-theme="light"]) .rtl .rtc.zy{background:#3a3012}:root:not([data-theme="light"]) .rtl .rtc.zy b{color:#f0d27a}:root:not([data-theme="light"]) .rtl .rtc.zb{background:#1d2648}:root:not([data-theme="light"]) .rtl .rtc.zb b{color:#a9bbf2}:root:not([data-theme="light"]) .rbx2.kg .rhd{color:#7fd39b}:root:not([data-theme="light"]) .rbx2.kr .rhd{color:#f19585}:root:not([data-theme="light"]) .rbx2.ky .rhd{color:#e8c167}}
 </style>
 </head>
 <body>
@@ -214,21 +273,21 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 <button class="link" id="guideBtn">처음이세요? 보는 법 ▾</button>
 <div id="guide" style="display:none">
 <div class="step"><span>1</span><div><b>종목을 검색하세요</b><br>코스피·코스닥 전 종목이 나옵니다.</div></div>
-<div class="step"><span>2</span><div><b>판정 한 줄만 보세요</b><br><b class="t-sv1">들고 가세요</b> · <b class="t-sv2">지켜보세요</b> (장 끝 가격이 바닥선 위인지 확인) · <b class="t-sv3">반등 때 파세요</b> (지금 던지라는 뜻 아님)</div></div>
-<div class="step"><span>3</span><div><b>그 밑 한 줄로 오늘을 확인하세요</b><br>"시장 따라 같이 빠졌습니다" = 내 종목 탓 아님<br>"시장보다 더 빠졌습니다" = 회사 소식 확인</div></div>
-<div class="step"><span>4</span><div><b>들고 있는 종목은 "내 종목"에 담아두세요</b><br>다음에 들어오면 계좌 전체 판정이 바로 보입니다. (이 기기에만 저장)<br><b>더 알고 싶으면 아래 칸을 눌러 펼치세요</b><br>타이밍 · 외국인 날짜별 · 세부 지표가 접혀 있습니다.</div></div>
-<div class="meta" style="margin-top:6px">하루 두 번이면 충분합니다 — 장 끝나고 한 번(판정), 저녁에 한 번(외국인 숫자).</div>
+<div class="step"><span>2</span><div><b>맨 위 판정 한 줄만 보세요</b><br><b class="t-sv1">들고 가세요</b> · <b class="t-sv2">지켜보세요</b> · <b class="t-sv3">반등 때 정리</b></div></div>
+<div class="step"><span>3</span><div><b>내 평단을 넣으세요</b><br>지금 내 손익과, 위·아래 가격에서 할 일이 내 평단 기준으로 나옵니다.</div></div>
+<div class="step"><span>4</span><div><b>"반등장 체크"를 보세요</b><br>시장이 오른 날 이 종목이 같이 올랐는지 — 반등장에서 따라올 종목인지 알 수 있습니다.</div></div>
+<div class="step"><span>5</span><div><b>들고 있는 종목은 전부 "내 종목"에 담으세요</b><br>계좌 전체가 한눈에 보입니다. (이 기기에만 저장)</div></div>
 </div>
 </div>
 
 <div class="card" id="verdict" style="display:none"></div>
-<div class="card" id="next" style="display:none"></div>
-<div class="card" id="macro"></div>
 <div class="card" id="mine"></div>
-<div class="card" id="board" style="display:none"></div>
 
-<div id="elecwrap"><div class="sec eh2">미국 중간선거<button class="link" id="elecTog"></button></div>
-<div class="card" id="elec"></div></div>
+<div class="sec">오늘 시장</div>
+<div class="card" id="today" style="display:none"></div>
+
+<div class="sec">다가오는 일정</div>
+<div class="card" id="plan"><div id="dday"></div><div id="next" style="display:none"></div><details class="sub2 evx"><summary>한 달 일정 전체 보기 ▾</summary><div id="events" style="display:none"></div></details></div>
 
 <div class="sec">랭킹</div>
 <div class="tabs" id="tabs">
@@ -250,8 +309,11 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 </div></div>
 <div class="rwarn">⚠ 랭킹은 공개된 시세·수급 자료를 정해진 기준으로 계산한 순위일 뿐, 매수 추천이 아닙니다. 투자 판단과 책임은 본인에게 있습니다.</div>
 
-<div class="sec">방향을 정할 날짜</div>
-<div class="card" id="events" style="display:none"></div>
+
+<details class="acc fold" id="macroWrap"><summary>유가 · 미국 금리 <small>실시간</small></summary><div class="in"><div id="macro"></div></div></details>
+<div id="elecwrap"><div class="sec eh2" style="margin-top:18px">미국 중간선거<button class="link" id="elecTog"></button></div>
+<div class="card" id="elec"></div></div>
+
 
 <details class="acc" style="margin-top:16px"><summary>전체 종목 목록 <small>조건별로 모아보기</small></summary><div class="in">
 <div id="gauge" style="display:none;margin-bottom:10px"></div>
@@ -276,7 +338,7 @@ const CAT={0:{l:"분류 없음",c:"t4",act:"분류기에 없는 종목입니다.
 2:{l:"② 재료 장비·소부장",c:"t2",act:"들고 갑니다. 확정된 수요가 있는 종목이라 반등 때 가장 먼저 움직입니다. 외국인 사흘 연속이면 물타기 가능."},
 3:{l:"③ 테마 중소형주",c:"t3",act:"반등 때 정리합니다. 본전이 아니라 반등이 기준(−20%가 −10%로 올라온 날). 외국인 안 들어온 급등은 갭상승 후 조정입니다."},
 4:{l:"? 판단 필요",c:"t4",act:"확정 재료가 확인되기 전까지는 ③처럼 대응합니다."}};
-const TODAY_NOTE="10/23 · 미국 반도체 급락에 코스피 장 초반 −4%까지 빠졌다가 낙폭 대부분 회복 · 외국인 1조 넘게 팔았는데 기관·개인이 받아냄 — 아침 갭 하락에 던지지 마세요";   // 오늘 시장 한 줄 (직접 고쳐 쓰면 됨, 비우면 안 보임)
+const TODAY_NOTE="10/27 · 앤트로픽 상장 서류 제출 → 반도체·로봇·전력·신규 상장주 동반 급등, 코스피 매수 사이드카 · 메타 증자 소식에 오후 상승폭 축소";   // 오늘 시장 한 줄 (직접 고쳐 쓰면 됨, 비우면 안 보임)
 const EVENTS=[   // [한국 날짜, 일정, 왜 중요한지, 별(★ 많을수록 중요)] — 지난 날짜는 자동으로 숨김 · 미국 장 마감 후 발표는 한국 다음 날 아침으로 적음
   ["2026-10-21","10월 1~20일 수출 (반도체)","반도체 수출이 계속 늘면 '회사 문제 아님'이 숫자로 확인",2],
   ["2026-10-22","한국은행 기준금리 결정","동결 예상 · 총재 발언이 원화·외국인 흐름에 영향",2],
@@ -291,6 +353,7 @@ const EVENTS=[   // [한국 날짜, 일정, 왜 중요한지, 별(★ 많을수�
   ["2026-11-04","미국 중간선거 결과 (현지 11/3)","결과에 따라 원전·반도체·방산 vs 2차전지·태양광 갈림",3],
   ["2026-11-12","11월 옵션 만기일","만기일 전후 대형주 변동성 커짐",1],
   ["2026-11-18","엔비디아 실적 (아침)","AI 칩 수요 최종 확인 — 하이닉스·삼성 HBM과 직결",3]];
+const ANT_IPO={on:true, title:"앤트로픽 나스닥 상장", date:"", note:"11월 중순 예정 · 10/26 상장 서류 제출"};   // date에 "2026-11-18" 처럼 넣으면 D-day 자동 계산, on:false면 숨김
 const NEXT_TITLE="auto";   // "auto"면 다음 장 요일로 자동 ("화요일 장 전에 볼 것"), 비우면 칸 숨김
 const NEXT_SUB="";        // 비우면 "10/27(화) 장 시작 전" 자동
 const NEXT=[   // [태그, 무엇, 어떻게 보면 되나, 중요도 1~3, (선택) 이 시각 지나면 자동으로 숨김 "YYYY-MM-DDTHH:MM"]
@@ -356,7 +419,7 @@ const ELEC_SC={   // 시나리오별 섹터 순위 — 여기 고치면 됨 [섹
   w:"2차전지 · 태양광 (IRA 축소 가속)"}};
 let elecSel=null, elecOdds=null;
 function elecKey(o){return o.house>=50?(o.senate>=50?"dd":"dr"):(o.senate>=50?"dr":"rr");}
-let elecHide=false; try{elecHide=localStorage.getItem("nurungji_elec_hide")==="1"}catch(e){}
+let elecHide=true; try{const v=localStorage.getItem("nurungji_elec_hide"); if(v!==null) elecHide=v==="1";}catch(e){}
 function renderElec(){
   const W=document.getElementById("elecwrap"), E=document.getElementById("elec"), T=document.getElementById("elecTog"); if(!E) return;
   if(!SHOW_ELEC){W.style.display="none";return;}
@@ -421,10 +484,11 @@ function init(){
   if(TODAY_NOTE){const n=document.getElementById("todaynote");n.innerHTML=`<span class="nt"></span>`;n.firstChild.textContent=TODAY_NOTE;n.style.display="block";n.title="눌러서 전체 보기";}
   renderGauge();
   renderEvents();
-  renderMacro();
+  { const mw=document.getElementById("macroWrap"); let done=false; if(mw) mw.addEventListener("toggle",()=>{if(mw.open&&!done){done=true;renderMacro();}}); }
   renderElec();
   renderMine();
-  renderBoard();
+  renderToday();
+  renderDday();
   renderRank();
   renderRank2();
   renderList();
@@ -631,8 +695,9 @@ function renderMine(){
   const rows=getMine().map(n=>D.rows.find(r=>r.name===n)).filter(Boolean);
   const cnt={sv1:0,sv2:0,sv3:0,sv0:0}; const items=rows.map(r=>{const v=simple(r);cnt[v.c]++;return {r,v};});
   M.innerHTML=`<div class="mh"><b>내 종목</b>${rows.length?`<span class="meta">${rows.length}개</span>`:""}</div>`+
-  (rows.length?`<div class="sum"><span class="sv1">들고 가세요 <b>${cnt.sv1}</b></span><span class="sv2">지켜보세요 <b>${cnt.sv2}</b></span><span class="sv3">파세요·줄이세요 <b>${cnt.sv3}</b></span></div>${distBar(cnt)}
-  ${items.map(({r,v})=>`<div class="mr" data-n="${r.name}"><span class="mn">${r.name}</span><span class="mc">${vsShort(r)}</span><span class="svs ${v.c}"><i class="dot"></i>${v.w}</span><button class="x" data-x="${r.name}" aria-label="빼기">×</button></div>`).join("")}`
+  (rows.length?`<div class="sum"><span class="sv1">들고 가세요 <b>${cnt.sv1}</b></span><span class="sv2">지켜보세요 <b>${cnt.sv2}</b></span><span class="sv3">반등 때 정리 <b>${cnt.sv3}</b></span></div>${distBar(cnt)}
+  ${(()=>{let g=0,b=0;rows.forEach(r=>{const x=rebound(r);if(!x)return;if(x.g==="g")g++;else if(x.g==="r")b++;});return (g||b)?`<div class="rsum"><span>반등 따라오는 종목<b class="t-sv1">${g}</b></span><span>반등 못 따라오는 종목<b class="t-sv3">${b}</b></span></div>`:"";})()}
+  ${items.map(({r,v})=>`<div class="mr" data-n="${r.name}"><span class="mn">${r.name}${(()=>{const c=chipsOf(r,1);return c.length?`<span class="mc2">${c[0]}</span>`:""})()}</span><span class="mc">${vsShort(r)}</span><span class="svs ${v.c}"><i class="dot"></i>${v.w}</span><button class="x" data-x="${r.name}" aria-label="빼기">×</button></div>`).join("")}`
   :`<div class="meta" style="margin:4px 0 8px">들고 있는 종목을 한 번에 넣어두면, 들어올 때마다 계좌 전체 판정을 한눈에 보여드립니다.</div>`)+
   `<div class="madd"><input id="mineIn" placeholder="예: 삼성전자, 하이닉스, 에코프로" autocomplete="off"><button id="mineBtn">담기</button></div><div class="meta" id="mineMsg" style="min-height:1em"></div>`;
   M.querySelectorAll(".mr").forEach(e=>e.onclick=ev=>{if(ev.target.dataset.x){toggleMine(ev.target.dataset.x);return;}const r=D.rows.find(x=>x.name===e.dataset.n);show(r);});
@@ -644,6 +709,97 @@ function renderMine(){
   document.getElementById("mineIn").onkeydown=e=>{if(e.key==="Enter")add();};
 }
 function vsShort(r){const t=r.days&&r.days[0];if(!t||t.rate==null)return "";return `<span class="${t.rate>0?"up":t.rate<0?"dn":""}">${t.rate>0?"+":""}${t.rate.toFixed(1)}%</span>`;}
+
+// ══════════ 종목 성격: 반등장 성적표 · 적금형/단타형 · 급등 주의 · 신규 상장 ══════════
+function mktDayMap(){   // {시장: {날짜: {r: 지수 등락, up: 오른 날, med: 그 시장 종목 중간값}}}
+  if(D._mdm) return D._mdm; const m={코스피:{},코스닥:{}};
+  const acc={}; D.rows.forEach(r=>(r.days||[]).forEach(x=>{if(x.rate==null)return; const key=r.mkt+"|"+x.d; (acc[key]=acc[key]||[]).push(x.rate);}));
+  const med={}; for(const key in acc){const a=acc[key]; if(a.length<200) continue; a.sort((x,y)=>x-y); med[key]=+a[a.length>>1].toFixed(2);}
+  const idx={}; if(D.mkth) for(const k in D.mkth) D.mkth[k].forEach(([d,r])=>idx[k+"|"+d]=r); if(D.mkt) for(const k in D.mkt) idx[k+"|"+D.mkt[k][0]]=D.mkt[k][1];
+  new Set([...Object.keys(med),...Object.keys(idx)]).forEach(key=>{const [k,d]=key.split("|"), ir=idx[key], md=med[key];
+    if(!m[k]) m[k]={}; m[k][d]={r: ir!=null?ir:md, med: md!=null?md:ir, up: ir!=null? ir>=1.0 : md>=0.7};});
+  return D._mdm=m;
+}
+function rebound(r){   // 최근 시장이 오른 날, 이 종목도 같이 올랐나
+  const M=mktDayMap()[r.mkt]||{}; let up=0,fol=0,todayBad=false; const list=[];
+  (r.days||[]).slice(0,7).forEach((x,i)=>{const mm=M[x.d]; if(!mm||!mm.up||x.rate==null) return;
+    up++; const base=Math.max(0,mm.med); const ok=x.rate>0&&x.rate>=base*0.5; if(ok)fol++; if(i===0&&x.rate<=-1&&mm.med>=0.5) todayBad=true; /* 종목 중간값 기준: 보통 종목만큼 따라왔나 */ list.push({d:x.d.slice(5).replace(".","/"),m:mm.r,s:x.rate,ok});});
+  if(!up) return null;
+  const g=todayBad?"r":up<2?(fol?"g":"y"):fol/up<=0.34?"r":fol/up>=0.66?"g":"y";   // 오른 날이 하루뿐이면 '못 따라옴'으로 단정하지 않음
+  return {up,fol,g,todayBad,list:list.reverse()};
+}
+function charOf(r){
+  const I=r.ind||[], b=r.bot||[], d=r.days||[], sw=I[10], tv=b[8];
+  const r5=d[5]&&d[5].close&&d[0]?Math.round((d[0].close/d[5].close-1)*100):null;
+  const age=I[15]!=null?(I[15]<120?I[15]:null):(d.length&&d.length<7?d.length:null);   // 일봉 개수(없으면 거래일 수)로 상장 며칠째인지
+  let run=null; for(let i=1;i<d.length;i++)for(let j=0;j<i;j++){if(d[i].close&&d[j].close){const g=(d[j].close/d[i].close-1)*100; if(run==null||g>run) run=g;}}   // 최근 일주일 안 최대 상승폭
+  run=run!=null?Math.round(run):null;
+  const hot=(run!=null&&run>=35)||(I[11]!=null&&I[11]>=60);
+  let type=null;
+  if(tv!=null&&tv>=100&&sw!=null&&sw<=3.5&&!hot&&!age) type="save";
+  else if((sw!=null&&sw>=4.5)||hot||age) type="trade";
+  return {type,hot,r5,run,ret20:I[11],age};
+}
+const chip=(c,t)=>`<span class="chip ${c}">${t}</span>`;
+function chipsOf(r,max){   // 중요한 순서대로 배지
+  const out=[], rb=rebound(r), ch=charOf(r);
+  if(rb&&rb.todayBad) out.push(chip("cr","시장 올랐는데 혼자 빠짐"));
+  else if(rb&&rb.g==="r") out.push(chip("cr","반등 못 따라옴"));
+  if(ch.hot) out.push(chip("cy","급등 주의"));
+  if(ch.age) out.push(chip("cb",`상장 ${ch.age}일차`));
+  if(rb&&rb.g==="g") out.push(chip("cg","반등 따라옴"));
+  if(ch.type==="save") out.push(chip("cg","적금형")); else if(ch.type==="trade"&&!ch.hot&&!ch.age) out.push(chip("cn","단타형"));
+  return out.slice(0,max||9);
+}
+function reboundBox(r){   // 판정 아래 '반등장 체크' — 한 줄 결론 + 신호등 3칸, 자세한 건 접어둠
+  const rb=rebound(r), ch=charOf(r); if(!rb&&!ch.type&&!ch.hot&&!ch.age) return "";
+  const g=rb?rb.g:"y";
+  const head=!rb?(ch.age?"새로 상장해서 출렁임이 큰 종목이에요":ch.hot?"최근에 크게 올라 조정이 나올 수 있어요":"시장 오른 날 기록이 아직 부족해요"):g==="g"?"반등장이 오면 같이 올라갈 종목이에요":g==="r"?"반등장이 와도 같이 안 오를 수 있어요":"반등장에서 느리게 따라오는 종목이에요";
+  const sub=!rb&&(ch.age||ch.hot)?"지금 가격에 새로 따라 사는 건 조심하세요":ch.hot?"다만 최근에 크게 올라서, 지금 새로 따라 사는 건 조심하세요":ch.age?"상장한 지 얼마 안 돼서 위아래로 크게 출렁일 수 있어요":g==="r"?"시장이 올라도 내 계좌를 안 올려줄 수 있어요. 비중을 다시 보세요":g==="g"?"시장이 살아나면 같이 움직이는 종목이에요":"";
+  const T=[];
+  if(rb) T.push([g, "시장 오를 때", g==="g"?"같이 올라요":g==="r"?(rb.todayBad?"혼자 빠져요":"안 따라와요"):"반만 따라와요", `오른 날 ${rb.up}번 중 ${rb.fol}번`]);
+  if(ch.type) T.push([ch.type==="save"?"g":"y", "이 종목은", ch.type==="save"?"적금형":"단타형", ch.type==="save"?"나눠서 모으기":"짧게 먹기"]);
+  if(ch.hot) T.push(["r","최근 움직임",`+${ch.run!=null&&ch.run>=35?ch.run:Math.round(ch.ret20)}% 급등`, ch.run!=null&&ch.run>=35?"일주일 새":"한 달 새"]);
+  else if(ch.age) T.push(["b","최근 움직임",`상장 ${ch.age}일차`,"새로 상장"]);
+  const more=[];
+  if(rb) more.push(`<div class="rmk"><b>시장이 오른 날, 이 종목은?</b><div class="upd">${rb.list.map(x=>`<i class="${x.ok?"ok":"no"}">${x.ok?"✓":"✗"} ${x.d} 시장 ${x.m>0?"+":""}${x.m.toFixed(1)}% · 이 종목 ${x.s>0?"+":""}${x.s.toFixed(1)}%</i>`).join("")}</div></div>`);
+  if(ch.type==="save") more.push(`<div class="rmk"><b>적금형이란?</b> 하루에 크게 튀진 않지만 큰 흐름이 오면 천천히 계단 타듯 오르는 종목이에요. 흔들리는 날 나눠서 담는 쪽이에요.</div>`);
+  if(ch.type==="trade") more.push(`<div class="rmk"><b>단타형이란?</b> 하루에 크게 뜨고 크게 빠지는 종목이에요. 길게 들고 가면 물리기 쉽고, 짧게 먹고 나오는 쪽이에요.</div>`);
+  if(ch.hot) more.push(`<div class="rmk"><b>급등 주의란?</b> 기대 하나로 크게 오른 뒤에는 조정이 자주 나와요. 지금 가격에 새로 따라 사는 건 조심하세요.</div>`);
+  if(ch.age) more.push(`<div class="rmk"><b>신규 상장주란?</b> 위에 물린 사람이 없어 가볍게 뜨고 가볍게 빠져요. 상장 몇 달 뒤 묶여 있던 물량이 풀릴 수 있어요.</div>`);
+  return `<div class="rbx2 k${g}"><div class="rt">반등장 체크</div><div class="rhd">${head}</div>${sub?`<div class="rsb">${sub}</div>`:""}
+<div class="rtl">${T.map(([c,k,v,n])=>`<div class="rtc z${c}"><small>${k}</small><b>${v}</b><span>${n}</span></div>`).join("")}</div>
+<details class="more"><summary>자세히 보기</summary>${more.join("")}</details></div>`;
+}
+// ══════════ 오늘 시장: 지수 · 오른 업종 · 크게 오른 종목 ══════════
+function renderToday(){
+  const T=document.getElementById("today"); if(!T||!D) return;
+  const today=D.rows.map(r=>r.days&&r.days[0]).filter(Boolean).map(x=>x.d).sort().pop();
+  const tr=r=>r.days&&r.days[0]&&r.days[0].d===today&&r.days[0].rate!=null?r.days[0].rate:null;
+  const idx=D.mkt?Object.entries(D.mkt).map(([k,[d,r]])=>`<div><small>${k}</small><b class="${r>0?"up":r<0?"dn":""}">${r>0?"+":""}${r.toFixed(2)}%</b></div>`).join(""):"";
+  const by={}; D.rows.forEach(r=>{const v=tr(r); if(v==null||!r.sec) return; (by[r.sec]=by[r.sec]||[]).push([r,v]);});
+  const secs=Object.entries(by).filter(([k,a])=>a.length>=4).map(([k,a])=>({k,avg:a.reduce((s,x)=>s+x[1],0)/a.length,top:a.sort((x,y)=>y[1]-x[1]).slice(0,2)})).sort((a,b)=>b.avg-a.avg);
+  const up=secs.slice(0,5), dn=secs.filter(x=>x.avg<0).slice(-2).reverse();
+  const srow=x=>`<div class="srow"><span class="sn">${x.k}</span><span class="sp ${x.avg>0?"up":"dn"}">${x.avg>0?"+":""}${x.avg.toFixed(1)}%</span><span class="ss">${x.top.map(([r,v])=>`${r.name} ${v>0?"+":""}${v.toFixed(0)}%`).join(" · ")}</span></div>`;
+  const big=D.rows.map(r=>[r,tr(r)]).filter(([r,v])=>v!=null&&v>=15&&!(r.bot&&r.bot[8]!=null&&r.bot[8]<5)).sort((a,b)=>b[1]-a[1]);
+  const cnt={sv1:0,sv2:0,sv3:0,sv0:0}; D.rows.forEach(r=>{cnt[simple(r).c]++;}); const tot=cnt.sv1+cnt.sv2+cnt.sv3, p=n=>Math.round(n/tot*100);
+  T.style.display="block";
+  T.innerHTML=`${idx?`<div class="idx">${idx}</div>`:""}
+<div class="th">오늘 오른 업종 <span class="meta" style="font-weight:400">업종 평균 · 많이 오른 종목</span></div>${up.map(srow).join("")}
+${dn.length?`<div class="th">약했던 업종</div>${dn.map(srow).join("")}`:""}
+${big.length?`<div class="th">15% 넘게 오른 종목 <b class="up">${big.length}개</b></div><div class="hot">${big.slice(0,10).map(([r,v])=>`<button data-n="${r.name}">${r.name}<b>+${v.toFixed(0)}%</b></button>`).join("")}</div>`:""}
+<details class="sub2" style="margin-top:12px"><summary>전 종목 판정 비율 ▾</summary>${distBar(cnt)}<div class="bd"><div><small>들고 가세요</small><b class="t-sv1">${p(cnt.sv1)}%</b></div><div><small>지켜보세요</small><b class="t-sv2">${p(cnt.sv2)}%</b></div><div><small>반등 때 정리</small><b class="t-sv3">${p(cnt.sv3)}%</b></div></div></details>
+<div class="meta" style="margin-top:8px">${D.updated} 기준 · 장중에는 갱신될 때마다 바뀝니다</div>`;
+  T.querySelectorAll(".hot button").forEach(b=>b.onclick=()=>{const r=D.rows.find(x=>x.name===b.dataset.n); if(r){q.value=r.name;show(r);}});
+}
+function renderDday(){
+  const E=document.getElementById("dday"); if(!E) return;
+  if(!ANT_IPO.on){E.innerHTML="";return;}
+  let dn="11월 중순";
+  if(ANT_IPO.date){const k=new Date(Date.now()+9*3600e3), t=Date.UTC(k.getUTCFullYear(),k.getUTCMonth(),k.getUTCDate()), n=Math.round((new Date(ANT_IPO.date+"T00:00:00Z")-t)/864e5); dn=n>0?`D-${n}`:n===0?"D-DAY":"상장 완료";}
+  E.innerHTML=`<div class="dday"><div class="dn">${dn}</div><div class="dt"><b>${ANT_IPO.title}</b><small>${ANT_IPO.note}</small></div></div>`;
+}
+
 // ── 오늘 시장 판정판 ──
 function renderBoard(){
   const B=document.getElementById("board"); if(!B) return;
@@ -733,7 +889,9 @@ function shortScenario(r){
   const oversold=(b[1]!=null&&b[1]<=35)||(b[2]!=null&&b[2]<=90);
   // ① 위로 한 줄 — 가장 힘이 되는 '사실'부터
   let cm, cs="";
-  if(v.c==="sv3"){ cm=s[0]===1?"반등이 나왔어요. 지금이 정리하기 좋은 타이밍이에요":"오늘 급하게 던질 필요는 없어요"; cs="다만 이 종목은 시장이 좋아져도 혼자 늦게 올라올 수 있어요. 반등 때 줄여서 강한 종목으로 옮기는 게 계획이에요"; }
+  const tdr=r.days&&r.days[0]&&r.days[0].rate;
+  if(tdr!=null&&tdr>=5&&v.c!=="sv3"){ cm=`오늘 ${tdr.toFixed(0)}% 크게 올랐어요`; cs="크게 오른 날 따라 사기보다, 아래 가격 근처로 눌릴 때를 기다리는 게 유리해요"; }
+  else if(v.c==="sv3"){ cm=s[0]===1?"반등이 나왔어요. 지금이 정리하기 좋은 타이밍이에요":"오늘 급하게 던질 필요는 없어요"; cs="다만 이 종목은 시장이 좋아져도 혼자 늦게 올라올 수 있어요. 반등 때 줄여서 강한 종목으로 옮기는 게 계획이에요"; }
   else if(rel!=null&&rel>-5&&I[12]<-3){ cm="이 종목이 잘못한 게 아니에요. 시장 전체가 같이 빠진 거예요"; cs=`최근 한 달 시장 ${I[12]}% · 이 종목 ${I[11]>0?"+":""}${I[11]}%. 시장이 돌아서면 같이 돌아옵니다`; }
   else if(oversold){ cm="이미 많이 빠진 자리예요. 여기서 던지면 제일 싼 값에 파는 거예요"; cs="과하게 빠진 뒤엔 되돌림이 나오는 경우가 많아요"; }
   else if(r.st>=2){ cm=`외국인이 ${r.st}일째 사고 있어요`; cs="큰돈이 들어오는 종목은 흔들려도 다시 올라오는 힘이 있어요"; }
@@ -858,6 +1016,7 @@ function show(r){
   V.innerHTML=`<div class="vh2"><div><span class="name">${r.name}</span><span class="code">${r.code}${r.mkt?" · "+r.mkt:""}${r.sec?" · "+r.sec:""}</span></div><button class="star" data-star="${r.name}">${isMine(r.name)?"★ 내 종목":"☆ 내 종목에 담기"}</button></div>
 ${(()=>{const v=simple(r);return `<div class="vd ${v.c}"><div class="vtop"><div><div class="vl2">판정</div><div class="vw">${v.w}</div></div><div class="vleg">${[["sv1","들고 가세요"],["sv2","지켜보세요"],["sv3","파세요·줄이세요"]].map(([c,w])=>`<div class="${c}${v.c===c?" on":""}"><i></i>${w}</div>`).join("")}</div></div><div class="vy">${v.why}</div></div>`})()}
 ${vsMarket(r)}
+${reboundBox(r)}
 <details class="acc" open><summary>단기 시나리오 <small>지금 할 일 · 이번 주 그림</small></summary><div class="in">${shortScenario(r)}</div></details>
 <details class="acc"><summary>가격별 할 일 <small>이 가격 오면 이렇게</small></summary><div class="in">${plan(r)}</div></details>
 ${x?`<details class="acc"><summary>판정 근거 <small>${x.why.length}가지</small></summary><div class="in"><div class="kws">${x.why.map(w=>`<span class="kw">${w.split(" — ")[0].replace(/^[①②③]\s*/,"")}</span>`).join("")}</div></div></details>`:""}
