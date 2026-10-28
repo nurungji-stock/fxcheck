@@ -205,6 +205,78 @@ def ind_info(cd, idx=None):
     except Exception as e:
         print("ind err", e); return None
 
+def tech_info(cd):
+    """매매 진단용 지표 (가격은 원):
+    [0 20일선, 1 60일선, 2 120일선, 3 RSI, 4 볼린저 %b(0=하단,1=상단), 5 볼린저 폭%, 6 ATR%(하루 평균 움직임),
+     7 오른날/내린날 거래량비(10일), 8 최근5일/20일 거래량비, 9 20일 저점, 10 60일 저점, 11 20일 고점, 12 60일 고점,
+     13 위쪽 매물대 가격, 14 아래쪽 매물대 가격, 15 20일선 기울기%(5일), 16 20일선 회복 며칠 전(-1 없음),
+     17 상승 다이버전스(1/0), 18 눌림목(1/0), 19 돌파(1/0), 20 연속 상승(+)/하락(-) 일수, 21 5일 수익률%, 22 현재가]"""
+    try:
+        n = len(cd)
+        if n < 30: return None
+        cl = [x["c"] for x in cd]; hi = [x["h"] for x in cd]; lo = [x["l"] for x in cd]; vs = [x.get("v") or 0 for x in cd]
+        px = cl[-1]
+        def ma(k, end=n): 
+            if end < k: return None
+            return sum(cl[end - k:end]) / k
+        m20, m60, m120 = ma(20), ma(60), ma(120)
+        rsi = rsi14(cl)
+        # 볼린저 20,2
+        seg = cl[-20:]; mu = sum(seg) / 20; sd = (sum((x - mu) ** 2 for x in seg) / 20) ** 0.5
+        pb = (px - (mu - 2 * sd)) / (4 * sd) if sd else 0.5
+        bw = 4 * sd / mu * 100 if mu else 0
+        # ATR14
+        trs = [max(hi[i] - lo[i], abs(hi[i] - cl[i - 1]), abs(lo[i] - cl[i - 1])) for i in range(max(1, n - 14), n)]
+        atr = sum(trs) / len(trs) / px * 100 if trs and px else None
+        # 거래량
+        upv = [vs[i] for i in range(n - 10, n) if cl[i] > cl[i - 1]]; dnv = [vs[i] for i in range(n - 10, n) if cl[i] < cl[i - 1]]
+        udr = (sum(upv) / len(upv)) / (sum(dnv) / len(dnv)) if upv and dnv and sum(dnv) else None
+        v20 = sum(vs[-20:]) / 20; v5 = sum(vs[-5:]) / 5
+        v520 = v5 / v20 if v20 else None
+        l20, l60 = min(lo[-20:]), min(lo[-60:]); h20, h60 = max(hi[-20:]), max(hi[-60:])
+        # 매물대: 최근 120일 거래량을 가격대(24칸)에 쌓아서, 지금가 위·아래로 가장 두꺼운 칸
+        w = cd[-120:]; pmin = min(x["l"] for x in w); pmax = max(x["h"] for x in w)
+        up_r = dn_r = None
+        if pmax > pmin:
+            B = 24; step = (pmax - pmin) / B; bins = [0.0] * B
+            for x in w:
+                tp = (x["h"] + x["l"] + x["c"]) / 3; k = min(B - 1, int((tp - pmin) / step)); bins[k] += x.get("v") or 0
+            mid = lambda k: pmin + step * (k + 0.5)
+            above = [(bins[k], mid(k)) for k in range(B) if mid(k) > px * 1.02]
+            below = [(bins[k], mid(k)) for k in range(B) if mid(k) < px * 0.98]
+            if above: up_r = max(above)[1]
+            if below: dn_r = max(below)[1]
+        slope = (m20 / ma(20, n - 5) - 1) * 100 if m20 and ma(20, n - 5) else None
+        rec = -1
+        for back in range(0, 6):
+            i = n - 1 - back
+            a, b = ma(20, i + 1), ma(20, i)
+            if a and b and cl[i] > a and cl[i - 1] <= b: rec = back; break
+        if rec >= 0 and px < m20: rec = -1
+        # 상승 다이버전스: 최근 10일 최저가가 그 전 10~30일 최저가보다 낮은데 RSI는 더 높음
+        div = 0
+        if n >= 45:
+            r_now = rsi14(cl[:n]); i_now = min(range(n - 10, n), key=lambda i: lo[i]); i_pre = min(range(n - 30, n - 10), key=lambda i: lo[i])
+            if lo[i_now] < lo[i_pre]:
+                ra, rb = rsi14(cl[:i_now + 1]), rsi14(cl[:i_pre + 1])
+                if ra and rb and ra > rb + 3 and rb < 40: div = 1
+        pull = 1 if (m20 and m60 and m20 > m60 and slope and slope > 0 and 0 <= (px / m20 - 1) * 100 <= 4 and v520 and v520 < 0.85) else 0
+        brk = 1 if (n > 21 and px > max(hi[-21:-1]) and vs[-1] >= 1.5 * (sum(vs[-21:-1]) / 20)) else 0
+        streak = 0
+        for i in range(n - 1, 0, -1):
+            d = cl[i] - cl[i - 1]
+            if d == 0: break
+            if streak == 0: streak = 1 if d > 0 else -1
+            elif (d > 0) == (streak > 0): streak += 1 if d > 0 else -1
+            else: break
+        r5 = (px / cl[-6] - 1) * 100 if n > 6 and cl[-6] else None
+        R = lambda x: None if x is None else round(x)
+        F1 = lambda x: None if x is None else round(x, 1)
+        return [R(m20), R(m60), R(m120), F1(rsi), round(pb, 2), F1(bw), F1(atr), None if udr is None else round(udr, 2), None if v520 is None else round(v520, 2),
+                R(l20), R(l60), R(h20), R(h60), R(up_r), R(dn_r), None if slope is None else round(slope, 2), rec, div, pull, brk, streak, F1(r5), R(px)]
+    except Exception as e:
+        print("tech err", e); return None
+
 def macd_calc(closes, fast=12, slow=26, sig=9):
     def ema(xs, n):
         k = 2 / (n + 1); e = xs[0]; out = [e]
@@ -651,7 +723,7 @@ def main():
         for i in range(3):
             try:
                 rows = source(code)
-                mi = bi = si = ii = None
+                mi = bi = si = ii = ti = None
                 try:
                     cd = candles_daum(code)
                     if cd:
@@ -662,7 +734,7 @@ def main():
                             k = KRX_TODAY.get(code, {}) if cdd == KRX_DATE else {}
                             rows.insert(0, dict(d=cdd, close=cd[-1]["c"], rate=(cd[-1]["c"] / prev - 1) * 100 if prev else 0,
                                                 inst=k.get("inst"), frgn=k.get("frgn"), hold=rows[0]["hold"]))
-                        mi = macd_info(cd); bi = bottom_info(cd, rows); ii = ind_info(cd, IDX.get(mkt))
+                        mi = macd_info(cd); bi = bottom_info(cd, rows); ii = ind_info(cd, IDX.get(mkt)); ti = tech_info(cd)
                         si = state_info(cd, rows, bi, IDX.get(mkt))
                         if si is not None and bi:
                             # 반등 기대 점수 100: 고점 대비 낙폭 40 · 올해 주도주 25 · 바닥 상태 15 · 지금 눌림 20
@@ -674,7 +746,7 @@ def main():
                     print("candle err", code, e)
                 j = judge(rows)
                 sec = SECN.get(norm(name)) or SECN.get(norm(disp)) or ""
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, **j)
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
@@ -696,7 +768,7 @@ def main():
     ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech")] for r in ok]
     import collections as _c
     print("STATE", _c.Counter((r.get("state") or [None])[0] for r in ok))
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))

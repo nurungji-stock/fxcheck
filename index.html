@@ -294,6 +294,43 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 .vsc small{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0}
 .msc{font-size:12px;font-weight:800;margin-left:2px;padding:0 6px;border-radius:8px;background:var(--bg)}
 
+.stg{margin:12px 0;border:2px solid var(--line);border-left:6px solid var(--line);border-radius:16px;padding:14px}
+.stg.sv1{border-color:#9fd3b0;border-left-color:#2e9e57}.stg.sv2{border-color:#ecd394;border-left-color:#c9971c}.stg.sv3{border-color:#eeb0a5;border-left-color:#d0483a}
+.sgt{font-size:12.5px;font-weight:800;color:var(--muted)}
+.sgh{font-size:20px;font-weight:900;line-height:1.35;margin:4px 0 10px;letter-spacing:-.3px}
+.sgr{display:flex;flex-direction:column;gap:7px}
+.sgk{font-size:12.5px;font-weight:800;color:var(--muted);margin-top:4px}.sgl{display:grid;grid-template-columns:24px 1fr;align-items:center;gap:6px;font-size:14.5px;line-height:1.4}
+.sgi{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;font-weight:900;color:#fff}
+.sgi.zg{background:#2e9e57}.sgi.zy{background:#c9971c}.sgi.zr{background:#d0483a}.sgi.zn{background:#a3a6ad}
+.sgn{font-size:13px;color:var(--muted);font-weight:700}
+.sgx{font-weight:700;color:var(--fg)}.stg .sga{color:var(--fg)}
+.sga{margin-top:12px;padding:11px 12px;border-radius:12px;background:var(--bg);font-size:14.5px;line-height:1.55}
+.sga b{display:block;font-size:13px;color:var(--muted);margin-bottom:2px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .stg.sv1{border-color:#2f6b45}:root:not([data-theme="light"]) .stg.sv2{border-color:#6b5a22}:root:not([data-theme="light"]) .stg.sv3{border-color:#7a3a33}}
+:root[data-theme="dark"] .stg.sv1{border-color:#2f6b45}:root[data-theme="dark"] .stg.sv2{border-color:#6b5a22}:root[data-theme="dark"] .stg.sv3{border-color:#7a3a33}
+.salt{margin-top:10px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px}
+.salt b{font-size:14px;margin-right:6px}
+.sab{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sab button{font:inherit;font-size:14px;font-weight:800;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:20px;padding:6px 12px;cursor:pointer}
+.sab button em{font-style:normal;font-size:12px;color:#1e7a3c;margin-left:5px}
+.dg{margin:12px 0;border:2px solid var(--line);border-radius:16px;padding:14px}
+.dgt{display:flex;align-items:center;gap:8px}
+.dtag{font-size:13px;font-weight:900;padding:3px 10px;border-radius:20px;color:#fff}
+.dtag.zg{background:#2e9e57}.dtag.zy{background:#c9971c}.dtag.zr{background:#d0483a}
+.dgh{font-size:20px;font-weight:900;line-height:1.35;margin:8px 0 4px;letter-spacing:-.3px}
+.dgd{font-size:14px;color:var(--muted);line-height:1.6}
+.dsk{font-size:13px;font-weight:800;color:var(--muted);margin:14px 0 6px}.dsk small{font-weight:500;margin-left:4px}
+.dg .sgl{margin-bottom:6px}
+.dact{margin-top:12px;padding:12px;border-radius:12px;background:var(--bg);font-size:15px;line-height:1.6;font-weight:600}
+.dact b{display:block;font-size:13px;color:var(--muted);margin-bottom:2px}
+.dav{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px;font-weight:700}
+.dav input{flex:1;min-width:0;font:inherit;font-size:16px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.dav small{font-size:12px;color:var(--muted);font-weight:500;max-width:34%}
+.dpl{border-left:5px solid var(--line);padding:8px 10px;margin-bottom:6px;background:var(--bg);border-radius:0 10px 10px 0}
+.dpl.pb{border-left-color:#3B5BC4}.dpl.pr{border-left-color:#d0483a}.dpl.pg{border-left-color:#2e9e57}
+.dpl1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.dpl1 b{font-size:14px}.dpl1 span{font-size:16px;font-weight:900;white-space:nowrap}.dpl1 em{font-style:normal;font-size:12.5px;margin-left:4px}
+.dpl2{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.5}.dpl2 b{color:var(--fg)}
+.dmore{font-size:13px;font-weight:800;color:var(--muted);margin:16px 0 4px}
 /* 분기 실적 */
 .esum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0 12px}
 .esum div{border-radius:12px;padding:10px 6px;text-align:center}
@@ -321,6 +358,7 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 .esum .en_,.egv.en_,.etc.en_{background:var(--bg);color:var(--muted)}
 .ebd{flex:none;font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:20px;white-space:nowrap}
 .ebd.eg{background:#e3f4e8;color:#1e7a3c}.ebd.er_{background:#fbe5e1;color:#a8321f}.ebd.en_{background:var(--bg);color:var(--muted)}
+.ehint{text-align:center;font-size:13px;color:var(--muted);padding:6px 0 2px}.esum div[data-k]{cursor:pointer}.efold{display:block;margin:10px auto 0;font:inherit;font-size:13px;font-weight:700;border:0;background:none;color:var(--muted);cursor:pointer}
 .emore{display:block;width:100%;margin-top:10px;font:inherit;font-weight:700;font-size:14px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);cursor:pointer}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .esum .eg,:root:not([data-theme="light"]) .egv.eg,:root:not([data-theme="light"]) .etc.eg,:root:not([data-theme="light"]) .ebd.eg{background:#163a24;color:#9fe0b4}:root:not([data-theme="light"]) .esum .er_,:root:not([data-theme="light"]) .egv.er_,:root:not([data-theme="light"]) .etc.er_,:root:not([data-theme="light"]) .ebd.er_{background:#45201c;color:#f4a79b}}
 :root[data-theme="dark"] .esum .eg,:root[data-theme="dark"] .egv.eg,:root[data-theme="dark"] .etc.eg,:root[data-theme="dark"] .ebd.eg{background:#163a24;color:#9fe0b4}:root[data-theme="dark"] .esum .er_,:root[data-theme="dark"] .egv.er_,:root[data-theme="dark"] .etc.er_,:root[data-theme="dark"] .ebd.er_{background:#45201c;color:#f4a79b}
@@ -339,26 +377,26 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 <button class="link" id="guideBtn">처음이세요? 보는 법 ▾</button>
 <div id="guide" style="display:none">
 <div class="step"><span>1</span><div><b>종목을 검색하세요</b><br>코스피·코스닥 전 종목이 나옵니다.</div></div>
-<div class="step"><span>2</span><div><b>맨 위 판정 한 줄만 보세요</b><br><b class="t-sv1">들고 가세요</b> · <b class="t-sv2">지켜보세요</b> · <b class="t-sv3">반등 때 정리</b></div></div>
-<div class="step"><span>3</span><div><b>내 평단을 넣으세요</b><br>지금 내 손익과, 위·아래 가격에서 할 일이 내 평단 기준으로 나옵니다.</div></div>
-<div class="step"><span>4</span><div><b>"반등장 체크"를 보세요</b><br>시장이 오른 날 이 종목이 같이 올랐는지 — 반등장에서 따라올 종목인지 알 수 있습니다.</div></div>
-<div class="step"><span>5</span><div><b>들고 있는 종목은 전부 "내 종목"에 담으세요</b><br>계좌 전체가 한눈에 보입니다. (이 기기에만 저장)</div></div>
+<div class="step"><span>2</span><div><b>"지금 이 종목 상태" 한 장만 보세요</b><br>차트·거래량·외국인·실적을 계산해서 지금 어떤 자리인지, 그래서 어떻게 하면 되는지 알려드려요.</div></div>
+<div class="step"><span>3</span><div><b>내 평단을 넣으세요</b><br>평단 낮출 가격, 일부 챙길 가격이 내 평단 기준으로 나옵니다.</div></div>
+<div class="step"><span>4</span><div><b>들고 있는 종목은 전부 "내 종목"에 담으세요</b><br>계좌 전체와 실적 발표가 한눈에 보입니다. (이 기기에만 저장)</div></div>
 </div>
 </div>
 
 <div class="card" id="verdict" style="display:none"></div>
 <div class="card" id="mine"></div>
 
-<div class="sec">오늘 시장</div>
-<div class="card" id="today" style="display:none"></div>
-
 <div id="earnwrap" style="display:none"><div class="sec" id="earnT">실적 발표</div>
 <div class="card" id="earn"></div></div>
+
+<div class="sec">오늘 시장</div>
+<div class="card" id="today" style="display:none"></div>
 
 <div class="sec">다가오는 일정</div>
 <div class="card" id="plan"><div id="dday"></div><div id="next" style="display:none"></div><details class="sub2 evx"><summary>한 달 일정 전체 보기 ▾</summary><div id="events" style="display:none"></div></details></div>
 
-<div class="sec">랭킹</div>
+<div class="sec" style="margin-top:22px">더 보기</div>
+<details class="acc fold"><summary>랭킹 <small>외국인 매수 · 반등</small></summary><div class="in">
 <div class="tabs" id="tabs">
 <button data-t="frgn" class="on">외국인 매수</button><button data-t="reb">반등 랭킹</button><button data-t="lead">11월 대장종목</button>
 </div>
@@ -379,9 +417,10 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 <div class="rwarn">⚠ 랭킹은 공개된 시세·수급 자료를 정해진 기준으로 계산한 순위일 뿐, 매수 추천이 아닙니다. 투자 판단과 책임은 본인에게 있습니다.</div>
 
 
+</div></details>
 <details class="acc fold" id="macroWrap"><summary>유가 · 미국 금리 <small>실시간</small></summary><div class="in"><div id="macro"></div></div></details>
-<div id="elecwrap"><div class="sec eh2" style="margin-top:18px">미국 중간선거<button class="link" id="elecTog"></button></div>
-<div class="card" id="elec"></div></div>
+<details class="acc fold"><summary>미국 중간선거 <small>확률</small></summary><div class="in"><div id="elecwrap"><div class="sec eh2" style="margin-top:0;display:none">미국 중간선거<button class="link" id="elecTog"></button></div>
+<div class="card" id="elec"></div></div></div></details>
 
 
 <details class="acc" style="margin-top:16px"><summary>전체 종목 목록 <small>조건별로 모아보기</small></summary><div class="in">
@@ -488,7 +527,7 @@ const ELEC_SC={   // 시나리오별 섹터 순위 — 여기 고치면 됨 [섹
   w:"2차전지 · 태양광 (IRA 축소 가속)"}};
 let elecSel=null, elecOdds=null;
 function elecKey(o){return o.house>=50?(o.senate>=50?"dd":"dr"):(o.senate>=50?"dr":"rr");}
-let elecHide=true; try{const v=localStorage.getItem("nurungji_elec_hide"); if(v!==null) elecHide=v==="1";}catch(e){}
+let elecHide=false;
 function renderElec(){
   const W=document.getElementById("elecwrap"), E=document.getElementById("elec"), T=document.getElementById("elecTog"); if(!E) return;
   if(!SHOW_ELEC){W.style.display="none";return;}
@@ -537,7 +576,7 @@ let D=null, filt="hot", mkt="all";
 renderNext(); setInterval(renderNext,60000); renderElec(); loadElec(); setInterval(loadElec,60000);
 fetch("data.json?t="+Date.now()).then(r=>r.json()).then(d=>{
   D=d; D.rows=d.rows.map(r=>Array.isArray(r)?{name:r[0],cat:r[1],code:r[2],mkt:r[3],mark:r[4],txt:r[5],st:r[6],ss:r[7],s3:r[8],s5:r[9],
-    days:r[10].map(x=>({d:x[0],close:x[1],rate:x[2],inst:x[3],frgn:x[4],hold:x[5]})),macd:r[11]||null,bot:r[12]||null,sec:r[13]||"",state:r[14]||null,ind:r[15]||null}:r);
+    days:r[10].map(x=>({d:x[0],close:x[1],rate:x[2],inst:x[3],frgn:x[4],hold:x[5]})),macd:r[11]||null,bot:r[12]||null,sec:r[13]||"",state:r[14]||null,ind:r[15]||null,tech:r[16]||null}:r);
   init();
 }).catch(()=>{document.getElementById("upd").textContent="데이터를 불러오지 못했습니다. 잠시 후 다시 열어주세요.";});
 
@@ -949,18 +988,18 @@ function renderEarn(){
   const day=all.map(x=>x.e.t.slice(0,10)).sort().pop();
   const mine=new Set(getMine().map(n=>(D.rows.find(r=>r.name===n)||{}).code));
   const sets={today:all.filter(x=>x.e.t.slice(0,10)===day), good:all.filter(x=>x.g.k==="good"), mid:all.filter(x=>x.g.k==="mid"), bad:all.filter(x=>x.g.k==="bad"), mine:all.filter(x=>mine.has(x.e.code)), all};
-  if(!eFilt) eFilt=sets.mine.length?"mine":"today";
   const big=x=>Math.abs((x.e.o&&x.e.o[0])||0), dv=x=>eVsCons(x.e,1);
-  let L=sets[eFilt].slice();
+  let L=eFilt?sets[eFilt].slice():[];
   if(eFilt==="good") L.sort((x,y)=>(dv(y)??0)-(dv(x)??0)||big(y)-big(x)); else if(eFilt==="bad") L.sort((x,y)=>(dv(x)??0)-(dv(y)??0)||big(y)-big(x)); else L.sort((x,y)=>y.e.t.localeCompare(x.e.t));
   const dl=day?`${+day.slice(5,7)}/${+day.slice(8,10)}`:"";
-  const tabs=[["today",`${dl} 발표`],["mine","내 종목"],["good","▲ 좋음"],["bad","▼ 조심"],["all","전체"]];
-  E.innerHTML=`<div class="esum"><div class="eg"><small>▲ 좋음</small><b>${sets.good.length}</b></div><div class="en_"><small>● 괜찮음</small><b>${sets.mid.length}</b></div><div class="er_"><small>▼ 조심</small><b>${sets.bad.length}</b></div></div>
+  const tabs=[["mine","내 종목"],["today",`${dl} 발표`],["good","▲ 좋음"],["bad","▼ 조심"],["all","전체"]];
+  E.innerHTML=`<div class="esum"><div class="eg" data-k="good"><small>▲ 좋음</small><b>${sets.good.length}</b></div><div class="en_" data-k="mid"><small>● 괜찮음</small><b>${sets.mid.length}</b></div><div class="er_" data-k="bad"><small>▼ 조심</small><b>${sets.bad.length}</b></div></div>
 <div class="efl">${tabs.map(([k,l])=>`<button data-k="${k}" class="${k===eFilt?"on":""}">${l} ${sets[k].length}</button>`).join("")}</div>
-<div class="elist">${L.length?L.slice(0,eShow).map(x=>earnCard(x.e)).join(""):`<div class="empty" style="padding:14px 0">${eFilt==="mine"?"내 종목 중 아직 실적을 발표한 종목이 없어요":"해당하는 종목이 없어요"}</div>`}</div>
+${!eFilt?`<div class="ehint">위 버튼을 누르면 종목이 펼쳐져요</div>`:`<div class="elist">${L.length?L.slice(0,eShow).map(x=>earnCard(x.e)).join(""):`<div class="empty" style="padding:14px 0">${eFilt==="mine"?"내 종목 중 아직 실적을 발표한 종목이 없어요":"해당하는 종목이 없어요"}</div>`}</div><button class="efold">접기 ▴</button>`}
 ${L.length>eShow?`<button class="emore">${L.length-eShow}개 더 보기 ▾</button>`:""}
 <div class="meta" style="margin-top:8px">좋음·조심은 본업(영업이익)이 증권사 예상보다 잘 나왔는지로 판정 · 칸 색은 항목별 예상 대비 · 종목을 누르면 자세히</div>`;
-  E.querySelectorAll(".efl button").forEach(b=>b.onclick=()=>{eFilt=b.dataset.k; eShow=8; renderEarn();});
+  E.querySelectorAll(".efl button,.esum div[data-k]").forEach(b=>b.onclick=()=>{eFilt=eFilt===b.dataset.k?null:b.dataset.k; eShow=8; renderEarn();});
+  const fo=E.querySelector(".efold"); if(fo) fo.onclick=()=>{eFilt=null; renderEarn(); document.getElementById("earnwrap").scrollIntoView({behavior:"smooth",block:"start"});};
   const m=E.querySelector(".emore"); if(m) m.onclick=()=>{eShow+=20; renderEarn();};
   E.querySelectorAll(".ecd[data-c]").forEach(x=>x.onclick=()=>{const r=D.rows.find(y=>y.code===x.dataset.c); if(r){q.value=r.name; show(r);}});
 }
@@ -1207,6 +1246,105 @@ ${row("lb",`<b>${L.dn.toLocaleString()}원</b> 밑으로 장이 끝나면 <small
 <div class="meta" style="margin-top:6px;opacity:.85">※ 가격·평단 시나리오는 공개 시세로 자동 계산한 참고용이며, 매매 판단과 책임은 본인에게 있습니다.</div>
 <div class="meta" style="margin-top:6px">장중에 잠깐 넘거나 깨지는 건 무시하세요. <b>장 끝난 가격</b>만 보면 됩니다. 아래 가격이 깨진 날은 더 사지 말고, 시장 전체가 같이 빠졌는지부터 확인하세요. 장중 패닉 매도만은 피하세요.</div>`;
 }
+function sigOf(r){   // 판정·실적·반등장 신호 묶음
+  const v=simple(r), e=earnOf(r), eg=e?earnGrade(e):null, rb=rebound(r), ch=charOf(r);
+  const eB=eg&&eg.k==="bad", eG=eg&&eg.k==="good", rB=rb&&rb.g==="r", rG=rb&&rb.g==="g";
+  const tier=v.c==="sv1"?((eB&&rB)?"hold":(eB||rB)?"wait":"buy"):v.c==="sv2"?"hold":v.c==="sv3"?"move":"none";
+  return {v,e,eg,rb,ch,eB,eG,rB,rG,tier};
+}
+const wonP=v=>v==null?"-":Math.round(v).toLocaleString()+"원";
+const tick=p=>{const t=tickOf(p);return Math.round(p/t)*t;};
+function levels(r){   // 지지(아래)·저항(위) 가격 후보 — 이름 붙여서, 가까운 것끼리 합침
+  const T=r.tech; if(!T) return {sup:[],res:[]}; const px=T[22], atr=(T[6]||3)/100;
+  const C=[[T[0],"20일선"],[T[1],"60일선"],[T[2],"120일선"],[T[9],"최근 한 달 저점"],[T[10],"석 달 저점"],[T[11],"최근 한 달 고점"],[T[12],"석 달 고점"],[T[13],"거래가 많이 몰린 가격대"],[T[14],"거래가 많이 몰린 가격대"]].filter(x=>x[0]);
+  const merge=a=>{const o=[];a.forEach(x=>{const l=o[o.length-1]; if(l&&Math.abs(x[0]/l[0]-1)<atr*0.6){ if(!l[1].includes(x[1])) l[1]+=" · "+x[1]; } else o.push([x[0],x[1]]);}); return o;};
+  return {sup:merge(C.filter(x=>x[0]<px*(1-atr*0.3)).sort((a,b)=>b[0]-a[0])), res:merge(C.filter(x=>x[0]>px*(1+atr*0.3)).sort((a,b)=>a[0]-b[0]))};
+}
+function diagnose(r){   // 지표 + 매매기법 → 지금 상태 · 근거 · 가격 계획
+  const T=r.tech, S=sigOf(r), {v,e,eg,rb,ch,eB,eG,rB,rG,tier}=S;
+  if(!T) return null;
+  const px=T[22], atr=T[6]||3, rsi=T[3], pb=T[4], above=k=>T[k]&&px>T[k];
+  const dd=T[12]?Math.round((px/T[12]-1)*100):null;
+  let st;
+  if(ch.hot||(rsi!=null&&rsi>=75)||(pb>1.05&&T[21]>=12)) st={k:"과열",c:"zr",t:"단기간에 너무 빨리 올랐어요",d:"이런 자리에서 따라 사면 눌릴 때 바로 물려요. 오른 만큼 한 번은 쉬어 갑니다."};
+  else if(T[19]) st={k:"돌파",c:"zg",t:"거래량을 실어서 최근 고점을 뚫었어요",d:"고점을 뚫은 날 거래량이 터지면 새 흐름이 시작되는 신호예요. 다음 날 이 가격 위에서 버티는지가 중요해요."};
+  else if(T[18]) st={k:"눌림목",c:"zg",t:"오르는 흐름 속에서 잠깐 쉬어가는 자리예요",d:"20일선이 올라가는 중에 거래량이 줄면서 내려온 건 파는 사람이 적다는 뜻이에요. 추세 매매에서 사는 자리로 보는 곳이에요."};
+  else if(T[16]>=0&&!above(1)) st={k:"반등 시작",c:"zg",t:"바닥에서 20일선을 다시 올라탔어요",d:"한동안 20일선 아래에 있다가 다시 올라선 건 반등의 첫 신호예요. 다만 60일선은 아직 위에 있어서, 이 위에서 버티는지 확인이 필요해요."};
+  else if((rsi!=null&&rsi<=35)||T[17]||(r.bot&&r.bot[0]>=2)) st={k:"바닥 신호",c:"zy",t:"바닥 신호가 나오고 있어요",d:"많이 팔린 자리에서 나오는 신호예요. 다만 바닥이 '가까웠다'는 뜻이지 '찍었다'는 뜻은 아니라서, 20일선을 다시 올라타는 걸 확인하는 게 안전해요."};
+  else if(!above(0)&&T[15]<0&&(T[20]<=-2||(T[9]&&px<=T[9]*1.03))) st={k:"하락 중",c:"zr",t:"아직 내려가는 중이에요",d:"20일선이 아래로 꺾여 있고 가격도 그 밑에 있어요. 떨어지는 칼날은 잡지 말고, 멈추는 걸 보고 움직이는 게 맞아요."};
+  else if(above(0)&&above(1)&&T[0]>T[1]) st={k:"상승 추세",c:"zg",t:"올라가는 흐름이 살아 있어요",d:"20일선이 60일선 위에 있고 가격도 그 위에 있어요. 이 흐름이 깨지기 전까지는 들고 가는 쪽이 유리해요."};
+  else if(!above(0)&&!above(1)) st={k:"하락 추세",c:"zr",t:"큰 흐름은 아직 아래쪽이에요",d:"20일선·60일선 둘 다 아래에 있어요. 반등이 나와도 위에서 파는 물량에 막히기 쉬운 자리예요."};
+  else st={k:"박스권",c:"zy",t:"위아래로 방향을 정하는 중이에요",d:"뚜렷한 방향 없이 오르내리는 구간이에요. 아래 가격에서 사고 위 가격에서 줄이는 쪽이 맞아요."};
+  const R=[];
+  const ma=[[0,"20일선"],[1,"60일선"],[2,"120일선"]].filter(([k])=>T[k]), up=ma.filter(([k])=>px>T[k]).map(x=>x[1]), dn=ma.filter(([k])=>px<=T[k]).map(x=>x[1]);
+  if(ma.length&&up.length===ma.length) R.push([1,`${ma.map(x=>x[1].replace("일선","")).join("·")}일선 모두 위 — 짧은 흐름, 큰 흐름 다 위쪽`,3]);
+  else if(ma.length&&!up.length) R.push([-1,`${ma.map(x=>x[1].replace("일선","")).join("·")}일선 모두 아래 — 아직 흐름이 꺾여 있어요`,3]);
+  else if(ma.length) R.push([up.includes("20일선")?0:-1,`${up.join("·")} 위, ${dn.join("·")} 아래 — ${up.includes("20일선")?"짧은 흐름은 돌아섰고 큰 흐름은 아직":"짧은 흐름이 다시 약해졌어요"}`,3]);
+  if(rsi!=null){ if(rsi<=30) R.push([1,`RSI ${Math.round(rsi)} — 30 밑, 너무 많이 팔린 자리예요`,4]); else if(rsi<=40) R.push([1,`RSI ${Math.round(rsi)} — 바닥권에 가까워요`,2]); else if(rsi>=70) R.push([-1,`RSI ${Math.round(rsi)} — 70 위, 너무 빨리 올라 숨 고를 자리예요`,4]); }
+  if(pb!=null){ if(pb<=0.05) R.push([1,"볼린저밴드 하단에 닿았어요 — 평소보다 지나치게 빠진 자리",3]); else if(pb>=0.98) R.push([-1,"볼린저밴드 상단을 넘었어요 — 평소보다 지나치게 오른 자리",3]); }
+  if(T[17]) R.push([1,"가격은 전 저점보다 더 내려갔는데 RSI는 올라갔어요 — 파는 힘이 빠지는 바닥 신호",5]);
+  if(T[7]!=null){ if(T[7]>=1.3) R.push([1,`오른 날 거래량이 내린 날의 ${T[7].toFixed(1)}배 — 사는 쪽 힘이 더 세요`,3]); else if(T[7]<=0.75) R.push([-1,`내린 날 거래량이 오른 날보다 ${Math.round((1/T[7]-1)*100)}% 많아요 — 파는 쪽 힘이 더 세요`,3]); }
+  if(T[8]!=null){ if(T[8]>=1.8) R.push([0,`최근 5일 거래량이 평소의 ${T[8].toFixed(1)}배 — 큰돈이 움직이고 있어요`,2]); else if(T[8]<=0.7&&(st.k==="눌림목"||st.k==="바닥 신호"||st.k==="하락 중")) R.push([1,`최근 거래량이 평소의 ${Math.round(T[8]*100)}% — 팔 사람이 줄어드는 중`,2]); }
+  if(r.st>=3) R.push([1,`외국인 ${r.st}일 연속 매수`,4]); else if(r.ss>=3) R.push([-1,`외국인 ${r.ss}일 연속 매도`,4]);
+  if(eg) R.push([eG?1:eB?-1:0,`실적 · ${eg.why}`,eB||eG?5:2]);
+  if(rG) R.push([1,"시장이 오른 날 같이 올랐어요",3]); else if(rB) R.push([-1,rb.todayBad?"시장이 오른 날 혼자 빠졌어요":"시장이 올라도 잘 안 따라와요",4]);
+  if(dd!=null&&dd<=-25) R.push([0,`석 달 고점보다 ${Math.abs(dd)}% 아래`,2]);
+  const reasons=R.sort((a,b)=>b[2]-a[2]).slice(0,4);
+  const L=levels(r), a=atr/100;
+  const pick=(arr,minGap)=>arr.find(x=>Math.abs(x[0]/px-1)>=minGap);
+  const near=(arr,dir)=>{const x=pick(arr,a*0.4); return x&&Math.abs(x[0]/px-1)<=a*3?x:null;};   // 하루 평균 움직임 0.4~3배 안의 가장 가까운 가격
+  let s1=near(L.sup)||[px*(1-a*1.5),"하루 평균 움직임의 1.5배 아래"];
+  let s2=L.sup.find(x=>x[0]<s1[0]*(1-a*1.2)&&x[0]>s1[0]*(1-a*4))||[s1[0]*(1-a*1.5),"1차에서 하루 평균 움직임 1.5배 더 아래"];
+  let r1=near(L.res)||[px*(1+a*1.5),"하루 평균 움직임의 1.5배 위"];
+  const chk=T[0]&&px<T[0]?[T[0],"20일선"]:null;
+  return {st,reasons,s1:[tick(s1[0]),s1[1]],s2:[tick(s2[0]),s2[1]],r1:[tick(r1[0]),r1[1]],chk:chk?[tick(chk[0]),chk[1]]:null,px,atr,S};
+}
+function diagCard(r){
+  const G=diagnose(r), aRaw=getAvg(r.name), a=avgFor(r), aChk=avgCheck(r,aRaw);
+  const c=r.days&&r.days[0]&&r.days[0].close;
+  const avgIn=`<div class="dav"><span>내 평단</span><input inputmode="numeric" data-avg="${r.name}" placeholder="예: ${c?c.toLocaleString():""}" value="${aRaw?aRaw.toLocaleString():""}"><small>${a?"":"넣으면 내 평단 기준으로 계산해요"}</small></div>${aRaw&&!aChk.ok?`<div class="avgw">⚠ ${aChk.msg}</div>`:""}`;
+  if(!G) return `<div class="dg"><div class="dgh">아직 지표를 계산할 데이터가 부족해요</div>${avgIn}</div>`;
+  const {st,reasons,s1,s2,r1,chk,px,S}=G, tier=S.tier, pl=a?(px/a-1)*100:null;
+  const pct=p=>{const d=(p/px-1)*100;return `<em class="${d>=0?"up":"dn"}">${d>=0?"+":""}${d.toFixed(1)}%</em>`;};
+  const row=(cls,lab,p,why,extra)=>`<div class="dpl ${cls}"><div class="dpl1"><b>${lab}</b><span>${wonP(p)} ${pct(p)}</span></div><div class="dpl2">${why}${extra?`<br>${extra}`:""}</div></div>`;
+  const newAvg=p=>a&&a>p?`같은 수량 더 사면 평단 ${wonP(a)} → <b>${wonP((a+p)/2)}</b>`:"";
+  let act, plan=[];
+  const hot=st.k==="과열", falling=st.k==="하락 중"||st.k==="하락 추세";
+  if(tier==="buy"){
+    act=hot?"좋은 종목이지만 지금은 사는 자리가 아니에요. 아래 1차 가격까지 눌릴 때를 기다렸다가 나눠서 담으세요."
+       :falling?"버틸 종목이에요. 다만 아직 내려가는 중이라 지금 바로 사지 말고, 아래 가격에 닿을 때 나눠서 평단을 낮추세요."
+       :(st.k==="눌림목"||st.k==="바닥 신호"||st.k==="반등 시작")?"버틸 종목이고, 지금이 평단 낮추기 좋은 구간이에요. 한 번에 말고 아래 가격대로 나눠서 담으세요."
+       :"버틸 종목이에요. 흔들려서 아래 가격에 닿는 날이 평단 낮출 기회예요.";
+    plan.push(row("pb","1차 평단 낮추기",s1[0],s1[1],newAvg(s1[0])));
+    plan.push(row("pb","2차 평단 낮추기",s2[0],s2[1]));
+    plan.push(row("pr","일부 챙길 가격",r1[0],r1[1]+(a&&r1[0]<a?" · 내 평단보다는 아래라 급하지 않아요":"")));
+  } else if(tier==="wait"){
+    act=chk?`팔 종목은 아니지만 아직 물타기 할 때는 아니에요. ${wonP(chk[0])}(${chk[1]}) 위로 올라서서 끝나는 날이 오면 그때 담으세요.`:"팔 종목은 아니지만 아직 물타기 할 때는 아니에요. 걸리는 점이 풀리는지 먼저 보세요.";
+    if(chk) plan.push(row("pg","이 위로 끝나면 담기 시작",chk[0],chk[1]+" — 다시 올라서면 흐름이 돌아선 신호"));
+    plan.push(row("pb","그 전에 산다면 여기까지 기다리기",s1[0],s1[1],newAvg(s1[0])));
+    plan.push(row("pr","일부 챙길 가격",r1[0],r1[1]));
+  } else if(tier==="hold"){
+    act=`지금 팔면 바닥에서 파는 거고, 지금 사면 아직 이른 자리예요. ${chk?`${wonP(chk[0])}(${chk[1]}) 위로 올라서는 걸 먼저 확인하세요.`:"아래 가격을 지키는지 먼저 확인하세요."}`;
+    if(chk) plan.push(row("pg","이 위로 끝나면 다시 힘이 붙는 신호",chk[0],chk[1]));
+    plan.push(row("pb","버텨야 할 가격",s1[0],s1[1]+" — 여기서 멈추는지 보세요"));
+    plan.push(row("pr","반등 오면 일부 줄일 가격",r1[0],r1[1]));
+  } else if(tier==="move"){
+    act=`여기서 더 사면 더 깊게 물려요. 바닥에서 던지지도 말고, 반등이 나와서 ${wonP(r1[0])} 근처에 오면 비중을 줄이세요.`;
+    plan.push(row("pr","반등 오면 비중 줄일 가격",r1[0],r1[1]+(a&&r1[0]<a?" · 손실을 줄여 다른 데서 회복하는 쪽이 빨라요":"")));
+    plan.push(row("pb","이 밑으로 끝나면 더 약해지는 가격",s1[0],s1[1]));
+  } else { act="거래가 적거나 기록이 짧아 판단하기 어려워요. 더 사지 마세요."; }
+  const ic={"1":["zg","✓"],"0":["zn","·"],"-1":["zr","!"]};
+  return `<div class="dg">
+<div class="dgt"><span class="dtag ${st.c}">${st.k}</span><span class="meta">지금 이 종목 상태</span></div>
+<div class="dgh">${st.t}</div><div class="dgd">${st.d}</div>
+<div class="dsk">이렇게 봤어요</div>
+${reasons.map(([s,t])=>`<div class="sgl"><i class="sgi ${ic[String(s)][0]}">${ic[String(s)][1]}</i><span class="sgx">${t}</span></div>`).join("")}
+<div class="dact"><b>${pl!=null?(pl<=-1?`지금 ${Math.abs(pl).toFixed(1)}% 물려 계시죠 · `:pl>=1?`지금 +${pl.toFixed(1)}% 수익 중 · `:""):""}그래서 이렇게 하세요</b>${act}</div>
+${avgIn}
+${plan.length?`<div class="dsk">가격 계획 <small>지금 ${wonP(px)} · 하루 평균 ${G.atr.toFixed(1)}% 움직이는 종목</small></div>${plan.join("")}`:""}
+<div class="meta" style="margin-top:8px">가격은 장 끝 가격 기준으로 보세요 · 매일 장 끝나고 다시 계산돼요 · 참고용이며 투자 판단의 책임은 본인에게 있어요</div>
+</div>`;
+}
 function show(r){
   const V=document.getElementById("verdict"); V.style.display="block";
   const c=CAT[r.cat], x=holdGrade(r), s=r.state, k=s?s[0]:0;
@@ -1217,16 +1355,14 @@ function show(r){
   const t=r.days[0];
   V.innerHTML=`<div class="vh2"><div><span class="name">${r.name}</span><span class="code">${r.code}${r.mkt?" · "+r.mkt:""}${r.sec?" · "+r.sec:""}</span></div><button class="star" data-star="${r.name}">${isMine(r.name)?"★ 내 종목":"☆ 내 종목에 담기"}</button></div>
 ${(()=>{const v=simple(r);return `<div class="vd ${v.c}"><div class="vtop"><div><div class="vl2">판정</div><div class="vw">${v.w}${(()=>{const q=score100(r);return q?`<span class="vsc"><b>${q.sc}</b><small>/100 · ${q.lv}</small></span>`:""})()}</div></div><div class="vleg">${[["sv1","들고 가세요"],["sv2","지켜보세요"],["sv3","파세요·줄이세요"]].map(([c,w])=>`<div class="${c}${v.c===c?" on":""}"><i></i>${w}</div>`).join("")}</div></div><div class="vy">${v.why}</div></div>`})()}
-${earnBox(r)}
-${vsMarket(r)}
-${reboundBox(r)}
-<details class="acc" open><summary>단기 시나리오 <small>지금 할 일 · 이번 주 그림</small></summary><div class="in">${shortScenario(r)}</div></details>
-<details class="acc"><summary>가격별 할 일 <small>이 가격 오면 이렇게</small></summary><div class="in">${plan(r)}</div></details>
-${x?`<details class="acc"><summary>판정 근거 <small>${x.why.length}가지</small></summary><div class="in"><div class="kws">${x.why.map(w=>`<span class="kw">${w.split(" — ")[0].replace(/^[①②③]\s*/,"")}</span>`).join("")}</div></div></details>`:""}
-${s?`<details class="acc"><summary>지금 타이밍 · 내일 할 일 <small>바닥·반등·외국인</small></summary><div class="in">${stateBox(r)}</div></details>`:""}
+${diagCard(r)}
+<div class="dmore">더 자세히 보기</div>
+${earnOf(r)?`<details class="acc"><summary>실적 <small>${D.earn.q} · ${earnGrade(earnOf(r)).w}</small></summary><div class="in">${earnBox(r)}</div></details>`:""}
+<details class="acc"><summary>반등장 체크 <small>시장 오를 때 따라오나</small></summary><div class="in">${vsMarket(r)}${reboundBox(r)}</div></details>
 <details class="acc"><summary>외국인·기관 날짜별 <small>최근 ${r.days.length}일</small></summary><div class="in"><div class="meta">외국인 3일합 ${fmt(r.s3)}주 · 5일합 ${fmt(r.s5)}주${t&&t.hold!=null?` · 외인 보유율 ${t.hold.toFixed(2)}%`:""}</div>
 <table><tr><th>날짜</th><th>종가</th><th>등락률</th><th>기관</th><th>외국인</th></tr>${r.days.map(d=>`<tr><td>${d.d.slice(5)}</td><td>${d.close.toLocaleString()}</td><td class="${d.rate>0?"up":d.rate<0?"dn":""}">${d.rate.toFixed(2)}%</td><td class="${d.inst==null?"":d.inst>0?"up":"dn"}">${fmt(d.inst)}</td><td class="${d.frgn==null?"":d.frgn>0?"up":"dn"}"><b>${fmt(d.frgn)}</b></td></tr>`).join("")}</table></div></details>
-<details class="acc"><summary>세부 지표 <small>추세 · 가격 위치 · 힘 · 수급</small></summary><div class="in"><div class="kv"><div><small>외국인</small><b>${r.st>=3?`${r.st}일 연속 매수`:r.st>0?`${r.st}일째 매수`:r.ss>0?`${r.ss}일째 매도`:"집계 중"}</b></div><div><small>타이밍</small><b>${(timing||"-").replace(/^[^가-힣]+/,"")}</b></div><div><small>바닥선</small><b>${line?line.replace(/ [✓✗]$/,""):"-"}</b></div></div>${detailBox(r)}</div></details>`;
+`;
+  V.querySelectorAll(".sab button").forEach(bt=>bt.onclick=()=>{const x=D.rows.find(y=>y.name===bt.dataset.n); if(x){q.value=x.name; show(x);}});
   const sb=V.querySelector(".star"); sb.onclick=()=>{toggleMine(r.name); sb.textContent=isMine(r.name)?"★ 내 종목":"☆ 내 종목에 담기"; sb.classList.toggle("on",isMine(r.name));}; sb.classList.toggle("on",isMine(r.name));
   const ai=V.querySelector("[data-avg]"); if(ai) ai.onchange=()=>{const v=parseInt(ai.value.replace(/[^0-9]/g,""))||null; setAvg(r.name,v); const op=[...V.querySelectorAll("details.acc")].map(d=>d.open); show(r); V.querySelectorAll("details.acc").forEach((d,i)=>d.open=op[i]);};
   history.replaceState(null,"","#"+encodeURIComponent(r.name));
