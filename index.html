@@ -342,6 +342,7 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 .dpr{display:grid;grid-template-columns:1fr auto 64px;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);border-left:5px solid var(--line)}
 .dpr:first-child{border-top:0}.dpr.pb{border-left-color:#3B5BC4}.dpr.pr{border-left-color:#d0483a}.dpr.pg{border-left-color:#2e9e57}
 .dpr span{font-size:14px;font-weight:700}.dpr b{font-size:16px;font-weight:900}.dpr em{font-style:normal;font-size:13px;color:var(--muted);text-align:right}
+.dpr.pa{background:var(--bg);border-left-color:var(--fg)}.dpr.pa span,.dpr.pa b{color:var(--fg)}.dpr span small{display:block;font-size:11.5px;color:var(--muted);font-weight:600}.dapply{flex:none;font:inherit;font-size:14px;font-weight:800;padding:9px 14px;border:0;border-radius:10px;background:var(--fg);color:var(--card);cursor:pointer}
 .dna{font-size:13px;margin-top:6px;color:var(--muted)}.dna b{color:var(--fg)}
 .dnote{font-size:12px;color:var(--muted);margin-top:8px}
 .dwhy{margin-top:10px;font-size:13.5px;line-height:1.6}.dwhy summary{cursor:pointer;font-weight:700;color:var(--muted)}.dwhy p{margin:8px 0 0}
@@ -1319,7 +1320,7 @@ function diagnose(r){   // 지표 + 매매기법 → 지금 상태 · 근거 · 
 function diagCard(r){
   const G=diagnose(r), aRaw=getAvg(r.name), a=avgFor(r), aChk=avgCheck(r,aRaw);
   const c=r.days&&r.days[0]&&r.days[0].close;
-  const avgIn=`<div class="dav"><span>내 평단</span><input inputmode="numeric" data-avg="${r.name}" placeholder="예: ${c?c.toLocaleString():""}" value="${aRaw?aRaw.toLocaleString():""}"></div>${aRaw&&!aChk.ok?`<div class="avgw">⚠ ${aChk.msg}</div>`:""}`;
+  const avgIn=`<div class="dav"><span>내 평단</span><input inputmode="numeric" data-avg="${r.name}" placeholder="예: ${c?c.toLocaleString():""}" value="${aRaw?aRaw.toLocaleString():""}"><button class="dapply" type="button">적용</button></div>${aRaw&&!aChk.ok?`<div class="avgw">⚠ ${aChk.msg}</div>`:""}`;
   if(!G) return `<div class="dg"><div class="dgh">아직 지표를 계산할 데이터가 부족해요</div>${avgIn}</div>`;
   const {st,reasons,s1,s2,r1,chk,px,S}=G, tier=S.tier, pl=a?(px/a-1)*100:null;
   const I=r.ind||[], tv=r.bot&&r.bot[8];
@@ -1346,22 +1347,37 @@ function diagCard(r){
     P.push(["pr","반등 오면 줄일 가격",r1[0],r1[1]]);
     P.push(["pb","이 밑이면 더 약해짐",s1[0],s1[1]]);
   } else act="판단하기 어려운 종목이에요. 더 사지 마세요.";
-  const sane=P.every(x=>x[2]>px*0.75&&x[2]<px*1.35);
+  // 내 평단에 맞춰 할 일 · 표 바꾸기
+  if(a){
+    const need=(a/px-1)*100;
+    if(pl>=3){
+      if(tier==="buy"){ act=`수익 중이에요. 여기서 더 사면 평단이 올라가요. 들고 가면서, 일부 챙길 가격에 오면 조금 챙기세요.`; const keep=P.filter(x=>x[0]==="pr"); P.length=0; P.push(...keep); P.push(["pb","다시 담을 가격",s1[0],s1[1]]); }
+      else if(tier==="wait"||tier==="hold") act="수익 중이라 급할 거 없어요. 일부 챙길 가격에서 일부 챙기고, 나머지는 들고 가세요.";
+      else if(tier==="move") act="수익 중일 때 줄이는 게 제일 좋아요. 줄일 가격 근처에 오면 비중을 줄이세요.";
+    } else if(pl<=-3){
+      if(tier==="buy"&&pl<=-25) act=`많이 물려 계시죠. 한 번에 평단을 맞추려고 크게 사면 더 위험해요. 정해둔 금액만 아래 가격에서 나눠 담으세요.`;
+      else if(tier==="move"){ const r=P.find(x=>x[0]==="pr"); act=`평단까지 돌아가려면 +${need.toFixed(0)}%가 필요해요. 더 사서 맞추지 말고${r?`, 반등해서 ${wonP(r[2])} 근처에 오면 줄이세요 — 그때 손실은 ${((r[2]/a-1)*100).toFixed(0)}%로 줄어요`:", 반등이 오면 줄이세요"}.`; }
+      else if(tier==="wait"||tier==="hold") act+=` 평단까지는 +${need.toFixed(0)}% 남았어요.`;
+    }
+    P.push(["pa","내 평단",a,"내가 산 평균 가격"]);
+  }
+  P.sort((x,y)=>y[2]-x[2]);
+  const sane=P.filter(x=>x[0]!=="pa").every(x=>x[2]>px*0.75&&x[2]<px*1.35);
   const pct=p=>{const d=(p/px-1)*100;return Math.abs(d)<0.05?"지금":`${d>0?"+":""}${d.toFixed(1)}%`;};
-  const b1=(tier==="buy")&&P.find(x=>x[0]!=="pr"&&x[2]<=px*1.001), nA=a&&b1&&a>b1[2]?`${b1[1]}에서 같은 수량 더 사면 평단 ${wonP(a)} → <b>${wonP((a+b1[2])/2)}</b>`:"";
+  const b1=(tier==="buy")&&pl!=null&&pl<3&&P.find(x=>x[0]!=="pr"&&x[0]!=="pa"&&x[2]<=px*1.001), nA=a&&b1&&a>b1[2]?`${b1[1]}에서 같은 수량 더 사면 평단 ${wonP(a)} → <b>${wonP((a+b1[2])/2)}</b>`:"";
   const ic={"1":["zg","✓"],"0":["zn","·"],"-1":["zr","!"]};
-  const showP=P.length&&!noPlan&&sane;
+  const showP=P.filter(x=>x[0]!=="pa").length&&!noPlan&&sane;
   return `<div class="dg">
 <div class="dgt"><span class="dtag ${st.c}">${st.k}</span><span class="dgh">${st.t}</span></div>
 <div class="dchips">${reasons.map(([s,t])=>`<span class="dch ${ic[String(s)][0]}">${ic[String(s)][1]} ${t.split(" — ")[0]}</span>`).join("")}</div>
 <div class="dact">${pl!=null&&Math.abs(pl)>=1?`<small>${pl<0?`지금 ${Math.abs(pl).toFixed(1)}% 물려 계시죠`:`지금 +${pl.toFixed(1)}% 수익 중`}</small>`:""}${act}</div>
 ${avgIn}
-${showP?`<div class="dpt">${P.map(([c2,lb,p])=>`<div class="dpr ${c2}"><span>${lb}</span><b>${wonP(p)}</b><em>${pct(p)}</em></div>`).join("")}</div>${nA?`<div class="dna">${nA}</div>`:""}
+${showP?`<div class="dpt">${P.map(([c2,lb,p])=>`<div class="dpr ${c2}"><span>${lb}${a&&c2!=="pa"?`<small>평단 대비 ${((p/a-1)*100>0?"+":"")+((p/a-1)*100).toFixed(1)}%</small>`:""}</span><b>${wonP(p)}</b><em>${pct(p)}</em></div>`).join("")}</div>${nA?`<div class="dna">${nA}</div>`:""}
 <div class="dnote">자동 계산한 참고 가격 · 사라·팔라는 권유가 아니에요 · ${D.updated} 기준</div>`:`<div class="dnote">${noPlan||"지금은 기준 가격을 정하기 어려워서"} 참고 가격은 보여드리지 않아요</div>`}
 <details class="dwhy"><summary>왜 이렇게 봤나요?</summary>
 <p>${st.d}</p>
 ${reasons.map(([s,t])=>`<p><b>${t.split(" — ")[0]}</b> — ${t.split(" — ").slice(1).join(" — ")}</p>`).join("")}
-${showP?`<p class="dlv">${P.map(([,lb,p,w])=>`<b>${lb} ${wonP(p)}</b> — ${w}`).join("<br>")}<br>하루 평균 ${G.atr.toFixed(1)}% 움직이는 종목이라, 가격 사이 간격도 그만큼 잡았어요. 장 끝 가격 기준으로 보세요.</p>`:""}
+${showP?`<p class="dlv">${P.filter(x=>x[0]!=="pa").map(([,lb,p,w])=>`<b>${lb} ${wonP(p)}</b> — ${w}`).join("<br>")}<br>하루 평균 ${G.atr.toFixed(1)}% 움직이는 종목이라, 가격 사이 간격도 그만큼 잡았어요. 장 끝 가격 기준으로 보세요.</p>`:""}
 <p class="meta">지표는 지나간 가격으로 계산해요. 큰 뉴스가 나오면 지표보다 뉴스가 먼저 움직이니 맹신하지 마세요.</p>
 </details>
 </div>`;
@@ -1385,7 +1401,9 @@ ${earnOf(r)?`<details class="acc"><summary>실적 <small>${D.earn.q} · ${earnGr
 `;
   V.querySelectorAll(".sab button").forEach(bt=>bt.onclick=()=>{const x=D.rows.find(y=>y.name===bt.dataset.n); if(x){q.value=x.name; show(x);}});
   const sb=V.querySelector(".star"); sb.onclick=()=>{toggleMine(r.name); sb.textContent=isMine(r.name)?"★ 내 종목":"☆ 내 종목에 담기"; sb.classList.toggle("on",isMine(r.name));}; sb.classList.toggle("on",isMine(r.name));
-  const ai=V.querySelector("[data-avg]"); if(ai) ai.onchange=()=>{const v=parseInt(ai.value.replace(/[^0-9]/g,""))||null; setAvg(r.name,v); const op=[...V.querySelectorAll("details.acc")].map(d=>d.open); show(r); V.querySelectorAll("details.acc").forEach((d,i)=>d.open=op[i]);};
+  const ap=V.querySelector(".dapply"); if(ap) ap.onclick=()=>{const x=V.querySelector("[data-avg]"); if(x) x.dispatchEvent(new Event("change"));};
+  const ai=V.querySelector("[data-avg]"); if(ai) ai.onkeydown=e=>{if(e.key==="Enter") ai.blur();};
+  if(ai) ai.onchange=()=>{const v=parseInt(ai.value.replace(/[^0-9]/g,""))||null; setAvg(r.name,v); const op=[...V.querySelectorAll("details.acc")].map(d=>d.open); show(r); V.querySelectorAll("details.acc").forEach((d,i)=>d.open=op[i]);};
   history.replaceState(null,"","#"+encodeURIComponent(r.name));
   document.getElementById("sugg").style.display="none";
   V.scrollIntoView({behavior:"smooth",block:"start"});
