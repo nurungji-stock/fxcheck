@@ -330,6 +330,23 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 .dpl.pb{border-left-color:#3B5BC4}.dpl.pr{border-left-color:#d0483a}.dpl.pg{border-left-color:#2e9e57}
 .dpl1{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.dpl1 b{font-size:14px}.dpl1 span{font-size:16px;font-weight:900;white-space:nowrap}.dpl1 em{font-style:normal;font-size:12.5px;margin-left:4px}
 .dpl2{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.5}.dpl2 b{color:var(--fg)}
+.dwarn{margin:4px 0 8px;padding:9px 11px;border-radius:10px;background:#fbf1d6;color:#5a4300;font-size:12.5px;line-height:1.6}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dwarn{background:#3a3012;color:#f0d27a}}:root[data-theme="dark"] .dwarn{background:#3a3012;color:#f0d27a}
+.dgt{display:flex;align-items:flex-start;gap:8px}
+.dgt .dtag{flex:none;margin-top:3px}
+.dgt .dgh{margin:0;font-size:18px}
+.dchips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 2px}
+.dch{font-size:13px;font-weight:800;padding:4px 10px;border-radius:20px}
+.dch.zg{background:#e3f4e8;color:#1e7a3c}.dch.zr{background:#fbe5e1;color:#a8321f}.dch.zn{background:var(--bg);color:var(--muted)}
+.dact small{display:block;font-size:12.5px;color:var(--muted);font-weight:700}
+.dpt{margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.dpr{display:grid;grid-template-columns:1fr auto 64px;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);border-left:5px solid var(--line)}
+.dpr:first-child{border-top:0}.dpr.pb{border-left-color:#3B5BC4}.dpr.pr{border-left-color:#d0483a}.dpr.pg{border-left-color:#2e9e57}
+.dpr span{font-size:14px;font-weight:700}.dpr b{font-size:16px;font-weight:900}.dpr em{font-style:normal;font-size:13px;color:var(--muted);text-align:right}
+.dna{font-size:13px;margin-top:6px;color:var(--muted)}.dna b{color:var(--fg)}
+.dnote{font-size:12px;color:var(--muted);margin-top:8px}
+.dwhy{margin-top:10px;font-size:13.5px;line-height:1.6}.dwhy summary{cursor:pointer;font-weight:700;color:var(--muted)}.dwhy p{margin:8px 0 0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dch.zg{background:#163a24;color:#9fe0b4}:root:not([data-theme="light"]) .dch.zr{background:#45201c;color:#f4a79b}}
+:root[data-theme="dark"] .dch.zg{background:#163a24;color:#9fe0b4}:root[data-theme="dark"] .dch.zr{background:#45201c;color:#f4a79b}
 .dmore{font-size:13px;font-weight:800;color:var(--muted);margin:16px 0 4px}
 /* 분기 실적 */
 .esum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0 12px}
@@ -1277,72 +1294,76 @@ function diagnose(r){   // 지표 + 매매기법 → 지금 상태 · 근거 · 
   else st={k:"박스권",c:"zy",t:"위아래로 방향을 정하는 중이에요",d:"뚜렷한 방향 없이 오르내리는 구간이에요. 아래 가격에서 사고 위 가격에서 줄이는 쪽이 맞아요."};
   const R=[];
   const ma=[[0,"20일선"],[1,"60일선"],[2,"120일선"]].filter(([k])=>T[k]), up=ma.filter(([k])=>px>T[k]).map(x=>x[1]), dn=ma.filter(([k])=>px<=T[k]).map(x=>x[1]);
-  if(ma.length&&up.length===ma.length) R.push([1,`${ma.map(x=>x[1].replace("일선","")).join("·")}일선 모두 위 — 짧은 흐름, 큰 흐름 다 위쪽`,3]);
+  if(ma.length&&up.length===ma.length) R.push([1,`${ma.map(x=>x[1].replace("일선","")).join("·")}일선 모두 위 — 짧은 흐름, 큰 흐름 다 위쪽이에요`,3]);
   else if(ma.length&&!up.length) R.push([-1,`${ma.map(x=>x[1].replace("일선","")).join("·")}일선 모두 아래 — 아직 흐름이 꺾여 있어요`,3]);
   else if(ma.length) R.push([up.includes("20일선")?0:-1,`${up.join("·")} 위, ${dn.join("·")} 아래 — ${up.includes("20일선")?"짧은 흐름은 돌아섰고 큰 흐름은 아직":"짧은 흐름이 다시 약해졌어요"}`,3]);
-  if(rsi!=null){ if(rsi<=30) R.push([1,`RSI ${Math.round(rsi)} — 30 밑, 너무 많이 팔린 자리예요`,4]); else if(rsi<=40) R.push([1,`RSI ${Math.round(rsi)} — 바닥권에 가까워요`,2]); else if(rsi>=70) R.push([-1,`RSI ${Math.round(rsi)} — 70 위, 너무 빨리 올라 숨 고를 자리예요`,4]); }
-  if(pb!=null){ if(pb<=0.05) R.push([1,"볼린저밴드 하단에 닿았어요 — 평소보다 지나치게 빠진 자리",3]); else if(pb>=0.98) R.push([-1,"볼린저밴드 상단을 넘었어요 — 평소보다 지나치게 오른 자리",3]); }
-  if(T[17]) R.push([1,"가격은 전 저점보다 더 내려갔는데 RSI는 올라갔어요 — 파는 힘이 빠지는 바닥 신호",5]);
-  if(T[7]!=null){ if(T[7]>=1.3) R.push([1,`오른 날 거래량이 내린 날의 ${T[7].toFixed(1)}배 — 사는 쪽 힘이 더 세요`,3]); else if(T[7]<=0.75) R.push([-1,`내린 날 거래량이 오른 날보다 ${Math.round((1/T[7]-1)*100)}% 많아요 — 파는 쪽 힘이 더 세요`,3]); }
-  if(T[8]!=null){ if(T[8]>=1.8) R.push([0,`최근 5일 거래량이 평소의 ${T[8].toFixed(1)}배 — 큰돈이 움직이고 있어요`,2]); else if(T[8]<=0.7&&(st.k==="눌림목"||st.k==="바닥 신호"||st.k==="하락 중")) R.push([1,`최근 거래량이 평소의 ${Math.round(T[8]*100)}% — 팔 사람이 줄어드는 중`,2]); }
+  if(rsi!=null){ if(rsi<=30) R.push([1,`RSI ${Math.round(rsi)} 과매도 — 30 밑이면 너무 많이 팔린 자리예요`,4]); else if(rsi<=40) R.push([1,`RSI ${Math.round(rsi)} 바닥권 — 30에 가까울수록 많이 팔린 자리예요`,2]); else if(rsi>=70) R.push([-1,`RSI ${Math.round(rsi)} 과열 — 70 위면 너무 빨리 올라 숨 고를 자리예요`,4]); }
+  if(pb!=null){ if(pb<=0.05) R.push([1,"볼린저밴드 하단 — 평소 움직임보다 지나치게 빠진 자리예요",3]); else if(pb>=0.98) R.push([-1,"볼린저밴드 상단 돌파 — 평소 움직임보다 지나치게 오른 자리예요",3]); }
+  if(T[17]) R.push([1,"RSI 다이버전스 — 가격은 전 저점보다 낮은데 RSI는 높아졌어요. 파는 힘이 빠지는 바닥 신호예요",5]);
+  if(T[7]!=null){ if(T[7]>=1.3) R.push([1,`사는 거래량 우세 ${T[7].toFixed(1)}배 — 오른 날 거래량이 내린 날보다 많아요`,3]); else if(T[7]<=0.75) R.push([-1,`파는 거래량 우세 — 내린 날 거래량이 오른 날보다 ${Math.round((1/T[7]-1)*100)}% 많아요`,3]); }
+  if(T[8]!=null){ if(T[8]>=1.8) R.push([0,`거래량 급증 ${T[8].toFixed(1)}배 — 최근 5일 거래량이 평소보다 크게 늘었어요`,2]); else if(T[8]<=0.7&&(st.k==="눌림목"||st.k==="바닥 신호"||st.k==="하락 중")) R.push([1,`거래량 감소 — 최근 거래량이 평소의 ${Math.round(T[8]*100)}%, 팔 사람이 줄어드는 중이에요`,2]); }
   if(r.st>=3) R.push([1,`외국인 ${r.st}일 연속 매수`,4]); else if(r.ss>=3) R.push([-1,`외국인 ${r.ss}일 연속 매도`,4]);
-  if(eg) R.push([eG?1:eB?-1:0,`실적 · ${eg.why}`,eB||eG?5:2]);
-  if(rG) R.push([1,"시장이 오른 날 같이 올랐어요",3]); else if(rB) R.push([-1,rb.todayBad?"시장이 오른 날 혼자 빠졌어요":"시장이 올라도 잘 안 따라와요",4]);
-  if(dd!=null&&dd<=-25) R.push([0,`석 달 고점보다 ${Math.abs(dd)}% 아래`,2]);
+  if(eg) R.push([eG?1:eB?-1:0,`실적 ${(()=>{const d=eVsCons(e,1);return d!=null?(Math.abs(d)<3?"예상만큼":`예상 대비 ${d>0?"+":""}${Math.round(d)}%`):eg.w;})()} — ${eg.why}`,eB||eG?5:2]);
+  if(rG) R.push([1,"시장 오를 때 같이 오름 — 지수가 오른 날 이 종목도 같이 올랐어요",3]); else if(rB) R.push([-1,rb.todayBad?"시장 오른 날 혼자 하락 — 지수가 오른 날 이 종목만 빠졌어요":"시장 따라 못 오름 — 지수가 올라도 잘 안 따라와요",4]);
+  if(dd!=null&&dd<=-25) R.push([0,`석 달 고점 대비 -${Math.abs(dd)}% — 최근 고점보다 많이 내려와 있어요`,2]);
   const reasons=R.sort((a,b)=>b[2]-a[2]).slice(0,4);
   const L=levels(r), a=atr/100;
   const pick=(arr,minGap)=>arr.find(x=>Math.abs(x[0]/px-1)>=minGap);
-  const near=(arr,dir)=>{const x=pick(arr,a*0.4); return x&&Math.abs(x[0]/px-1)<=a*3?x:null;};   // 하루 평균 움직임 0.4~3배 안의 가장 가까운 가격
-  let s1=near(L.sup)||[px*(1-a*1.5),"하루 평균 움직임의 1.5배 아래"];
-  let s2=L.sup.find(x=>x[0]<s1[0]*(1-a*1.2)&&x[0]>s1[0]*(1-a*4))||[s1[0]*(1-a*1.5),"1차에서 하루 평균 움직임 1.5배 더 아래"];
-  let r1=near(L.res)||[px*(1+a*1.5),"하루 평균 움직임의 1.5배 위"];
+  const inR=(arr,base,lo,hi)=>arr.find(x=>{const d=Math.abs(x[0]/base-1);return d>=lo&&d<=hi;});   // 기준가에서 하루 평균 움직임 lo~hi배 안의 가장 가까운 가격
+  const s1=inR(L.sup,px,a*0.5,a*2)||[px*(1-a),"하루 평균 움직임만큼 아래"];
+  const s2=inR(L.sup.filter(x=>x[0]<s1[0]),s1[0],a*0.5,a*2)||[s1[0]*(1-a),"1차에서 하루 평균 움직임만큼 더 아래"];
+  const r1=inR(L.res,px,a*0.5,a*2.5)||[px*(1+a*1.5),"하루 평균 움직임의 1.5배 위"];
   const chk=T[0]&&px<T[0]?[T[0],"20일선"]:null;
   return {st,reasons,s1:[tick(s1[0]),s1[1]],s2:[tick(s2[0]),s2[1]],r1:[tick(r1[0]),r1[1]],chk:chk?[tick(chk[0]),chk[1]]:null,px,atr,S};
 }
 function diagCard(r){
   const G=diagnose(r), aRaw=getAvg(r.name), a=avgFor(r), aChk=avgCheck(r,aRaw);
   const c=r.days&&r.days[0]&&r.days[0].close;
-  const avgIn=`<div class="dav"><span>내 평단</span><input inputmode="numeric" data-avg="${r.name}" placeholder="예: ${c?c.toLocaleString():""}" value="${aRaw?aRaw.toLocaleString():""}"><small>${a?"":"넣으면 내 평단 기준으로 계산해요"}</small></div>${aRaw&&!aChk.ok?`<div class="avgw">⚠ ${aChk.msg}</div>`:""}`;
+  const avgIn=`<div class="dav"><span>내 평단</span><input inputmode="numeric" data-avg="${r.name}" placeholder="예: ${c?c.toLocaleString():""}" value="${aRaw?aRaw.toLocaleString():""}"></div>${aRaw&&!aChk.ok?`<div class="avgw">⚠ ${aChk.msg}</div>`:""}`;
   if(!G) return `<div class="dg"><div class="dgh">아직 지표를 계산할 데이터가 부족해요</div>${avgIn}</div>`;
   const {st,reasons,s1,s2,r1,chk,px,S}=G, tier=S.tier, pl=a?(px/a-1)*100:null;
-  const pct=p=>{const d=(p/px-1)*100;return `<em class="${d>=0?"up":"dn"}">${d>=0?"+":""}${d.toFixed(1)}%</em>`;};
-  const row=(cls,lab,p,why,extra)=>`<div class="dpl ${cls}"><div class="dpl1"><b>${lab}</b><span>${wonP(p)} ${pct(p)}</span></div><div class="dpl2">${why}${extra?`<br>${extra}`:""}</div></div>`;
-  const newAvg=p=>a&&a>p?`같은 수량 더 사면 평단 ${wonP(a)} → <b>${wonP((a+p)/2)}</b>`:"";
-  let act, plan=[];
+  const I=r.ind||[], tv=r.bot&&r.bot[8];
+  const noPlan=tier==="none"?"데이터가 부족한 종목이라":(I[15]!=null&&I[15]<60)?"상장한 지 얼마 안 돼서":G.atr>=15?"하루 움직임이 너무 커서":(tv!=null&&tv<5)?"거래가 너무 적어서":"";
   const hot=st.k==="과열", falling=st.k==="하락 중"||st.k==="하락 추세";
+  const nowOk=!hot&&!falling&&(st.k==="눌림목"||st.k==="바닥 신호"||st.k==="반등 시작"||st.k==="돌파");
+  const P=[]; let act;
   if(tier==="buy"){
-    act=hot?"좋은 종목이지만 지금은 사는 자리가 아니에요. 아래 1차 가격까지 눌릴 때를 기다렸다가 나눠서 담으세요."
-       :falling?"버틸 종목이에요. 다만 아직 내려가는 중이라 지금 바로 사지 말고, 아래 가격에 닿을 때 나눠서 평단을 낮추세요."
-       :(st.k==="눌림목"||st.k==="바닥 신호"||st.k==="반등 시작")?"버틸 종목이고, 지금이 평단 낮추기 좋은 구간이에요. 한 번에 말고 아래 가격대로 나눠서 담으세요."
-       :"버틸 종목이에요. 흔들려서 아래 가격에 닿는 날이 평단 낮출 기회예요.";
-    plan.push(row("pb","1차 평단 낮추기",s1[0],s1[1],newAvg(s1[0])));
-    plan.push(row("pb","2차 평단 낮추기",s2[0],s2[1]));
-    plan.push(row("pr","일부 챙길 가격",r1[0],r1[1]+(a&&r1[0]<a?" · 내 평단보다는 아래라 급하지 않아요":"")));
+    act=hot?"버틸 종목이지만 지금은 너무 올랐어요. 눌릴 때까지 기다리세요.":nowOk?"버틸 종목이에요. 지금 일부, 더 내려오면 한 번 더 — 두 번에 나눠 평단을 낮추세요.":falling?"버틸 종목이에요. 아직 내려가는 중이라 아래 가격에서 나눠 담으세요.":"버틸 종목이에요. 흔들려서 아래 가격에 오면 나눠 담으세요.";
+    if(nowOk){ P.push(["pg","1차 · 지금",px,`${st.k} 신호가 나온 자리`]); P.push(["pb","2차",s1[0],s1[1]]); }
+    else if(!hot){ P.push(["pb","1차",s1[0],s1[1]]); P.push(["pb","2차",s2[0],s2[1]]); }
+    else P.push(["pb","눌리면",s1[0],s1[1]]);
+    P.push(["pr","일부 챙길 가격",r1[0],r1[1]]);
   } else if(tier==="wait"){
-    act=chk?`팔 종목은 아니지만 아직 물타기 할 때는 아니에요. ${wonP(chk[0])}(${chk[1]}) 위로 올라서서 끝나는 날이 오면 그때 담으세요.`:"팔 종목은 아니지만 아직 물타기 할 때는 아니에요. 걸리는 점이 풀리는지 먼저 보세요.";
-    if(chk) plan.push(row("pg","이 위로 끝나면 담기 시작",chk[0],chk[1]+" — 다시 올라서면 흐름이 돌아선 신호"));
-    plan.push(row("pb","그 전에 산다면 여기까지 기다리기",s1[0],s1[1],newAvg(s1[0])));
-    plan.push(row("pr","일부 챙길 가격",r1[0],r1[1]));
+    act=chk?`팔 종목은 아니에요. 물타기는 20일선 위로 올라선 뒤에 하세요.`:"팔 종목은 아니에요. 물타기는 걸리는 점이 풀린 뒤에 하세요.";
+    if(chk) P.push(["pg","이 위로 끝나면 담기",chk[0],chk[1]]);
+    P.push(["pr","일부 챙길 가격",r1[0],r1[1]]);
   } else if(tier==="hold"){
-    act=`지금 팔면 바닥에서 파는 거고, 지금 사면 아직 이른 자리예요. ${chk?`${wonP(chk[0])}(${chk[1]}) 위로 올라서는 걸 먼저 확인하세요.`:"아래 가격을 지키는지 먼저 확인하세요."}`;
-    if(chk) plan.push(row("pg","이 위로 끝나면 다시 힘이 붙는 신호",chk[0],chk[1]));
-    plan.push(row("pb","버텨야 할 가격",s1[0],s1[1]+" — 여기서 멈추는지 보세요"));
-    plan.push(row("pr","반등 오면 일부 줄일 가격",r1[0],r1[1]));
+    act=chk?"지금은 팔지도 사지도 말고 20일선 회복을 기다리세요.":"지금은 팔지도 사지도 말고 아래 가격을 지키는지 보세요.";
+    if(chk) P.push(["pg","이 위로 끝나면 회복 신호",chk[0],chk[1]]);
+    P.push(["pb","지켜야 할 가격",s1[0],s1[1]]);
   } else if(tier==="move"){
-    act=`여기서 더 사면 더 깊게 물려요. 바닥에서 던지지도 말고, 반등이 나와서 ${wonP(r1[0])} 근처에 오면 비중을 줄이세요.`;
-    plan.push(row("pr","반등 오면 비중 줄일 가격",r1[0],r1[1]+(a&&r1[0]<a?" · 손실을 줄여 다른 데서 회복하는 쪽이 빨라요":"")));
-    plan.push(row("pb","이 밑으로 끝나면 더 약해지는 가격",s1[0],s1[1]));
-  } else { act="거래가 적거나 기록이 짧아 판단하기 어려워요. 더 사지 마세요."; }
+    act="더 사면 더 깊게 물려요. 반등이 오면 비중을 줄이세요.";
+    P.push(["pr","반등 오면 줄일 가격",r1[0],r1[1]]);
+    P.push(["pb","이 밑이면 더 약해짐",s1[0],s1[1]]);
+  } else act="판단하기 어려운 종목이에요. 더 사지 마세요.";
+  const sane=P.every(x=>x[2]>px*0.75&&x[2]<px*1.35);
+  const pct=p=>{const d=(p/px-1)*100;return Math.abs(d)<0.05?"지금":`${d>0?"+":""}${d.toFixed(1)}%`;};
+  const b1=(tier==="buy")&&P.find(x=>x[0]!=="pr"&&x[2]<=px*1.001), nA=a&&b1&&a>b1[2]?`${b1[1]}에서 같은 수량 더 사면 평단 ${wonP(a)} → <b>${wonP((a+b1[2])/2)}</b>`:"";
   const ic={"1":["zg","✓"],"0":["zn","·"],"-1":["zr","!"]};
+  const showP=P.length&&!noPlan&&sane;
   return `<div class="dg">
-<div class="dgt"><span class="dtag ${st.c}">${st.k}</span><span class="meta">지금 이 종목 상태</span></div>
-<div class="dgh">${st.t}</div><div class="dgd">${st.d}</div>
-<div class="dsk">이렇게 봤어요</div>
-${reasons.map(([s,t])=>`<div class="sgl"><i class="sgi ${ic[String(s)][0]}">${ic[String(s)][1]}</i><span class="sgx">${t}</span></div>`).join("")}
-<div class="dact"><b>${pl!=null?(pl<=-1?`지금 ${Math.abs(pl).toFixed(1)}% 물려 계시죠 · `:pl>=1?`지금 +${pl.toFixed(1)}% 수익 중 · `:""):""}그래서 이렇게 하세요</b>${act}</div>
+<div class="dgt"><span class="dtag ${st.c}">${st.k}</span><span class="dgh">${st.t}</span></div>
+<div class="dchips">${reasons.map(([s,t])=>`<span class="dch ${ic[String(s)][0]}">${ic[String(s)][1]} ${t.split(" — ")[0]}</span>`).join("")}</div>
+<div class="dact">${pl!=null&&Math.abs(pl)>=1?`<small>${pl<0?`지금 ${Math.abs(pl).toFixed(1)}% 물려 계시죠`:`지금 +${pl.toFixed(1)}% 수익 중`}</small>`:""}${act}</div>
 ${avgIn}
-${plan.length?`<div class="dsk">가격 계획 <small>지금 ${wonP(px)} · 하루 평균 ${G.atr.toFixed(1)}% 움직이는 종목</small></div>${plan.join("")}`:""}
-<div class="meta" style="margin-top:8px">가격은 장 끝 가격 기준으로 보세요 · 매일 장 끝나고 다시 계산돼요 · 참고용이며 투자 판단의 책임은 본인에게 있어요</div>
+${showP?`<div class="dpt">${P.map(([c2,lb,p])=>`<div class="dpr ${c2}"><span>${lb}</span><b>${wonP(p)}</b><em>${pct(p)}</em></div>`).join("")}</div>${nA?`<div class="dna">${nA}</div>`:""}
+<div class="dnote">자동 계산한 참고 가격 · 사라·팔라는 권유가 아니에요 · ${D.updated} 기준</div>`:`<div class="dnote">${noPlan||"지금은 기준 가격을 정하기 어려워서"} 참고 가격은 보여드리지 않아요</div>`}
+<details class="dwhy"><summary>왜 이렇게 봤나요?</summary>
+<p>${st.d}</p>
+${reasons.map(([s,t])=>`<p><b>${t.split(" — ")[0]}</b> — ${t.split(" — ").slice(1).join(" — ")}</p>`).join("")}
+${showP?`<p class="dlv">${P.map(([,lb,p,w])=>`<b>${lb} ${wonP(p)}</b> — ${w}`).join("<br>")}<br>하루 평균 ${G.atr.toFixed(1)}% 움직이는 종목이라, 가격 사이 간격도 그만큼 잡았어요. 장 끝 가격 기준으로 보세요.</p>`:""}
+<p class="meta">지표는 지나간 가격으로 계산해요. 큰 뉴스가 나오면 지표보다 뉴스가 먼저 움직이니 맹신하지 마세요.</p>
+</details>
 </div>`;
 }
 function show(r){
