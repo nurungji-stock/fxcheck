@@ -464,6 +464,123 @@ def macro_snap():
         print("MACRO", out); return out
     return None
 
+# ───────── 분기 실적(잠정실적 공시) — 네이버 종목 공시 → 발표되는 대로 earnings.json에 쌓임 ─────────
+EARN_HDR = {"Referer": "https://m.stock.naver.com/"}
+def quarter_end(kst):
+    """지금 발표 시즌의 분기 마지막 날 (10월 → 9/30, 1~2월 → 전년 12/31 …)"""
+    y, m = kst.year, kst.month
+    qm = ((m - 1) // 3) * 3          # 이번 분기 직전 분기의 마지막 달
+    if qm == 0: return datetime.date(y - 1, 12, 31)
+    nxt = datetime.date(y, qm + 1, 1)
+    return nxt - datetime.timedelta(days=1)
+
+def _cells(tr):
+    import html as _h
+    return [_h.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", c))).strip() for c in re.findall(r"<td.*?</td>", tr, re.S)]
+
+def _n(s):
+    s = str(s).strip().replace(",", "")
+    neg = s.startswith("(") or s.startswith("△") or s.startswith("-") and len(s) > 1
+    s = s.strip("()△-+ ")
+    try: v = float(s)
+    except Exception: return None
+    return -v if neg else v
+
+def parse_earn(html):
+    """잠정실적 공시 본문 → dict(end, unit, rows={매출액:[당기,전기,전기대비%,전환,전년,전년대비%,전환], ...}) (억원)"""
+    trs = re.findall(r"<tr.*?</tr>", html, re.S)
+    end = None; unit = 1e-2   # 기본 백만원 → 억원
+    m = re.search(r"단위\s*[:：]\s*([^,<\s]+)", html)
+    if m:
+        u = m.group(1)
+        unit = 1e4 if "조" in u else 1 if "억" in u else 1e-2 if "백만" in u else 1e-5 if "천원" in u else 1e-8 if u.startswith("원") else 1e-2
+    want = {"매출액": "s", "영업이익": "o", "당기순이익": "n", "지배기업 소유주지분 순이익": "cn", "지배기업소유주지분순이익": "cn"}
+    out = {}
+    for tr in trs:
+        c = _cells(tr)
+        if not c: continue
+        if c[0] == "당기실적" and len(c) >= 4 and end is None:
+            end = c[3].replace(".", "-")[:10]
+        key = want.get(c[0].replace("  ", " "))
+        if key and key not in out:
+            v = c[1:]
+            if v and v[0] in ("당해실적", "당기실적"): v = v[1:]
+            if len(v) < 6: continue
+            cur, prev, qoq, qt, yo, yoy = _n(v[0]), _n(v[1]), _n(v[2]), v[3], _n(v[4]), _n(v[5])
+            yt = v[6] if len(v) > 6 else "-"
+            sc = lambda x: None if x is None else round(x * unit, 1)
+            out[key] = [sc(cur), sc(prev), qoq, qt if qt not in ("-", "") else "", sc(yo), yoy, yt if yt not in ("-", "") else ""]
+    if not any(out.get(k) and out[k][0] is not None for k in ("s", "o")): return None
+    if "n" not in out and "cn" in out: out["n"] = out["cn"]
+    out.pop("cn", None)
+    return dict(end=end, rows=out)
+
+def earn_consensus(code, ym):
+    """네이버 분기 컨센서스(억원) — 그 분기가 아직 '예상치'로 남아 있을 때만"""
+    try:
+        j = S.get(f"https://m.stock.naver.com/api/stock/{code}/finance/quarter", headers=EARN_HDR, timeout=15).json()["financeInfo"]
+        t = next((x for x in j["trTitleList"] if x["key"] == ym), None)
+        if not t or t.get("isConsensus") != "Y": return None
+        g = {}
+        for r in j["rowList"]:
+            k = {"매출액": "s", "영업이익": "o", "당기순이익": "n"}.get(r["title"])
+            if k:
+                v = _n((r["columns"].get(ym) or {}).get("value", ""))
+                if v is not None: g[k] = v
+        return g or None
+    except Exception:
+        return None
+
+def earnings_scan(rows, kst):
+    """전 종목 공시 목록을 훑어 이번 분기 잠정실적 → earnings.json(누적 캐시) 갱신, 사이트용 요약 반환"""
+    qe = quarter_end(kst); ym = qe.strftime("%Y%m"); since = qe.strftime("%Y-%m-%d")
+    qname = f"{qe.year}년 {(qe.month - 1) // 3 + 1}분기"
+    try: cache = json.load(open("earnings.json", encoding="utf-8"))
+    except Exception: cache = {}
+    if cache.get("q") != ym: cache = {"q": ym, "items": {}}
+    items = cache["items"]
+    def one(r):
+        code = r["code"]
+        try:
+            lst = S.get(f"https://m.stock.naver.com/api/stock/{code}/disclosure", params={"page": 1, "pageSize": 30}, headers=EARN_HDR, timeout=15).json()
+        except Exception:
+            return 0
+        n = 0
+        for d in lst or []:
+            t = d.get("title", ""); dt = (d.get("datetime") or "")[:16]
+            if "영업(잠정)실적" not in t or "자회사" in t or dt[:10] <= since: continue
+            did = str(d["disclosureId"])
+            if did in items: continue
+            try:
+                det = S.get(f"https://m.stock.naver.com/api/stock/{code}/disclosure/{did}", headers=EARN_HDR, timeout=15).json()["disclosure"]
+                p = parse_earn(det.get("contents") or "")
+            except Exception as e:
+                print("EARN detail err", code, did, e); continue
+            if not p or (p["end"] and p["end"] != since): items[did] = None; continue   # 다른 기간 공시는 표시만 하고 건너뜀
+            items[did] = dict(code=code, name=r["name"], t=dt.replace("T", " "), con="연결" in t, fix="정정" in t, rows=p["rows"],
+                              cons=earn_consensus(code, ym))
+            n += 1
+        return n
+    try:
+        with cf.ThreadPoolExecutor(8) as ex: new = sum(ex.map(one, rows))
+    except Exception as e:
+        print("EARN scan err", e); new = 0
+    json.dump(cache, open("earnings.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    # 종목별 하나로: 연결 우선, 그다음 최신(정정 반영)
+    best = {}
+    for did, it in items.items():
+        if not it: continue
+        b = best.get(it["code"])
+        if b is None or (it["con"], it["t"]) > (b["con"], b["t"]): best[it["code"]] = dict(it, id=did)
+    out = []
+    for it in best.values():
+        R = it["rows"]; g = lambda k: R.get(k) or [None] * 7
+        cs = it.get("cons") or {}
+        out.append([it["code"], it["name"], it["t"], g("s"), g("o"), g("n"), [cs.get("s"), cs.get("o"), cs.get("n")], int(it["id"]), 1 if it["con"] else 0])
+    out.sort(key=lambda x: x[2], reverse=True)
+    print(f"EARN {qname}: 새로 {new}건 · 누적 {len(out)}종목")
+    return dict(q=qname, end=since, items=out)
+
 def main():
     stocks = json.load(open("stocks.json", encoding="utf-8"))          # [[이름, 분류], ...]
     try: SEC = json.load(open("sectors.json", encoding="utf-8"))        # {이름: 섹터}
@@ -618,7 +735,7 @@ def main():
             mktchg[lb] = [ks[-1], round((m[ks[-1]] / m[ks[-2]] - 1) * 100, 2)]
             mkth[lb] = [[ks[i], round((m[ks[i]] / m[ks[i-1]] - 1) * 100, 2)] for i in range(max(1, len(ks) - 8), len(ks))]   # 최근 지수 일별 등락 (반등장 성적표용)
     data = dict(mkt=mktchg, mkth=mkth, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
-                gauge=gauge, elec=elec_odds(), macro=macro_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]])
+                gauge=gauge, earn=earnings_scan(ok, kst), elec=elec_odds(), macro=macro_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
 
