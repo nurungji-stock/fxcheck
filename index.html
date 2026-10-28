@@ -296,34 +296,34 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 
 /* 분기 실적 */
 .esum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0 12px}
-.esum div{background:var(--bg);border-radius:12px;padding:10px 6px;text-align:center}
-.esum small{display:block;font-size:12px;color:var(--muted)}
-.esum b{font-size:22px;font-weight:900}
-.efl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.esum div{border-radius:12px;padding:10px 6px;text-align:center}
+.esum small{display:block;font-size:13px;font-weight:700}
+.esum b{font-size:24px;font-weight:900}
+.efl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .efl button{font:inherit;font-size:13.5px;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:20px;padding:6px 12px;cursor:pointer}
 .efl button.on{background:var(--fg);color:var(--card);border-color:var(--fg)}
-.er{padding:12px 2px;border-top:1px solid var(--line);cursor:pointer}
-.er:first-child{border-top:0}
-.er1{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.er1 .en{font-size:16px;font-weight:800}
+.elist{display:flex;flex-direction:column;gap:10px}
+.ecd{border:1px solid var(--line);border-left:6px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;background:var(--card)}
+.ecd.eg{border-left-color:#2e9e57}.ecd.er_{border-left-color:#d0483a}.ecd.en_{border-left-color:#b9bcc4}
+.ecd.big{cursor:default;border-width:2px;border-left-width:6px}
+.ech1{display:flex;align-items:center;gap:8px}
+.egv{flex:none;font-size:14px;font-weight:900;padding:4px 10px;border-radius:20px}
+.enm{font-size:17px;font-weight:900;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.edt{flex:none;font-size:12px;color:var(--muted)}
+.ewhy{font-size:15px;font-weight:700;margin:8px 0 10px;line-height:1.4}
+.etiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.etc{border-radius:10px;padding:8px 4px;text-align:center}
+.etc small{display:block;font-size:12px;color:var(--muted);font-weight:700}
+.etc b{display:block;font-size:17px;font-weight:900;margin:2px 0;color:var(--fg)}
+.etc i{display:block;font-style:normal;font-size:12px;font-weight:800;min-height:1.2em}
+.eg.esum,.esum .eg,.egv.eg,.etc.eg{background:#e3f4e8;color:#1e7a3c}
+.esum .er_,.egv.er_,.etc.er_{background:#fbe5e1;color:#a8321f}
+.esum .en_,.egv.en_,.etc.en_{background:var(--bg);color:var(--muted)}
 .ebd{flex:none;font-size:12.5px;font-weight:800;padding:3px 9px;border-radius:20px;white-space:nowrap}
 .ebd.eg{background:#e3f4e8;color:#1e7a3c}.ebd.er_{background:#fbe5e1;color:#a8321f}.ebd.en_{background:var(--bg);color:var(--muted)}
-.er2{font-size:14.5px;margin-top:4px;line-height:1.5}.er2 b{font-weight:900}
-.er3{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.5}
-.er3 .ewn{color:#C0392B;font-weight:700}
-.emore{display:block;width:100%;margin-top:8px;font:inherit;font-weight:700;font-size:14px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);cursor:pointer}
-.ebdox{margin-top:12px;border:2px solid var(--line);border-radius:16px;padding:14px}
-.ebdox.eg{border-color:#7cc795}.ebdox.er_{border-color:#e9a092}
-.ebdh{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.ebdh small{font-size:12.5px;color:var(--muted)}
-.ebdt{font-size:17px;font-weight:900;margin:8px 0 10px;line-height:1.4}
-.etl{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:6px}
-.etl div{background:var(--bg);border-radius:10px;padding:8px 6px;text-align:center}
-.etl small{display:block;font-size:12px;color:var(--muted)}
-.etl b{display:block;font-size:16px;font-weight:900;margin:2px 0}
-.etl i{font-style:normal;font-size:12px}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ebd.eg{background:#163a24;color:#9fe0b4}:root:not([data-theme="light"]) .ebd.er_{background:#45201c;color:#f4a79b}:root:not([data-theme="light"]) .ebdox.eg{border-color:#2f6b45}:root:not([data-theme="light"]) .ebdox.er_{border-color:#7a3a33}}
-:root[data-theme="dark"] .ebd.eg{background:#163a24;color:#9fe0b4}:root[data-theme="dark"] .ebd.er_{background:#45201c;color:#f4a79b}:root[data-theme="dark"] .ebdox.eg{border-color:#2f6b45}:root[data-theme="dark"] .ebdox.er_{border-color:#7a3a33}
+.emore{display:block;width:100%;margin-top:10px;font:inherit;font-weight:700;font-size:14px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--fg);cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .esum .eg,:root:not([data-theme="light"]) .egv.eg,:root:not([data-theme="light"]) .etc.eg,:root:not([data-theme="light"]) .ebd.eg{background:#163a24;color:#9fe0b4}:root:not([data-theme="light"]) .esum .er_,:root:not([data-theme="light"]) .egv.er_,:root:not([data-theme="light"]) .etc.er_,:root:not([data-theme="light"]) .ebd.er_{background:#45201c;color:#f4a79b}}
+:root[data-theme="dark"] .esum .eg,:root[data-theme="dark"] .egv.eg,:root[data-theme="dark"] .etc.eg,:root[data-theme="dark"] .ebd.eg{background:#163a24;color:#9fe0b4}:root[data-theme="dark"] .esum .er_,:root[data-theme="dark"] .egv.er_,:root[data-theme="dark"] .etc.er_,:root[data-theme="dark"] .ebd.er_{background:#45201c;color:#f4a79b}
 </style>
 </head>
 <body>
@@ -767,7 +767,7 @@ function renderMine(){
   M.innerHTML=`<div class="mh"><b>내 종목</b>${rows.length?`<span class="meta">${rows.length}개</span>`:""}</div>`+
   (rows.length?`<div class="sum"><span class="sv1">들고 가세요 <b>${cnt.sv1}</b></span><span class="sv2">지켜보세요 <b>${cnt.sv2}</b></span><span class="sv3">반등 때 정리 <b>${cnt.sv3}</b></span></div>${distBar(cnt)}
   ${(()=>{let g=0,b=0;rows.forEach(r=>{const x=rebound(r);if(!x)return;if(x.g==="g")g++;else if(x.g==="r")b++;});return (g||b)?`<div class="rsum"><span>반등 따라오는 종목<b class="t-sv1">${g}</b></span><span>반등 못 따라오는 종목<b class="t-sv3">${b}</b></span></div>`:"";})()}
-  ${items.map(({r,v})=>`<div class="mr" data-n="${r.name}"><span class="mn">${r.name}${(()=>{const e=earnOf(r);if(e){const g=earnGrade(e);if(g.k!=="mid")return `<span class="mc2"><span class="ebd ${g.c}" style="font-size:11.5px;padding:1px 7px">실적 ${g.k==="good"?"▲":"▼"}</span></span>`;}const c=chipsOf(r,1);return c.length?`<span class="mc2">${c[0]}</span>`:""})()}</span><span class="mc">${vsShort(r)}</span><span class="svs ${v.c}"><i class="dot"></i>${v.w}${(()=>{const q=score100(r);return q?` <b class="msc">${q.sc}</b>`:""})()}</span><button class="x" data-x="${r.name}" aria-label="빼기">×</button></div>`).join("")}`
+  ${items.map(({r,v})=>`<div class="mr" data-n="${r.name}"><span class="mn">${r.name}${(()=>{const e=earnOf(r);if(e){const g=earnGrade(e);if(g.k!=="mid")return `<span class="mc2"><span class="ebd ${g.c}" style="font-size:11.5px;padding:1px 7px">실적 ${g.k==="good"?"▲ 좋음":"▼ 조심"}</span></span>`;}const c=chipsOf(r,1);return c.length?`<span class="mc2">${c[0]}</span>`:""})()}</span><span class="mc">${vsShort(r)}</span><span class="svs ${v.c}"><i class="dot"></i>${v.w}${(()=>{const q=score100(r);return q?` <b class="msc">${q.sc}</b>`:""})()}</span><button class="x" data-x="${r.name}" aria-label="빼기">×</button></div>`).join("")}`
   :`<div class="meta" style="margin:4px 0 8px">들고 있는 종목을 한 번에 넣어두면, 들어올 때마다 계좌 전체 판정을 한눈에 보여드립니다.</div>`)+
   `<div class="madd"><input id="mineIn" placeholder="예: 삼성전자, 하이닉스, 에코프로" autocomplete="off"><button id="mineBtn">담기</button></div><div class="meta" id="mineMsg" style="min-height:1em"></div>`;
   M.querySelectorAll(".mr").forEach(e=>e.onclick=ev=>{if(ev.target.dataset.x){toggleMine(ev.target.dataset.x);return;}const r=D.rows.find(x=>x.name===e.dataset.n);show(r);});
@@ -900,30 +900,47 @@ function earnMap(){ if(EARN) return EARN; EARN={}; ((D.earn&&D.earn.items)||[]).
 function earnOf(r){ return r&&earnMap()[r.code]||null; }
 function eAmt(v){ if(v==null) return "-"; const a=Math.abs(v), s=v<0?"-":""; if(a>=10000){const j=a/10000; return s+(j>=100?j.toFixed(0):j>=10?j.toFixed(1):j.toFixed(2)).replace(/\.?0+$/,"")+"조";} return s+Math.round(a).toLocaleString()+"억"; }
 function eGrow(p,base){ if(p==null) return ""; if(p>=100) return `${base} ${(1+p/100).toFixed(1).replace(/\.0$/,"")}배`; return `${base} ${p>0?"+":""}${Math.round(p)}%`; }
-function earnGrade(e){   // 잘 나옴 / 못 나옴 / 보통 — 예상치가 있으면 예상치 기준, 없으면 흑자·적자 전환과 작년 대비
-  const o=e.o||[], c=e.cons&&e.cons[1];
-  if(o[0]!=null&&c!=null&&e.con&&c!==0){
-    const d=c>0?(o[0]/c-1)*100:(o[0]>c?50:-50);
-    if(d>=3) return {c:"eg",w:`예상보다 ${c>0?"+"+Math.round(d)+"% ":""}잘 나옴`,d,k:"good"};
-    if(d<=-3) return {c:"er_",w:`예상보다 ${c>0?Math.round(d)+"% ":""}못 나옴`,d,k:"bad"};
-    return {c:"en_",w:"예상 수준",d,k:"mid"};
+function eVsCons(e,i){   // i: 0 매출 · 1 영업이익 · 2 순이익 → 예상 대비 % (예상치가 있고 연결 기준일 때만)
+  const a=[e.s,e.o,e.n][i]||[], c=e.cons&&e.cons[i];
+  if(!e.con||a[0]==null||c==null||c===0) return null;
+  return c>0?(a[0]/c-1)*100:(a[0]>c?50:-50);
+}
+function earnGrade(e){   // 좋음 / 괜찮음 / 조심 — 본업(영업이익)을 먼저 보고, 예상치가 없으면 흑자·적자와 작년 대비로
+  const o=e.o||[], d=eVsCons(e,1), turn=(o[6]||o[3]||"");
+  const G=(k,why)=>({k,why,c:{good:"eg",mid:"en_",bad:"er_"}[k],w:{good:"좋음",mid:"괜찮음",bad:"조심"}[k]});
+  if(o[0]!=null&&o[0]<0) return G("bad",/적자전환/.test(turn)?"이번 분기에 적자로 돌아섰어요":"본업에서 손해를 봤어요");
+  if(d!=null){
+    if(d>=3) return G("good",`본업에서 예상보다 ${Math.round(d)}% 더 벌었어요`);
+    if(d<=-3) return G("bad",`본업에서 예상보다 ${Math.abs(Math.round(d))}% 덜 벌었어요`);
+    return G("mid","본업이 예상만큼 나왔어요");
   }
-  const turn=(o[6]||o[3]||"");
-  if(/흑자전환/.test(turn)) return {c:"eg",w:"흑자전환",k:"good"};
-  if(/적자/.test(turn)) return {c:"er_",w:turn,k:"bad"};
-  if(o[0]!=null&&o[0]<0) return {c:"er_",w:"영업 적자",k:"bad"};
-  if(o[5]!=null){ if(o[5]>=30) return {c:"eg",w:"작년보다 크게 늘어남",k:"good"}; if(o[5]<=-30) return {c:"er_",w:"작년보다 크게 줄어듦",k:"bad"}; return {c:"en_",w:"작년과 비슷",k:"mid"}; }
-  return {c:"en_",w:"발표",k:"mid"};
+  if(/흑자전환/.test(turn)) return G("good","이번 분기에 흑자로 돌아섰어요");
+  if(o[5]!=null){
+    if(o[5]>=30) return G("good",`본업 이익이 작년보다 ${o[5]>=100?(1+o[5]/100).toFixed(1).replace(/\.0$/,"")+"배":Math.round(o[5])+"%"} 늘었어요`);
+    if(o[5]<=-30) return G("bad",`본업 이익이 작년보다 ${Math.abs(Math.round(o[5]))}% 줄었어요`);
+    return G("mid","본업 이익이 작년과 비슷해요");
+  }
+  const s=e.s||[];
+  if(s[5]!=null) return G(s[5]>=10?"good":s[5]<=-10?"bad":"mid",`매출이 작년보다 ${s[5]>=0?Math.round(s[5])+"% 늘었어요":Math.abs(Math.round(s[5]))+"% 줄었어요"}`);
+  return G("mid","실적 공시가 나왔어요");
 }
-function earnNote(e){   // 숫자 밑 한 줄 주의
-  const o=e.o||[], n=e.n||[];
-  if(n[2]!=null&&n[2]<=-30&&(o[2]==null||o[2]>=0)) return `순이익은 지난 분기보다 ${Math.abs(Math.round(n[2]))}% 줄었어요`;
-  if(o[2]!=null&&o[2]<=-30&&o[0]>0) return `영업이익이 지난 분기보다 ${Math.abs(Math.round(o[2]))}% 줄었어요`;
-  return "";
+function eTile(e,i){   // 매출·영업이익·순이익 한 칸: 금액 + (예상 대비, 없으면 작년 대비) + 색
+  const lb=["매출","영업이익","순이익"][i], a=[e.s,e.o,e.n][i]||[];
+  if(a[0]==null) return `<div class="etc en_"><small>${lb}</small><b>-</b><i>미공개</i></div>`;
+  const d=eVsCons(e,i); let sub, k;
+  if(d!=null){ k=d>=3?"eg":d<=-3?"er_":"en_"; sub=Math.abs(d)<3?"예상만큼":`예상보다 ${d>0?"+":""}${Math.round(d)}%`; }
+  else if(a[6]||a[3]){ const t=a[6]||a[3]; k=/흑자/.test(t)?"eg":"er_"; sub=t; }
+  else if(a[5]!=null&&a[4]>0&&a[0]>0){ k=a[5]>=10?"eg":a[5]<=-10?"er_":"en_"; sub=a[5]>=100?`작년의 ${(1+a[5]/100).toFixed(1).replace(/\.0$/,"")}배`:`작년보다 ${a[5]>0?"+":""}${Math.round(a[5])}%`; }
+  else { k=a[0]<0?"er_":"en_"; sub=a[0]<0?"적자":""; }
+  return `<div class="etc ${k}"><small>${lb}</small><b>${eAmt(a[0])}</b><i>${sub}</i></div>`;
 }
-function earnHead(e){ const o=e.o||[], s=e.s||[];
-  if(o[0]!=null) return `영업이익 <b>${eAmt(o[0])}</b>${o[5]!=null&&o[0]>0&&o[4]>0?` <span class="${o[5]>=0?"up":"dn"}">${eGrow(o[5],"작년보다")}</span>`:""}${s[0]!=null?` · 매출 ${eAmt(s[0])}`:""}`;
-  return s[0]!=null?`매출 <b>${eAmt(s[0])}</b>${s[5]!=null?` <span class="${s[5]>=0?"up":"dn"}">${eGrow(s[5],"작년보다")}</span>`:""}`:"";
+function earnCard(e,big){
+  const g=earnGrade(e), dt=`${+e.t.slice(5,7)}/${+e.t.slice(8,10)}`;
+  return `<div class="ecd ${g.c}${big?" big":""}"${big?"":` data-c="${e.code}"`}>
+<div class="ech1"><span class="egv ${g.c}">${g.k==="good"?"▲":g.k==="bad"?"▼":"●"} ${g.w}</span><span class="enm">${big?`${D.earn.q} 실적`:e.name}</span><span class="edt">${dt} 발표</span></div>
+<div class="ewhy">${g.why}</div>
+<div class="etiles">${eTile(e,0)}${eTile(e,1)}${eTile(e,2)}</div>
+${big?`<div class="meta" style="margin-top:8px">잠정실적 공시 ${dt} ${e.t.slice(11,16)}${e.con?"":" · 별도 기준"} · 칸 밑 글씨는 증권사 예상치 대비(없으면 작년 대비) · 확정치는 나중에 달라질 수 있어요</div>`:""}</div>`;
 }
 function renderEarn(){
   const W=document.getElementById("earnwrap"), E=document.getElementById("earn"); if(!E||!D||!D.earn||!D.earn.items||!D.earn.items.length) return;
@@ -931,38 +948,23 @@ function renderEarn(){
   const all=Object.values(earnMap()).filter(e=>D.rows.some(r=>r.code===e.code)).map(e=>({e,g:earnGrade(e)}));
   const day=all.map(x=>x.e.t.slice(0,10)).sort().pop();
   const mine=new Set(getMine().map(n=>(D.rows.find(r=>r.name===n)||{}).code));
-  const sets={today:all.filter(x=>x.e.t.slice(0,10)===day), good:all.filter(x=>x.g.k==="good"), bad:all.filter(x=>x.g.k==="bad"), mine:all.filter(x=>mine.has(x.e.code)), all};
+  const sets={today:all.filter(x=>x.e.t.slice(0,10)===day), good:all.filter(x=>x.g.k==="good"), mid:all.filter(x=>x.g.k==="mid"), bad:all.filter(x=>x.g.k==="bad"), mine:all.filter(x=>mine.has(x.e.code)), all};
   if(!eFilt) eFilt=sets.mine.length?"mine":"today";
-  const sortT=a=>a.sort((x,y)=>y.e.t.localeCompare(x.e.t));
-  const big=x=>Math.abs((x.e.o&&x.e.o[0])||0);
+  const big=x=>Math.abs((x.e.o&&x.e.o[0])||0), dv=x=>eVsCons(x.e,1);
   let L=sets[eFilt].slice();
-  if(eFilt==="good") L.sort((x,y)=>(y.g.d??0)-(x.g.d??0)||big(y)-big(x)); else if(eFilt==="bad") L.sort((x,y)=>(x.g.d??0)-(y.g.d??0)||big(y)-big(x)); else sortT(L);
+  if(eFilt==="good") L.sort((x,y)=>(dv(y)??0)-(dv(x)??0)||big(y)-big(x)); else if(eFilt==="bad") L.sort((x,y)=>(dv(x)??0)-(dv(y)??0)||big(y)-big(x)); else L.sort((x,y)=>y.e.t.localeCompare(x.e.t));
   const dl=day?`${+day.slice(5,7)}/${+day.slice(8,10)}`:"";
-  const tabs=[["today",`${dl} 발표`],["good","잘 나온 종목"],["bad","못 나온 종목"],["mine","내 종목"],["all","전체"]];
-  const row=({e,g})=>{const o=e.o||[], c=e.cons||[], nt=earnNote(e);
-    return `<div class="er" data-c="${e.code}"><div class="er1"><span class="en">${e.name}</span><span class="ebd ${g.c}">${g.w}</span></div>
-<div class="er2">${earnHead(e)}</div>
-<div class="er3">${+e.t.slice(5,7)}/${+e.t.slice(8,10)} ${e.t.slice(11,16)} 발표${c[1]!=null&&e.con&&o[0]!=null?` · 예상 ${eAmt(c[1])}`:""}${e.con?"":" · 별도 기준"}${nt?` · <span class="ewn">${nt}</span>`:""}</div></div>`;};
-  E.innerHTML=`<div class="esum"><div><small>발표한 종목</small><b>${all.length}</b></div><div><small>예상보다 잘 나옴</small><b class="t-sv1">${sets.good.length}</b></div><div><small>예상보다 못 나옴</small><b class="t-sv3">${sets.bad.length}</b></div></div>
+  const tabs=[["today",`${dl} 발표`],["mine","내 종목"],["good","▲ 좋음"],["bad","▼ 조심"],["all","전체"]];
+  E.innerHTML=`<div class="esum"><div class="eg"><small>▲ 좋음</small><b>${sets.good.length}</b></div><div class="en_"><small>● 괜찮음</small><b>${sets.mid.length}</b></div><div class="er_"><small>▼ 조심</small><b>${sets.bad.length}</b></div></div>
 <div class="efl">${tabs.map(([k,l])=>`<button data-k="${k}" class="${k===eFilt?"on":""}">${l} ${sets[k].length}</button>`).join("")}</div>
-<div>${L.length?L.slice(0,eShow).map(row).join(""):`<div class="empty" style="padding:14px 0">${eFilt==="mine"?"내 종목 중 아직 실적을 발표한 종목이 없어요":"해당하는 종목이 없어요"}</div>`}</div>
+<div class="elist">${L.length?L.slice(0,eShow).map(x=>earnCard(x.e)).join(""):`<div class="empty" style="padding:14px 0">${eFilt==="mine"?"내 종목 중 아직 실적을 발표한 종목이 없어요":"해당하는 종목이 없어요"}</div>`}</div>
 ${L.length>eShow?`<button class="emore">${L.length-eShow}개 더 보기 ▾</button>`:""}
-<div class="meta" style="margin-top:8px">회사가 낸 잠정실적 공시 기준 · '예상'은 증권사 예상치 평균 · 종목을 누르면 자세히 볼 수 있어요</div>`;
+<div class="meta" style="margin-top:8px">좋음·조심은 본업(영업이익)이 증권사 예상보다 잘 나왔는지로 판정 · 칸 색은 항목별 예상 대비 · 종목을 누르면 자세히</div>`;
   E.querySelectorAll(".efl button").forEach(b=>b.onclick=()=>{eFilt=b.dataset.k; eShow=8; renderEarn();});
   const m=E.querySelector(".emore"); if(m) m.onclick=()=>{eShow+=20; renderEarn();};
-  E.querySelectorAll(".er").forEach(x=>x.onclick=()=>{const r=D.rows.find(y=>y.code===x.dataset.c); if(r){q.value=r.name; show(r);}});
+  E.querySelectorAll(".ecd[data-c]").forEach(x=>x.onclick=()=>{const r=D.rows.find(y=>y.code===x.dataset.c); if(r){q.value=r.name; show(r);}});
 }
-function earnBox(r){   // 종목 화면: 이번 분기 실적 카드
-  const e=earnOf(r); if(!e) return "";
-  const g=earnGrade(e), o=e.o||[], s=e.s||[], n=e.n||[], c=e.cons||[], nt=earnNote(e);
-  const tile=(lb,a,ci)=>a[0]==null?"":`<div><small>${lb}</small><b class="${a[0]<0?"dn":""}">${eAmt(a[0])}</b><i class="${a[5]==null?"":a[5]>=0?"up":"dn"}">${a[6]||(a[5]!=null&&a[4]>0&&a[0]>0?eGrow(a[5],"작년"):"")}</i>${c[ci]!=null&&e.con?`<i style="display:block;color:var(--muted)">예상 ${eAmt(c[ci])}</i>`:""}</div>`;
-  const head=g.k==="good"?"실적이 기대보다 잘 나왔어요":g.k==="bad"?"실적이 기대에 못 미쳤어요":"실적이 예상 수준으로 나왔어요";
-  return `<div class="ebox ${g.c}"><div class="ebh"><b>${D.earn.q} 실적</b><span class="ebd ${g.c}">${g.w}</span></div>
-<div class="ebt">${head}</div>
-<div class="etl">${tile("매출",s,0)}${tile("영업이익",o,1)}${tile("순이익",n,2)}</div>
-${nt?`<div class="warn" style="margin-top:10px">${nt}</div>`:""}
-<div class="meta" style="margin-top:8px">${+e.t.slice(5,7)}/${+e.t.slice(8,10)} ${e.t.slice(11,16)} 잠정실적 공시${e.con?"":" · 별도 기준"} · 확정치는 나중에 달라질 수 있어요</div></div>`;
-}
+function earnBox(r){ const e=earnOf(r); return e?`<div style="margin-top:12px">${earnCard(e,true)}</div>`:""; }
 function renderToday(){
   const T=document.getElementById("today"); if(!T||!D) return;
   const today=D.rows.map(r=>r.days&&r.days[0]).filter(Boolean).map(x=>x.d).sort().pop();
