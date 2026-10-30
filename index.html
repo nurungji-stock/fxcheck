@@ -1288,8 +1288,10 @@ function diagnose(r){   // 지표 + 매매기법 → 지금 상태 · 근거 · 
   if(!T) return null;
   const px=T[22], atr=T[6]||3, rsi=T[3], pb=T[4], above=k=>T[k]&&px>T[k];
   const dd=T[12]?Math.round((px/T[12]-1)*100):null;
+  const intra=mktOpen(), fresh=intra&&T[0]&&px>=T[0]&&T[16]===0&&!ch.hot&&!T[19];   // 장중에 오늘 막 20일선 위로 올라온 상태 = 아직 확인 전
   let st;
-  if(ch.hot||(rsi!=null&&rsi>=75)||(pb>1.05&&T[21]>=12)) st={k:"과열",c:"zr",t:"단기간에 너무 빨리 올랐어요",d:"이런 자리에서 따라 사면 눌릴 때 바로 물려요. 오른 만큼 한 번은 쉬어 갑니다."};
+  if(fresh) st={k:"확인 중",c:"zy",t:"오늘 장중에 20일선 위로 올라왔어요",d:"장중에 잠깐 올라섰다가 다시 밀리는 일이 많아요. 장이 끝날 때도 이 위에 있어야 하락이 멈춘 걸로 봐요."};
+  else if(ch.hot||(rsi!=null&&rsi>=75)||(pb>1.05&&T[21]>=12)) st={k:"과열",c:"zr",t:"단기간에 너무 빨리 올랐어요",d:"이런 자리에서 따라 사면 눌릴 때 바로 물려요. 오른 만큼 한 번은 쉬어 갑니다."};
   else if(T[19]) st={k:"돌파",c:"zg",t:"거래량을 실어서 최근 고점을 뚫었어요",d:"고점을 뚫은 날 거래량이 터지면 새 흐름이 시작되는 신호예요. 다음 날 이 가격 위에서 버티는지가 중요해요."};
   else if(T[18]) st={k:"눌림목",c:"zg",t:"오르는 흐름 속에서 잠깐 쉬어가는 자리예요",d:"20일선이 올라가는 중에 거래량이 줄면서 내려온 건 파는 사람이 적다는 뜻이에요. 추세 매매에서 사는 자리로 보는 곳이에요."};
   else if(T[16]>=0&&!above(1)) st={k:"반등 시작",c:"zg",t:"바닥에서 20일선을 다시 올라탔어요",d:"한동안 20일선 아래에 있다가 다시 올라선 건 반등의 첫 신호예요. 다만 60일선은 아직 위에 있어서, 이 위에서 버티는지 확인이 필요해요."};
@@ -1320,9 +1322,23 @@ function diagnose(r){   // 지표 + 매매기법 → 지금 상태 · 근거 · 
   const s1=inR(L.sup,px,a*0.5,lim)||[px*(1-stp),"하루 평균 움직임만큼 아래"];
   const s2=inR(L.sup.filter(x=>x[0]<s1[0]),s1[0],a*0.5,lim)||[s1[0]*(1-stp),"1차에서 하루 평균 움직임만큼 더 아래"];
   const r1=inR(L.res,px,a*0.5,Math.min(a*2.5,0.15))||[px*(1+Math.min(a*1.5,0.1)),"하루 평균 움직임의 1.5배 위"];
-  const chk=T[0]&&px<T[0]&&T[0]<=px*1.15?[T[0],"20일선"]:null;
+  const chk=T[0]&&(fresh||(px<T[0]&&T[0]<=px*1.15))?[T[0],"20일선"]:null;
   const r2=inR(L.res.filter(x=>x[0]>r1[0]),r1[0],a*0.5,lim)||[r1[0]*(1+stp),"1차에서 하루 평균 움직임만큼 더 위"];
-  return {st,reasons,s1:[tick(s1[0]),s1[1]],s2:[tick(s2[0]),s2[1]],r1:[tick(r1[0]),r1[1]],r2:[tick(r2[0]),r2[1]],chk:chk?[tick(chk[0]),chk[1]]:null,px,atr,S};
+  return {st,fresh,reasons,s1:[tick(s1[0]),s1[1]],s2:[tick(s2[0]),s2[1]],r1:[tick(r1[0]),r1[1]],r2:[tick(r2[0]),r2[1]],chk:chk?[tick(chk[0]),chk[1]]:null,px,atr,S};
+}
+function mktOpen(){   // 데이터가 평일 장중(09:00~15:30)에 만들어졌는지
+  const m=String(typeof D!=="undefined"&&D&&D.updated||"").match(/(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d)/); if(!m) return false;
+  const dw=new Date(+m[1],+m[2]-1,+m[3]).getDay(), hm=+m[4]*60+ +m[5];
+  return dw>0&&dw<6&&hm>=540&&hm<930;
+}
+function basis(w,p,px){   // 가격 옆 근거 — 짧은 기술적 용어
+  const k=String(w||"").split(" — ")[0].split(" · ")[0].trim(), up=p!=null&&px!=null&&p>px, sr=up?"저항":"지지";
+  const M={"20일선":"20일 이동평균선","60일선":"60일 이동평균선","120일선":"120일 이동평균선","최근 한 달 저점":"1개월 저점","석 달 저점":"3개월 저점","최근 한 달 고점":"1개월 고점","석 달 고점":"3개월 고점","거래가 많이 몰린 가격대":"매물대"};
+  if(M[k]) return M[k]+(/선$/.test(M[k])?"":" "+sr);
+  if(/하루 평균 움직임/.test(k)) return "변동성(ATR) 기준";
+  if(/평단 바로 위/.test(k)) return "평단 +1%";
+  if(/신호가 나온 자리/.test(k)) return k.replace(" 신호가 나온 자리"," 신호");
+  return k.length<=14?k:"";
 }
 function diagCard(r){
   const G=diagnose(r), aRaw=getAvg(r.name), a=avgFor(r), aChk=avgCheck(r,aRaw);
@@ -1336,11 +1352,11 @@ function diagCard(r){
   const nowOk=!hot&&!falling&&(st.k==="눌림목"||st.k==="바닥 신호"||st.k==="반등 시작"||st.k==="돌파");
   const P=[]; let act;
   if(tier==="buy"){
-    const below20=T0&&px<T0, confirm=!hot&&below20&&st.k!=="반등 시작";
+    const below20=T0&&px<T0, confirm=!hot&&(G.fresh||(below20&&st.k!=="반등 시작"));
     const trig=confirm?((chk&&chk[0]<=px*1.15)?chk:[r1[0],r1[1]]):null;
     if(hot){ act="버틸 종목이지만 지금은 너무 올랐어요. 눌릴 때까지 기다리세요."; P.push(["pb","눌리면",s1[0],s1[1]]); P.push(["pr","일부 챙길 가격",r1[0],r1[1]]); }
     else if(confirm){
-      act=`버틸 종목이에요. 다만 아직 흐름이 아래쪽이라 떨어질 때 따라 사지 말고, ${wonP(trig[0])}(${trig[1].split(" · ")[0]}) 위로 장이 끝나는 걸 확인하고 사세요.${a&&a>trig[0]?" 그 가격도 내 평단보다 아래라 사면 평단은 낮아져요.":""}`;
+      act=G.fresh?`버틸 종목이에요. 오늘 장중에 ${wonP(trig[0])}(20일 이동평균선) 위로 올라왔는데 아직 확인 전이에요. 종가가 이 위에서 끝나는 걸 보고 사세요.`:`버틸 종목이에요. 다만 아직 흐름이 아래쪽이라 떨어질 때 따라 사지 말고, 종가가 ${wonP(trig[0])}(${basis(trig[1],trig[0],px)}) 위에서 끝나는 걸 확인하고 사세요.${a&&a>trig[0]?" 그 가격도 내 평단보다 아래라 사면 평단은 낮아져요.":""}`;
       P.push(["pgb","올라서면",trig[0],trig[1]+" — 이 위로 끝나면 하락이 멈추고 돌아선 신호"]);
       P.push(["pk","버팀 가격",s1[0],s1[1]]);
       if(r1[0]>trig[0]*1.03) P.push(["pr","일부 챙길 가격",r1[0],r1[1]]);
@@ -1368,7 +1384,7 @@ function diagCard(r){
       else if(tier==="wait"||tier==="hold") act="수익 중이라 급할 거 없어요. 일부 챙길 가격에서 일부 챙기고, 나머지는 들고 가세요.";
       else if(tier==="move") act=`수익 중일 때 줄이는 게 제일 좋아요. 지금 일부 줄이고, 반등해서 ${wonP(r1[0])}에 오면 나머지를 줄이세요.`;
     } else if(pl<=-3){
-      if(tier==="buy"&&pl<=-25) act=`많이 물려 계시죠. 한 번에 평단을 맞추려고 크게 사면 더 위험해요. 정해둔 금액만 나눠서 담으세요.`;
+      if(tier==="buy"&&pl<=-25){ const tg=P.find(x=>x[0]==="pgb"); act=tg?`많이 물려 계시죠. 지금 따라 사지 마세요. 종가가 ${wonP(tg[2])} 위에서 끝나는 걸 보고, 정해둔 금액만 나눠서 담으세요.`:`많이 물려 계시죠. 한 번에 평단을 맞추려고 크게 사면 더 위험해요. 정해둔 금액만 나눠서 담으세요.`; }
       else if(tier==="move") act=`평단까지 돌아가려면 +${need.toFixed(0)}%가 필요해요. 평단 올 때까지 기다리지 마세요. 반등해서 ${wonP(r1[0])}에 오면 절반, ${wonP(r2[0])}에 오면 나머지를 줄이고, 그 돈으로 버틸 종목의 평단을 낮추는 게 회복이 더 빨라요.`;
       else if(tier==="wait"||tier==="hold") act+=` 평단까지는 +${need.toFixed(0)}% 남았어요.`;
     }
@@ -1399,40 +1415,45 @@ ${showP?`<div class="dsk">가격별로 이렇게 하세요</div><div class="dpt"
   return rows.map(([c2,lb,p,w,buyNow])=>{
     const d=(p/px-1)*100, dt=c2==="pnow"?"":`지금보다 ${d>0?"+":""}${d.toFixed(Math.abs(d)<1?1:0)}%`;
     let name=lb, act="", cls=c2;
+    const pa_=x=>lossy&&a>p?` (평단 ${wonP(x)}으로)`:"";
+    const loss=()=>a&&p<a?` (손실 ${((p/a-1)*100).toFixed(0)}%로 줄어요)`:"";
+    let buy=false;
     if(c2==="pnow"){
       name="▶ 지금";
-      if(hot) act="사지 말고 기다리기 — 최근 너무 빨리 올랐어요";
-      else if(buyNow&&tier==="buy"){ if(lossy){cum=(cum*n+p)/(n+1);n++;} act=pl!=null&&pl>=3?"들고 가기":`조금 사기${lossy?` → 평단 ${wonP(cum)}`:""}`; }
-      else act=tier==="move"?(pl!=null&&pl>=3?"수익 중 — 지금 일부 줄이기":"더 사지 말기 — 반등 오면 줄이기"):tier==="buy"?(pl!=null&&pl>=3?"들고 가기":rows.some(x=>x[0]==="pgb")?"들고 기다리기 — 올라서는 거 확인하고 사기":"기다리기 — 눌리면 사기"):"들고 기다리기";
-      if(pl!=null) act+=` · 내 평단보다 ${Math.abs(pl).toFixed(0)}% ${pl<0?"아래":"위"}`;
+      if(hot) act="추가 매수 보류 — 단기간에 너무 올랐어요";
+      else if(buyNow&&tier==="buy"){ if(pl!=null&&pl>=3) act="보유 유지"; else { buy=true; if(lossy){cum=(cum*n+p)/(n+1);n++;} act=`1차 분할 매수${lossy?` (평단 ${wonP(cum)}으로)`:""}`; } }
+      else act=tier==="move"?(pl!=null&&pl>=3?"수익 구간 — 지금 일부 매도":"추가 매수 금지 — 반등 때 비중 축소"):tier==="buy"?(pl!=null&&pl>=3?"보유 유지":rows.some(x=>x[0]==="pgb")?(G.fresh?"보유 유지 — 종가 확인 전까지 추가 매수 보류":"보유 유지 — 위 가격 넘기 전까지 추가 매수 보류"):"보유 유지 — 눌릴 때 추가 매수"):"보유 유지";
     } else if(c2==="pa"){
-      name="내 평단"; act=a>px?"본전 — 여기 넘으면 수익":"이미 이 위라 수익 중"; 
+      name="내 평단"; act=a>px?"여기까지 오면 본전, 넘으면 수익":"이미 이 위라 수익 구간";
     } else if(c2==="pr"){
-      if(tier==="move"){ name="반등 오면"; act=`비중 줄이기${a&&p<a?` → 손실 ${((p/a-1)*100).toFixed(0)}%로 줄어요`:""}`; }
-      else if(a&&p<a){ name="반등 자리"; cls="pn"; act="팔지 말고 들고 가기 — 한 번 막힐 수 있는 자리"; }
-      else { name="오르면"; act="일부 챙기기"; }
+      if(tier==="move"){ name="반등 오면"; act=`비중 축소${loss()}`; }
+      else if(a&&p<a){ name="1차 저항"; cls="pn"; act="오르다 한 번 막힐 수 있는 가격 — 팔 자리는 아니에요"; }
+      else { name="오르면"; act="일부 차익 실현"; }
     } else if(c2==="pr1"||c2==="pr2"){
       name=c2==="pr1"?"1차 줄이기":"2차 줄이기"; cls="pr";
-      act=(pl!=null&&pl>=3)?(c2==="pr1"?"나머지 줄이기":"남은 게 있으면 정리"):(c2==="pr1"?"비중 절반 줄이기":"나머지 줄이기")+(a&&p<a?` · 평단 안 와도 줄이기 (손실 ${((p/a-1)*100).toFixed(0)}%로 줄어요)`:"");
+      act=(pl!=null&&pl>=3)?(c2==="pr1"?"남은 물량 매도":"남은 게 있으면 정리"):(c2==="pr1"?"보유량 절반 매도":"남은 물량 매도")+(a&&p<a?` — 평단 전이라도${loss()}`:"");
     } else if(c2==="pk2"){
-      name="더 약해지는 가격"; if(pl!=null&&pl>=3){cls="pr";act="이 밑으로 끝나면 남은 것도 줄이기 — 수익 지키기";} else {cls="pn"; act="이 밑으로 끝나도 바닥에서 던지지 말고, 다음 반등 때 줄이기";}
+      name="더 약해지는 가격"; if(pl!=null&&pl>=3){cls="pr";act="종가가 이 밑이면 남은 물량도 매도 — 수익 지키기";} else {cls="pn"; act="종가가 이 밑이어도 바로 팔지 말고, 다음 반등 때 축소";}
     } else if(c2==="pgb"){
-      name="올라서면"; cls="pb"; if(lossy&&a>p){cum=(cum*n+p)/(n+1);n++;} act=`이 위로 장이 끝나면 사기${lossy&&a>p?` → 평단 ${wonP(cum)}`:""}`;
+      name=p<=px?"지금 이 위":"올라서면"; cls="pb"; buy=true; if(lossy&&a>p){cum=(cum*n+p)/(n+1);n++;}
+      act=`${p<=px?"오늘 종가가 이 위면 추가 매수":"종가가 이 위면 추가 매수"}${lossy&&a>p?` (평단 ${wonP(cum)}으로)`:""}`;
     } else if(c2==="pk"){
-      name="버팀 가격"; cls="pn"; act="이 밑으로 끝나면 사지 말고 더 기다리기";
+      name="버팀 가격"; cls="pn"; act="종가가 이 밑이면 추가 매수 보류 — 하락이 더 이어질 수 있어요";
     } else if(c2==="pg"){
-      name=lb.includes("지금")?"지금":"확인 가격"; act=lb.includes("지금")?"조금 사기":tier==="hold"?"이 위로 끝나면 다시 힘이 붙는 신호":"이 위로 장이 끝나면 사기 시작";
-      if(!lb.includes("지금")&&tier!=="hold"&&lossy&&a>p){cum=(cum*n+p)/(n+1);n++;act+=` → 평단 ${wonP(cum)}`;}
+      if(lb.includes("지금")){ name="지금"; act="1차 분할 매수"; buy=true; }
+      else if(tier==="hold"){ name="확인 가격"; act="종가가 이 위면 회복 신호"; }
+      else { name="확인 가격"; buy=true; act="종가가 이 위면 분할 매수 시작"; if(lossy&&a>p){cum=(cum*n+p)/(n+1);n++;act+=` (평단 ${wonP(cum)}으로)`;} }
     } else if(c2==="pb"){
-      if(lb==="수익 지키는 선"){ name="여기 깨지면"; act="이 밑으로 끝나면 일부 챙기기"; cls="pr"; }
-      else if(tier==="move"){ name="여기 깨지면"; act="더 약해져요 — 그 전에 더 사지 말기"; cls="pn"; }
-      else if(tier==="hold"){ name="버팀 가격"; act="이 가격은 지켜야 해요"; cls="pn"; }
-      else if(pl!=null&&pl>=3){ name="눌리면"; act="더 담고 싶으면 여기서"; }
-      else { name="내려오면"; if(lossy){cum=(cum*n+p)/(n+1);n++;} act=`조금 더 사기${lossy?` → 평단 ${wonP(cum)}`:""}`; }
+      if(lb==="수익 지키는 선"){ name="여기 깨지면"; act="종가가 이 밑이면 일부 차익 실현 — 수익 지키기"; cls="pr"; }
+      else if(tier==="move"){ name="여기 깨지면"; act="하락이 더 이어지는 가격 — 추가 매수 금지"; cls="pn"; }
+      else if(tier==="hold"){ name="버팀 가격"; act="이 가격을 지켜야 흐름이 살아 있어요"; cls="pn"; }
+      else if(pl!=null&&pl>=3){ name="눌리면"; act="추가 매수하려면 이 가격에서"; }
+      else { name="내려오면"; buy=true; if(lossy){cum=(cum*n+p)/(n+1);n++;} act=`분할 매수${lossy?` (평단 ${wonP(cum)}으로)`:""}`; }
     }
-    if(a&&p>=a&&/사기/.test(act)&&!/사지/.test(act)&&!/더 담고 싶으면/.test(act)){ act=/이 위로/.test(act)?"이 위로 끝나면 들고 가기 — 평단보다 위라 더 사면 평단이 올라가요":"더 사지 말기 — 평단보다 위예요"; cls="pn"; }
-    return `<div class="dpr ${cls}"><div class="dl1"><span class="dln">${name}</span><b>${wonP(p)}</b><em>${dt}</em></div><div class="dl2">→ ${act}</div></div>`;
-  }).join("");})()}</div><div class="dna">'평단'은 지금 가진 수량만큼 한 번 더 산다고 했을 때 바뀌는 평단이에요</div>
+    const why=c2==="pa"?"":c2==="pnow"?(buyNow&&w?basis(w,p,px):st.k):basis(w,p,px);
+    if(a&&p>=a&&buy){ act=c2==="pgb"||c2==="pg"?"종가가 이 위면 보유 유지 — 평단보다 위라 더 사면 평단이 올라가요":"추가 매수 보류 — 평단보다 위예요"; cls="pn"; }
+    return `<div class="dpr ${cls}"><div class="dl1"><span class="dln">${name}${why?`<small>${why}</small>`:""}</span><b>${wonP(p)}</b><em>${dt}</em></div><div class="dl2">→ ${act}</div></div>`;
+  }).join("");})()}</div><div class="dna">괄호 속 평단은 지금 가진 수량만큼 한 번 더 산다고 쳤을 때예요 · 종가는 장 마감 가격 · 가격은 매일 다시 계산돼요</div>
 <div class="dnote">자동 계산한 참고 가격 · 사라·팔라는 권유가 아니에요 · ${D.updated} 기준</div>`:`<div class="dnote">${noPlan||"지금은 기준 가격을 정하기 어려워서"} 참고 가격은 보여드리지 않아요</div>`}
 <details class="dwhy"><summary>왜 이렇게 봤나요?</summary>
 <p>${st.d}</p>
