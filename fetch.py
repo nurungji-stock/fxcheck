@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """외국인·기관 매매동향 수집 → data.json  (GitHub Actions에서 자동 실행)"""
 import json, re, io, sys, time, datetime, concurrent.futures as cf
-import requests, pandas as pd
+import requests, pandas as pd, os
+import sr
 
 HDR = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
        "Accept": "application/json, text/html, */*", "Accept-Language": "ko-KR,ko;q=0.9"}
@@ -35,6 +36,19 @@ def naver_codes():
             if not found: break
             for c, n in found: codes[norm(n)] = (c, n.strip(), "코스피" if sosok == 0 else "코스닥")
             time.sleep(0.2)
+    return codes
+
+def naver_m_codes():
+    codes = {}
+    for m, label in (("KOSPI", "코스피"), ("KOSDAQ", "코스닥")):
+        for p in range(1, 60):
+            r = S.get(f"https://m.stock.naver.com/api/stocks/marketValue/{m}?page={p}&pageSize=100", timeout=15)
+            st = (r.json() or {}).get("stocks", []) if r.status_code == 200 else []
+            if not st: break
+            for s in st:
+                if s.get("stockEndType") == "stock":
+                    codes[norm(s["stockName"])] = (s["itemCode"], s["stockName"].strip(), label)
+            time.sleep(0.1)
     return codes
 
 def daum_search(name):
@@ -143,8 +157,9 @@ def _pick(it, *cands):
 
 def candles_daum(code, n=130):
     """일봉 과거→최신: dict(d, o, h, l, c, v)"""
-    sym = code if not code.isdigit() else "A" + code
+    sym = "A" + code if len(code) == 6 else code
     h = {"Referer": f"https://finance.daum.net/quotes/{sym}"}
+    best = []
     for url in (f"https://finance.daum.net/api/charts/{sym}/days?limit={n}&adjusted=true",
                 f"https://finance.daum.net/api/quote/{sym}/days?symbolCode={sym}&page=1&perPage={n}&pagination=true"):
         try:
@@ -159,11 +174,16 @@ def candles_daum(code, n=130):
                 d = str(it.get("date") or it.get("candleTime") or it.get("tradeDate") or "")[:10]
                 c = _pick(it, "tradePrice", "closePrice", "close")
                 if not d or not c: continue
+                chg = _pick(it, "changePrice") or 0
+                sgn = str(it.get("change") or "").upper()
+                pc = c - chg if sgn.startswith("RISE") or sgn.startswith("UPPER") else c + chg if sgn.startswith("FALL") or sgn.startswith("LOWER") else c
                 rows.append(dict(d=d, c=c, o=_pick(it, "openingPrice", "openPrice", "open") or c,
                                  h=_pick(it, "highPrice", "high") or c, l=_pick(it, "lowPrice", "low") or c,
-                                 v=_pick(it, "candleAccTradeVolume", "accTradeVolume", "tradeVolume", "volume")))
-            if len(rows) < 40: continue
+                                 v=_pick(it, "candleAccTradeVolume", "accTradeVolume", "tradeVolume", "volume"), pc=pc))
             rows.sort(key=lambda x: x["d"])
+            if len(rows) < 40:          # 신규상장 등 짧은 이력 — 다른 주소도 보고 더 긴 쪽을 씀
+                if len(rows) > len(best): best = rows
+                continue
             # 장 시작 전엔 오늘 봉이 거래량 0으로 미리 생김 → 버림 (장중엔 거래량이 있으니 그대로 씀)
             while rows and rows[-1]["v"] <= 0: rows.pop()
             if not CANDLE_DEBUG[0]:
@@ -173,8 +193,20 @@ def candles_daum(code, n=130):
             return rows
         except Exception:
             continue
+    if best:
+        while best and best[-1]["v"] <= 0: best.pop()
+        return best or None
     return None
 CANDLE_DEBUG = [False]
+
+# 차트용 일봉 파일 — 하루 한 번(장 마감 뒤) 또는 수동 실행 때만 만들어 charts 브랜치로 올림
+_kst0 = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
+CHARTS = os.environ.get("CHARTS") == "1" or (_kst0.weekday() < 5 and (15, 40) <= (_kst0.hour, _kst0.minute) < (17, 0))
+def write_chart(code, cd):
+    os.makedirs("charts_out/c", exist_ok=True)
+    seg = cd[-130:]
+    rows = [[int(x["d"].replace("-", "")), x["o"], x["h"], x["l"], x["c"], int(x.get("v") or 0)] for x in seg]
+    json.dump(rows, open(f"charts_out/c/{code}.json", "w"), separators=(",", ":"))
 
 def ind_info(cd, idx=None):
     """세부 지표: [ma5,ma20,ma60,ma120(현재가 대비 %), 배열(1정/-1역/0), 6개월고점, 고점대비%, 6개월저점, 저점대비%,
@@ -669,11 +701,19 @@ def main():
     try: cache = json.load(open("codes.json", encoding="utf-8"))
     except Exception: cache = {}
     codes = {}
-    for name, fn in (("krx", krx_codes), ("naver", naver_codes)):
+    for name, fn in (("krx", krx_codes), ("naver_m", naver_m_codes), ("naver", naver_codes)):
         try:
             c = fn(); print(f"{name} codes: {len(c)}")
             if len(c) >= 1000: codes = c; break
         except Exception as e: print(f"{name} codes 실패: {e}")
+    # 오늘 상장한 종목이 KRX 목록에 아직 없을 수 있어 네이버 목록으로 한 번 더 채움
+    try:
+        if codes:
+            extra = naver_m_codes(); have = {v[0] for v in codes.values()}; added = 0
+            for k, v in extra.items():
+                if v[0] not in have: codes[k] = v; added += 1
+            print("신규·누락 종목 추가:", added)
+    except Exception as e: print("네이버 보충 실패:", e)
     if not codes: print("전체 목록 실패 → 캐시/다음 검색으로 개별 조회")
 
     # 데이터 소스 결정
@@ -722,10 +762,27 @@ def main():
         err = ""
         for i in range(3):
             try:
-                rows = source(code)
-                mi = bi = si = ii = ti = None
+                try: rows = source(code)
+                except Exception as e0: rows = []; src_err = e0
+                if not rows:
+                    # 신규상장 첫날 등 수급표가 아직 없으면 일봉으로 표를 채움 (수급 칸은 '집계 전')
+                    c0 = candles_daum(code, 250) or []
+                    if not c0: raise RuntimeError(f"수급·일봉 없음 {locals().get('src_err','')}")
+                    rows = [dict(d=x["d"].replace("-", "."), close=x["c"], rate=(x["c"] / x["pc"] - 1) * 100 if x.get("pc") else 0.0,
+                                 inst=None, frgn=None, hold=0.0) for x in reversed(c0[-20:])]
+                mi = bi = si = ii = ti = lv = ipo = tday = None
                 try:
-                    cd = candles_daum(code)
+                    cdl = candles_daum(code, 250) or []
+                    # 지지·저항 (신규상장은 공모가·상장 첫날 기준)
+                    try:
+                        if cdl:
+                            if len(cdl) < 245: ipo = [cdl[0]["pc"], cdl[0]["d"]]
+                            lv = sr.encode(sr.find_levels(cdl, ipo=ipo[0] if ipo else None))
+                            x = cdl[-1]; tday = [x["d"], x["o"], x["h"], x["l"], x["c"], x["v"]]
+                            if CHARTS: write_chart(code, cdl)
+                    except Exception as e:
+                        print("level err", code, e)
+                    cd = cdl[-130:] if len(cdl) >= 40 else None
                     if cd:
                         # 투자자별 집계가 아직 안 올라온 날은 종가만 먼저 표에 넣고 수급 칸은 '집계 전'
                         cdd = cd[-1]["d"].replace("-", ".")
@@ -746,7 +803,7 @@ def main():
                     print("candle err", code, e)
                 j = judge(rows)
                 sec = SECN.get(norm(name)) or SECN.get(norm(disp)) or ""
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, **j)
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, lv=lv, ipo=ipo, tday=tday, **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
@@ -768,7 +825,7 @@ def main():
     ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo")] for r in ok]
     import collections as _c
     print("STATE", _c.Counter((r.get("state") or [None])[0] for r in ok))
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
