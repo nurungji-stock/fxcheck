@@ -15,7 +15,19 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install requests pandas lxml html5lib beautifulsoup4
+      # 수동 실행(Run workflow)이면 차트 파일도 같이 만듦. 평일 15:40~17:00(KST)에는 자동으로 만듦.
       - run: python fetch.py
+        env:
+          CHARTS: ${{ github.event_name == 'workflow_dispatch' && '1' || '0' }}
       - run: |
           git config user.name bot && git config user.email bot@users.noreply.github.com
           git add data.json codes.json history.json earnings.json && (git commit -m "update $(date -u +%H:%M)" && git push) || echo "no change"
+      # 차트 일봉은 기록이 쌓이지 않게 charts 브랜치에 덮어쓰기
+      - name: push charts
+        if: ${{ hashFiles('charts_out/c/*.json') != '' }}
+        run: |
+          cd charts_out
+          git init -q -b charts
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add -A && git commit -qm "charts $(date -u +%F)"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" charts
