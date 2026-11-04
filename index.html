@@ -397,12 +397,51 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 .xln.r{border-left-color:var(--red)}.xln.s{border-left-color:var(--blue)}.xln.n{border-left-color:#c9971c;background:#fff7d6;color:#1b1b1b}.xln.a{border-left-color:var(--fg)}.xln.i{border-left-color:#16a34a}
 .xgd{display:inline-block;font-size:11px;font-weight:800;padding:1px 6px;border-radius:6px;margin-left:6px;vertical-align:2px}.xg2{background:var(--fg);color:var(--card)}.xg1{background:#9ca3af;color:#fff}.xg0{background:var(--line);color:var(--muted)}
 .xnote{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:8px}
+
+/* 미국 중간선거 실시간 · 자세히 보기 */
+.live{border:2px solid #2F6BD8;padding:16px 16px 12px}
+.lvt{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800}
+.lvt .dot{width:9px;height:9px;border-radius:50%;background:#D93A2B;animation:lvp 1.4s infinite}
+@keyframes lvp{50%{opacity:.25}}
+.lvt small{margin-left:auto;font-size:12px;font-weight:500;color:var(--muted)}
+.lvk{font-size:12.5px;color:var(--muted);margin:4px 0 10px}
+.lvk i{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin:0 4px 0 6px}
+.lvc{padding:10px 0;border-top:1px solid var(--line)}
+.lvh{display:flex;align-items:baseline;justify-content:space-between}
+.lvh b{font-size:16px}.lvh span{font-size:12.5px;color:var(--muted)}
+.lvn{display:flex;align-items:center;justify-content:space-between;margin:6px 0 6px}
+.lvn div{text-align:center}.lvn small{display:block;font-size:12px;color:var(--muted);font-weight:600}
+.lvn .d b{color:#2F6BD8;font-size:30px;font-weight:800;line-height:1.1}
+.lvn .r b{color:#D93A2B;font-size:30px;font-weight:800;line-height:1.1}
+.lvn .mid{font-size:13px;color:var(--muted);font-weight:600}.lvn .mid b{color:var(--fg)}
+.lvn .mid em{font-style:normal;font-weight:800;color:var(--fg);font-size:14px}
+.lvb{position:relative;display:flex;height:16px;border-radius:8px;overflow:hidden;background:var(--line)}
+.lvb i{display:block;height:100%}.lvb i.d{background:#2F6BD8}.lvb i.r{background:#D93A2B}.lvb i.o{background:#8a8a8a}.lvb i.u{background:transparent}
+.lvb .half{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--fg);opacity:.75}
+.lvs{font-size:13px;margin-top:7px;text-align:center}.lvs b{font-weight:800}
+.lvf{font-size:12px;color:var(--muted);margin-top:8px;text-align:center}
+.more{margin-top:10px}
+.more>summary{list-style:none;cursor:pointer;text-align:center;font-size:13.5px;font-weight:700;padding:9px;border-radius:10px;background:var(--bg);color:var(--fg)}
+.more>summary::-webkit-details-marker{display:none}.more>summary::marker{content:""}.more>summary{display:block}
+.more>summary::before{content:none!important;display:none!important}.more>summary::after{content:" ▾"}.more[open]>summary::after{content:" ▴"}
+.more[open]>summary{margin-bottom:10px}
+.lvr{display:grid;grid-template-columns:118px 1fr 84px;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.lvr:last-child{border-bottom:0}
+.lvr .lvsn{font-weight:700;white-space:nowrap}
+.lvr .lvpb{display:block;height:8px;border-radius:4px;background:var(--line);overflow:hidden}.lvr .lvpb i{display:block;height:100%;background:var(--muted)}
+.lvr .lvpt{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.lvr .lvld{text-align:right;font-weight:700;white-space:nowrap}.lvr .lvld.d{color:#2F6BD8}.lvr .lvld.r{color:#D93A2B}
+.lvr .lvld small{display:block;font-weight:600;font-size:11px;color:var(--muted)}
+.lvm{font-size:13.5px;line-height:1.7;padding:10px 12px;border-radius:10px;background:var(--bg);margin-top:10px}
+.oneline{font-size:14px;line-height:1.7;margin-top:10px}
+.oneline b{font-weight:800}
 </style>
 </head>
 <body>
 <div class="wrap">
 <h1>종목 진단</h1>
 <p class="sub" id="upd">불러오는 중…</p>
+<div class="card live" id="live" style="display:none"></div>
 
 <div class="note" id="todaynote" style="display:none" onclick="this.classList.toggle('open')"></div>
 
@@ -424,7 +463,7 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 <div id="earnwrap" style="display:none"><div class="sec" id="earnT">실적 발표</div>
 <div class="card" id="earn"></div></div>
 
-<div class="sec">오늘 시장</div>
+<div class="sec">오늘 시장 한눈에</div>
 <div class="card" id="today" style="display:none"></div>
 
 <div class="sec">다가오는 일정</div>
@@ -454,7 +493,7 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 
 </div></details>
 <details class="acc fold" id="macroWrap"><summary>유가 · 미국 금리 <small>실시간</small></summary><div class="in"><div id="macro"></div></div></details>
-<details class="acc fold"><summary>미국 중간선거 <small>확률</small></summary><div class="in"><div id="elecwrap"><div class="sec eh2" style="margin-top:0;display:none">미국 중간선거<button class="link" id="elecTog"></button></div>
+<details class="acc fold"><summary>선거 결과별 시나리오 <small>업종 영향</small></summary><div class="in"><div id="elecwrap"><div class="sec eh2" style="margin-top:0;display:none">미국 중간선거<button class="link" id="elecTog"></button></div>
 <div class="card" id="elec"></div></div></div></details>
 
 
@@ -523,9 +562,9 @@ function renderNext(){
   const sub=NEXT_SUB||`${ns.getUTCMonth()+1}/${ns.getUTCDate()}(${wdn}) 장 시작 전`;
   const tc={"오늘 밤":"t3","주말":"t1","매일":"t4","다음 주":"t2","이번 주":"t2"};
   const row=([t,h,w,s])=>`<div class="nx2"><span class="tag ${tc[t]||"t4"}">${t}</span><div><b>${"★".repeat(s)} ${h}</b><div class="meta">${w}</div></div></div>`;
-  const top=items.slice(0,4), rest=items.slice(4);
+  const top=items.slice(0,1), rest=items.slice(1);
   E.innerHTML=`<div class="mh"><b>${title}</b><span class="meta">${sub}</span></div>`+top.map(row).join("")+
-   (rest.length?`<details class="sub2"><summary>${rest.length}개 더 보기 ▾</summary>${rest.map(row).join("")}</details>`:"");
+   (rest.length?`<details class="more"><summary>${rest.length}개 더 보기</summary>${rest.map(row).join("")}</details>`:"");
   E.style.display="block";
 }
 const MACRO=[["us10y","미국 10년물 금리","PYTH:US10Y","%"],["wti","WTI 유가","TVC:USOIL","$"],["brent","브렌트 유가","TVC:UKOIL","$"]];
@@ -1029,10 +1068,10 @@ function renderEarn(){
   const dl=day?`${+day.slice(5,7)}/${+day.slice(8,10)}`:"";
   const tabs=[["mine","내 종목"],["today",`${dl} 발표`],["good","▲ 좋음"],["bad","▼ 조심"],["all","전체"]];
   E.innerHTML=`<div class="esum"><div class="eg" data-k="good"><small>▲ 좋음</small><b>${sets.good.length}</b></div><div class="en_" data-k="mid"><small>● 괜찮음</small><b>${sets.mid.length}</b></div><div class="er_" data-k="bad"><small>▼ 조심</small><b>${sets.bad.length}</b></div></div>
-<div class="efl">${tabs.map(([k,l])=>`<button data-k="${k}" class="${k===eFilt?"on":""}">${l} ${sets[k].length}</button>`).join("")}</div>
+<details class="more"${eFilt?" open":""}><summary>자세히 보기</summary><div class="efl">${tabs.map(([k,l])=>`<button data-k="${k}" class="${k===eFilt?"on":""}">${l} ${sets[k].length}</button>`).join("")}</div>
 ${!eFilt?`<div class="ehint">위 버튼을 누르면 종목이 펼쳐져요</div>`:`<div class="elist">${L.length?L.slice(0,eShow).map(x=>earnCard(x.e)).join(""):`<div class="empty" style="padding:14px 0">${eFilt==="mine"?"내 종목 중 아직 실적을 발표한 종목이 없어요":"해당하는 종목이 없어요"}</div>`}</div><button class="efold">접기 ▴</button>`}
 ${L.length>eShow?`<button class="emore">${L.length-eShow}개 더 보기 ▾</button>`:""}
-<div class="meta" style="margin-top:8px">좋음·조심은 본업(영업이익)이 증권사 예상보다 잘 나왔는지로 판정 · 칸 색은 항목별 예상 대비 · 종목을 누르면 자세히</div>`;
+<div class="meta" style="margin-top:8px">좋음·조심은 본업(영업이익)이 증권사 예상보다 잘 나왔는지로 판정 · 칸 색은 항목별 예상 대비 · 종목을 누르면 자세히</div></details>`;
   E.querySelectorAll(".efl button,.esum div[data-k]").forEach(b=>b.onclick=()=>{eFilt=eFilt===b.dataset.k?null:b.dataset.k; eShow=8; renderEarn();});
   const fo=E.querySelector(".efold"); if(fo) fo.onclick=()=>{eFilt=null; renderEarn(); document.getElementById("earnwrap").scrollIntoView({behavior:"smooth",block:"start"});};
   const m=E.querySelector(".emore"); if(m) m.onclick=()=>{eShow+=20; renderEarn();};
@@ -1051,12 +1090,15 @@ function renderToday(){
   const big=D.rows.map(r=>[r,tr(r)]).filter(([r,v])=>v!=null&&v>=15&&!(r.bot&&r.bot[8]!=null&&r.bot[8]<5)).sort((a,b)=>b[1]-a[1]);
   const cnt={sv1:0,sv2:0,sv3:0,sv0:0}; D.rows.forEach(r=>{cnt[simple(r).c]++;}); const tot=cnt.sv1+cnt.sv2+cnt.sv3, p=n=>Math.round(n/tot*100);
   T.style.display="block";
+  const top1=up[0];
   T.innerHTML=`${idx?`<div class="idx">${idx}</div>`:""}
+<div class="oneline">${top1?`제일 많이 오른 업종 <b class="${top1.avg>0?"up":"dn"}">${top1.k} ${top1.avg>0?"+":""}${top1.avg.toFixed(1)}%</b>`:""}${big.length?` · 15% 넘게 오른 종목 <b class="up">${big.length}개</b>`:""}</div>
+<details class="more"><summary>자세히 보기</summary>
 <div class="th">오늘 오른 업종 <span class="meta" style="font-weight:400">업종 평균 · 많이 오른 종목</span></div>${up.map(srow).join("")}
 ${dn.length?`<div class="th">약했던 업종</div>${dn.map(srow).join("")}`:""}
 ${big.length?`<div class="th">15% 넘게 오른 종목 <b class="up">${big.length}개</b></div><div class="hot">${big.slice(0,10).map(([r,v])=>`<button data-n="${r.name}">${r.name}<b>+${v.toFixed(0)}%</b></button>`).join("")}</div>`:""}
 <details class="sub2" style="margin-top:12px"><summary>전 종목 판정 비율 ▾</summary>${distBar(cnt)}<div class="bd"><div><small>들고 가세요</small><b class="t-sv1">${p(cnt.sv1)}%</b></div><div><small>지켜보세요</small><b class="t-sv2">${p(cnt.sv2)}%</b></div><div><small>반등 때 정리</small><b class="t-sv3">${p(cnt.sv3)}%</b></div></div></details>
-<div class="meta" style="margin-top:8px">${D.updated} 기준 · 장중에는 갱신될 때마다 바뀝니다</div>`;
+<div class="meta" style="margin-top:8px">${D.updated} 기준 · 장중에는 갱신될 때마다 바뀝니다</div></details>`;
   T.querySelectorAll(".hot button").forEach(b=>b.onclick=()=>{const r=D.rows.find(x=>x.name===b.dataset.n); if(r){q.value=r.name;show(r);}});
 }
 function renderDday(){
@@ -1661,6 +1703,69 @@ q.addEventListener("input",()=>{
 });
 q.addEventListener("keydown",e=>{if(e.key==="Enter"){const f=S.querySelector("div[data-n]");if(f)f.click();}});
 document.addEventListener("click",e=>{if(!e.target.closest(".sbox"))S.style.display="none";});
+
+// ── 미국 중간선거 실시간 개표 (뉴욕타임스 · AP 집계, 브라우저가 직접 1~2분마다 받아옴) ──
+const LV_URL="https://static01.nyt.com/elections-assets/pages/data/2026-11-03/results-";
+const LV_END=Date.parse("2026-11-14T00:00:00+09:00");
+const ST_KO={AL:"앨라배마",AK:"알래스카",AZ:"애리조나",AR:"아칸소",CA:"캘리포니아",CO:"콜로라도",CT:"코네티컷",DE:"델라웨어",FL:"플로리다",GA:"조지아",HI:"하와이",ID:"아이다호",IL:"일리노이",IN:"인디애나",IA:"아이오와",KS:"캔자스",KY:"켄터키",LA:"루이지애나",ME:"메인",MD:"메릴랜드",MA:"매사추세츠",MI:"미시간",MN:"미네소타",MS:"미시시피",MO:"미주리",MT:"몬태나",NE:"네브래스카",NV:"네바다",NH:"뉴햄프셔",NJ:"뉴저지",NM:"뉴멕시코",NY:"뉴욕",NC:"노스캐롤라이나",ND:"노스다코타",OH:"오하이오",OK:"오클라호마",OR:"오리건",PA:"펜실베이니아",RI:"로드아일랜드",SC:"사우스캐롤라이나",SD:"사우스다코타",TN:"테네시",TX:"텍사스",UT:"유타",VT:"버몬트",VA:"버지니아",WA:"워싱턴",WV:"웨스트버지니아",WI:"위스콘신",WY:"와이오밍"};
+const LV={senate:null,house:null};
+function lvRace(r){
+  const u=(r.reporting_units&&r.reporting_units[0])||{}, cm=r.candidate_metadata||{};
+  const pty=id=>(((cm[id]||{}).party)||{}).nyt_id||"OTH";
+  const cs=(u.candidates||[]).map(c=>({id:c.nyt_id,v:(c.votes&&c.votes.total)||0,p:pty(c.nyt_id)})).sort((a,b)=>b.v-a.v);
+  const tot=cs.reduce((t,c)=>t+c.v,0), won=(r.outcome&&r.outcome.won)||[];
+  return {st:u.state_postal,eevp:u.eevp||0,lead:cs[0],tot,called:r.race_call_status==="called",win:won.length?pty(won[0]):null,flip:!!(r.outcome&&r.outcome.gained)};
+}
+function lvParse(d,off){
+  const pc=d.partyControlData.results[0].offices[off], pb=pc.party_balance, est={};
+  (pc.nyt_model_estimates||[]).forEach(x=>{est[x.nyt_party_id]=x.win_probability;});
+  return {total:pc.total,toWin:pc.to_win,dem:pb.DEM.seats,gop:pb.GOP.seats,oth:(pb.OTH||{}).seats||0,
+    called:pc.num_races_called,open:pc.open_seats,demWin:pb.DEM.winner,gopWin:pb.GOP.winner,prob:est,
+    upd:(d.resultsMeta||{}).resultsUpdatedAt,races:off==="S"?(d.races||[]).map(lvRace):null};
+}
+async function lvLoad(kind){
+  try{const r=await fetch(LV_URL+kind+".json"); if(!r.ok) return; const d=await r.json(); LV[kind]=lvParse(d,kind==="senate"?"S":"H"); renderLive();}catch(e){}
+}
+function lvBar(x,label){
+  const und=Math.max(0,x.total-x.dem-x.gop-x.oth), pc=n=>(n/x.total*100).toFixed(2)+"%";
+  const win=x.demWin?"민주당 과반 확정":x.gopWin?"공화당 과반 확정":"";
+  const nd=Math.max(0,x.toWin.DEM-x.dem), nr=Math.max(0,x.toWin.GOP-x.gop);
+  return `<div class="lvc"><div class="lvh"><b>${label}</b><span>${x.total>x.open?`전체 ${x.total}석 중 이번 선거 ${x.open}석`:`전체 ${x.total}석`} · 확정 ${x.called}곳</span></div>
+<div class="lvn"><div class="d"><small>민주당</small><b>${x.dem}</b></div><div class="mid">${win?`<em>${win}</em>`:`아직 모름<br><b>${und}석</b>`}</div><div class="r"><small>공화당</small><b>${x.gop}</b></div></div>
+<div class="lvb"><i class="d" style="width:${pc(x.dem)}"></i><i class="u" style="width:${pc(und)}"></i>${x.oth?`<i class="o" style="width:${pc(x.oth)}"></i>`:""}<i class="r" style="width:${pc(x.gop)}"></i><span class="half"></span></div>
+<div class="lvs">${win?"":`과반까지 민주당 <b style="color:#2F6BD8">${nd}석</b> · 공화당 <b style="color:#D93A2B">${nr}석</b> 남음`}</div></div>`;
+}
+function renderLive(){
+  const E=document.getElementById("live"); if(!E) return;
+  if(Date.now()>LV_END||(!LV.senate&&!LV.house)){E.style.display="none";return;}
+  const S=LV.senate, H=LV.house;
+  const t=[S&&S.upd,H&&H.upd].filter(Boolean).sort().pop(), k=t?new Date(Date.parse(t)+9*3600e3):null;
+  const tm=k?`${k.getUTCMonth()+1}/${k.getUTCDate()} ${String(k.getUTCHours()).padStart(2,"0")}:${String(k.getUTCMinutes()).padStart(2,"0")}`:"";
+  const done=S&&H&&(S.demWin||S.gopWin)&&(H.demWin||H.gopWin);
+  const allR=S&&S.races?S.races.slice().sort((a,b)=>(b.called-a.called)||(b.eevp-a.eevp)):[], races=allR.filter(x=>x.called||x.eevp>0), wait=allR.length-races.length;
+  const row=x=>{const L=x.called?x.win:(x.lead&&x.tot?x.lead.p:null), sh=x.lead&&x.tot?Math.round(x.lead.v/x.tot*100):null;
+    const nm=L==="DEM"?"민주":L==="GOP"?"공화":L?"무소속":"";
+    return `<div class="lvr"><span class="lvsn">${ST_KO[x.st]||x.st}</span><span><span class="lvpb"><i style="width:${Math.min(100,x.eevp)}%"></i></span><span class="lvpt">개표 ${Math.round(x.eevp)}%</span></span><span class="lvld ${L==="DEM"?"d":L==="GOP"?"r":""}">${x.called?`${nm} 확정${x.flip?" ⇄":""}`:L?`${nm} 앞섬`:"집계 전"}${!x.called&&sh!=null?`<small>${sh}%</small>`:x.flip?`<small>자리 뺏음</small>`:""}</span></div>`;};
+  const p=v=>v==null?"-":Math.round(v*100)+"%";
+  E.style.display="block";
+  E.innerHTML=`<div class="lvt">${done?"":`<span class="dot"></span>`}미국 중간선거 ${done?"결과":"실시간 개표"}<small>${tm} 기준</small></div>
+<div class="lvk"><i style="background:#2F6BD8"></i>민주당 <i style="background:#D93A2B"></i>공화당 <i style="background:var(--line)"></i>아직 모름 · 가운데 줄 = 과반</div>
+${S?lvBar(S,"상원"):""}${H?lvBar(H,"하원"):""}
+<details class="more"${E.dataset.open==="1"?" open":""}><summary>자세히 보기</summary>
+<div class="lvm"><b>우리 시장에 무슨 뜻?</b><br>민주당이 상원·하원을 <b>둘 다</b> 가져가면 → 데이터센터·AI 규제 걱정에 반도체가 흔들릴 수 있다는 시각이 많아요.<br>한쪽씩 나눠 가지면 → 큰 정책 변화가 어려워져서 시장은 오히려 안심하는 경우가 많아요.</div>
+${S||H?`<div class="lvm">뉴욕타임스 예측 모델 · 다수당 차지 확률<br>상원 민주당 <b>${p(S&&S.prob.DEM)}</b> · 하원 민주당 <b>${p(H&&H.prob.DEM)}</b></div>`:""}
+${races.length?`<div class="th" style="margin-top:12px">상원 주별 개표 <span class="meta" style="font-weight:400">⇄ = 상대 당 자리를 뺏음</span></div>${races.map(row).join("")}${wait?`<div class="meta" style="margin-top:6px">아직 집계 전 ${wait}곳</div>`:""}`:""}
+</details>
+<div class="lvf">자료: 뉴욕타임스 · AP 집계 · 화면을 켜두면 1~2분마다 자동으로 바뀝니다</div>`;
+  const dt=E.querySelector("details.more"); if(dt) dt.ontoggle=()=>{E.dataset.open=dt.open?"1":"0";};
+}
+function lvStart(){
+  if(Date.now()>LV_END) return;
+  lvLoad("senate"); lvLoad("house");
+  setInterval(()=>{if(document.visibilityState==="visible") lvLoad("senate");},60e3);
+  setInterval(()=>{if(document.visibilityState==="visible") lvLoad("house");},120e3);
+}
+lvStart();
 </script>
 </body>
 </html>
