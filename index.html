@@ -435,26 +435,6 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 .lvm{font-size:13.5px;line-height:1.7;padding:10px 12px;border-radius:10px;background:var(--bg);margin-top:10px}
 .oneline{font-size:14px;line-height:1.7;margin-top:10px}
 .oneline b{font-weight:800}
-
-.wla>summary{color:var(--blue)}
-.wla>summary small{color:var(--muted)}
-.wlh{font-size:16px;font-weight:800;margin:4px 0 8px}
-.wlh small{font-size:12px;font-weight:400;color:var(--muted);margin-left:4px}
-.wlwarn{background:var(--c2bg);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.55;margin-bottom:6px}
-.wlwarn b{color:var(--blue)}
-.wlp{border-top:1px solid var(--line);padding:10px 0}
-.wlp .nm{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.wlp .nm b{font-size:16px;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wlp .nm small{color:var(--muted);font-size:12px;white-space:nowrap}
-.wlch{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
-.wlch span{font-size:12px;border-radius:6px;padding:3px 7px;background:var(--bg);color:var(--fg)}
-.wlsec{font-weight:800;font-size:14.5px;margin:16px 0 4px}
-.wlsec small{font-weight:400;color:var(--muted);font-size:12px;margin-left:4px}
-.wlrow{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line);padding:9px 0;font-size:14.5px}
-.wlrow b{font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wlok{color:var(--red);font-weight:800;white-space:nowrap;font-size:13.5px}
-.wlno{color:var(--muted);white-space:nowrap;font-size:13.5px}
-.wlnote{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px}
 </style>
 </head>
 <body>
@@ -478,7 +458,6 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 </div>
 
 <div class="card" id="verdict" style="display:none"></div>
-<details class="acc fold wla" id="wlAcc" style="display:none" open><summary>👀 내일 관심 종목 <small id="wlSm">바닥 + 수급 + 추세</small></summary><div class="in" id="wl"></div></details>
 <details class="acc fold" id="mineAcc"><summary>내 종목 <small>계좌 전체 한눈에</small></summary><div class="in"><div class="card" id="mine"></div></div></details>
 
 <details class="acc fold" id="earnwrap" style="display:none"><summary id="earnT">실적 발표</summary><div class="in"><div class="card" id="earn"></div></div></details>
@@ -1782,31 +1761,6 @@ function lvStart(){
   setInterval(()=>{if(document.visibilityState==="visible") lvLoad("house");},120e3);
 }
 lvStart();
-
-// ── 내일 관심 종목 (picks.json, 매일 장 마감 후 자동) ──
-let WL=null;
-const wlMD=d=>{const [y,m,dd]=d.split("-");return `${+m}월 ${+dd}일`;};
-const wlWho=(f,i)=>f&&i?"외국인·기관":f?"외국인":i?"기관":"외국인·기관";
-function renderWL(){
-  const el=document.getElementById("wl"); if(!WL||!el) return;
-  const ds=Object.keys(WL.days).sort(); if(!ds.length) return;
-  document.getElementById("wlAcc").style.display="";
-  const d=ds[ds.length-1], ps=WL.days[d]||[], pd=ds.length>1?ds[ds.length-2]:null, pps=pd?WL.days[pd]||[]:[];
-  document.getElementById("wlSm").textContent=`${wlMD(d)} 장 마감 기준`;
-  const chk=pps.filter(p=>p.next), ok=chk.filter(p=>p.next.fr||p.next.ins);
-  el.innerHTML=`
-<div class="wlwarn">아직 <b>사는 자리가 아니에요.</b> 조건에 걸린 후보예요.<br>이 중 다음 날 <b>실제로 수급이 들어오는 종목</b>은 소통방에서 매수 타점과 함께 공유됩니다.</div>
-<div class="wlh">${wlMD(d)} 장 마감 · 관심 ${ps.length}종목</div>
-${ps.length?ps.map(p=>`<div class="wlp"><div class="nm"><b>${p.n}</b><small>${p.m?p.m+" · ":""}${Math.round(p.c).toLocaleString()}원</small></div>
-<div class="wlch"><span>바닥 다짐 · 고점 ${Math.round(p.dd*100)}%</span><span>5일 중 ${p.days}일 수급 유입</span>${p.fr||p.ins?`<span>${wlWho(p.fr,p.ins)} 순매수</span>`:""}<span>20일선 위</span></div></div>`).join("")
-:`<div class="wlrow" style="justify-content:center;color:var(--muted)">오늘은 조건에 맞는 종목이 없어요</div>`}
-${pd&&pps.length?`<div class="wlsec">어제 관심 종목, 오늘 수급 들어왔나<small>${wlMD(pd)} 관심 → ${chk.length?wlMD(chk[0].next.d):"확인 전"}</small></div>
-${pps.map(p=>`<div class="wlrow"><b>${p.n}</b>${!p.next?'<span class="wlno">확인 전</span>':(p.next.fr||p.next.ins)?`<span class="wlok">✓ ${wlWho(p.next.fr,p.next.ins)} 매수</span>`:'<span class="wlno">✗ 안 들어옴</span>'}</div>`).join("")}
-${ok.length?`<div class="wlnote" style="color:var(--fg)">✓ 종목의 매수 타점은 소통방에서 공유됩니다.</div>`:""}`:""}
-<div class="wlnote">조건: 고점보다 25% 넘게 빠졌다가 바닥을 다진 종목 중 20일선 위로 올라서고, 최근 5일 중 3일 이상 외국인·기관이 사들인 종목이에요. 당일 10% 넘게 급등한 종목은 뺐어요. 매일 장 마감 뒤 자동으로 골라요. 매수 추천이 아니에요. ${WL.upd} 갱신</div>`;
-}
-fetch("picks.json?t="+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d){WL=d; renderWL();}}).catch(()=>{});
-
 </script>
 </body>
 </html>
