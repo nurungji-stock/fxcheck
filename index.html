@@ -435,6 +435,29 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 .lvm{font-size:13.5px;line-height:1.7;padding:10px 12px;border-radius:10px;background:var(--bg);margin-top:10px}
 .oneline{font-size:14px;line-height:1.7;margin-top:10px}
 .oneline b{font-weight:800}
+
+.em{border:2px solid var(--blue);padding:16px 16px 12px}
+.emt{font-size:17px;font-weight:800;line-height:1.35}
+.ems{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5}
+.emlike{margin:12px 0 8px;background:var(--c2bg);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.5}
+.emlike b{font-size:15px}
+.emtab{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.emtab button{font:inherit;font-size:12.5px;line-height:1.3;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer;position:relative}
+.emtab button.on{border-color:var(--blue);background:var(--blue);color:#fff;font-weight:700}
+.emtab em{position:absolute;top:-8px;right:4px;font-style:normal;font-size:10.5px;font-weight:800;background:var(--red);color:#fff;border-radius:6px;padding:1px 5px}
+.emsum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.emsum div{border-radius:10px;padding:8px 4px;text-align:center;font-size:12px;line-height:1.35}
+.emsum b{display:block;font-size:20px;font-weight:900}
+.emg{background:var(--c3bg);color:var(--red)}.emn{background:var(--bg);color:var(--muted)}.emb{background:var(--c2bg);color:var(--blue)}
+.emr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.emr .l{min-width:0}
+.emr .l b{font-size:15.5px;font-weight:800;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.emr .l small{font-size:12.5px;color:var(--muted);line-height:1.45;display:block}
+.emv{flex:none;font-size:13px;font-weight:800;border-radius:8px;padding:5px 9px;white-space:nowrap}
+.emadd{display:flex;gap:6px;margin-top:10px}
+.emadd input{flex:1;min-width:0;font:inherit;font-size:15px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.emadd button{font:inherit;font-weight:800;font-size:15px;padding:0 16px;border:0;border-radius:10px;background:var(--blue);color:#fff;cursor:pointer}
+.emnote{font-size:12px;color:var(--muted);line-height:1.6;margin-top:10px}
 </style>
 </head>
 <body>
@@ -442,6 +465,7 @@ i.now{background:var(--fg)}i.m120{background:#A86B00}i.avgm{background:#7b3fe4}
 <h1>종목 진단</h1>
 <p class="sub" id="upd">불러오는 중…</p>
 <div class="card live" id="live" style="display:none"></div>
+<div class="card em" id="em"></div>
 
 <div class="note" id="todaynote" style="display:none" onclick="this.classList.toggle('open')"></div>
 
@@ -628,7 +652,7 @@ function loadElec(){
   const S={house:"which-party-will-win-the-house-in-2026",senate:"which-party-will-win-the-senate-in-2026"};
   Promise.all(Object.entries(S).map(([k,slug])=>fetch("https://gamma-api.polymarket.com/events?slug="+slug).then(r=>r.json()).then(d=>{
     const m=d[0].markets.find(x=>(x.groupItemTitle||"").startsWith("Democratic")&&x.outcomePrices);return [k,parseFloat(JSON.parse(m.outcomePrices)[0])*100];})))
-  .then(a=>{const o=Object.fromEntries(a);if(o.house>=0&&o.senate>=0){elecOdds=o;renderElec();}}).catch(()=>{});
+  .then(a=>{const o=Object.fromEntries(a);if(o.house>=0&&o.senate>=0){elecOdds=o;renderElec(); if(typeof renderEM==="function") renderEM();}}).catch(()=>{});
 }
 const HIDE_TOP=0;                       // 상위 몇 종목을 가릴지
 const HOOK_LINK="https://docs.google.com/forms/d/e/1FAIpQLSfwjeWhSGrFjBdtnWSijc4xu_PPPzxVUcUr9-h21Sgx8L8k7w/viewform";   // 안내 링크
@@ -666,6 +690,7 @@ function init(){
   { const mw=document.getElementById("macroWrap"); let done=false; if(mw) mw.addEventListener("toggle",()=>{if(mw.open&&!done){done=true;renderMacro();}}); }
   renderElec();
   renderMine();
+  if(typeof renderEM==="function") renderEM();
   renderToday();
   renderEarn();
   renderDday();
@@ -865,7 +890,7 @@ function simple(r){
 // ── 내 종목(이 브라우저에만 저장) ──
 const MINE_KEY="nurungji_mine";
 function getMine(){try{return JSON.parse(localStorage.getItem(MINE_KEY)||"[]")}catch(e){return []}}
-function setMine(a){try{localStorage.setItem(MINE_KEY,JSON.stringify(a.slice(0,15)))}catch(e){} renderMine(); if(D&&D.earn) renderEarn();}
+function setMine(a){try{localStorage.setItem(MINE_KEY,JSON.stringify(a.slice(0,15)))}catch(e){} renderMine(); if(typeof renderEM==="function") renderEM(); if(D&&D.earn) renderEarn();}
 function isMine(n){return getMine().includes(n)}
 function toggleMine(n){const a=getMine();setMine(a.includes(n)?a.filter(x=>x!==n):[...a,n]);}
 function findRow(t){const k=norm(t);if(!k)return null;return D.rows.find(r=>norm(r.name)===k)||D.rows.find(r=>norm(r.name).startsWith(k))||D.rows.find(r=>norm(r.name).includes(k))||D.rows.find(r=>r.code===t.trim());}
@@ -1761,6 +1786,64 @@ function lvStart(){
   setInterval(()=>{if(document.visibilityState==="visible") lvLoad("house");},120e3);
 }
 lvStart();
+
+// ── 선거 결과, 내 종목은? (내 종목 + 업종별 선거 영향) ──
+const EM_K=["semi","batt","solar","ship","def","power","gas","chem","bio","tariff"];
+const EM_RAW={0:"0006600009900017J00031600052900059300059350062000076600119300155E0024850025560029460030530031980032580033160033170033640036200036540036710036810036930039030039440041520042700045100045300052860052900053610054450054620054940058470059090059120061970064290064520064760066310067310071280074600077360077500078350079370080220080520080580082270083310083450084370086390087600089030089790089890089970092070092220092870093520093640094170094360095340095610097800098120101160101400101490102120102710105330110990112290114810117670119830122640131290131970136660140070142210144960146320147760149010160980166090169670170920171010172670179880183300195870200470200710212710217190217500219130226590227950232140232680234030240810241770241790252990253590254490264660272110281820303030306620311320317330319660322310323350330860348210348350355150356860357780365590382800388210394280396270396470399720402340402490403870405100412350413300417500417840418420420770424980425040425420429270432720440110445090445180451220452160452430464500482630486510489500490470950250",1:"0011T00018200022300056800064000064050070X0009470012340014910014915033790036010036830037030042110042370043260043590058610066970079810079960082920083930091580101670107600126730137400148930217820222080224060232530240600243840247540257370259630267320273640278280288620302430313760348370361610365340373220377330378340382480382840382900393890393970412540413390416180417200432470450080452190452200452400458650469750",2:"0015M000509000983000983501800003887004320004449004612006090008365009591009807009922010009010013010084010197011261011553012672013615013795018006022476027052028272032200033626033626K33626L379390389260457550475150",3:"0008Z0009540010140014940017960038010042660054180054540065570071970073010075580077970082740085310092460096350099410101000101930103230108380217590267250329180333430359410439260443060460930",4:"0015G0005870010820012450032820047810064350065450067390079550095270099320214430215090221840266690272210274090288180289930318660327260347700361390417030434190448710451760462350474170474610478340484590484870488900",5:"000500001440006260006340006345006910007610010120015760015860017040017510024840033100038460051600052690062040103590107640119850125020126340130660147830178320189860199820208850217320229640237750260870267260294630298040388050453450475430479960",6:"0001A000044000242000348000469000612000612501095001095501270001453001536001671001739001794001867002406003459003473003473K036460053050065420078930078935096770096775117580126880128820267290",7:"0000700002100002150007600010F000134000155000157000210000236000281000284000296000308000324000365000367000372000378000383000400000409000443000484000507000542000569000595000665000684000689000759000769000777000837001006001064001117001150001178001178501179001261001300001419001444001468001483001786001789002345002390002407002500002586002741002758003350003664003667004204004506004552004883005076005163005191005191506643006926008342008652009197009223009337009787010124010136010226010366010448010483010759011557012011012011512024012160012521012660013438013641016100016328016356017735017892018779019670021791022026022198022242023854024766025137026828028174028513028513K285800286750294140298000298050318000332290352940357550456040457190900290",8:"0000200001000001050002200002250002270002300002500005200006400007J00009K00010600010650010670013600015400016300022100023900026200026300027200028000030000030600030900031200032200035200038500043100047200052500052570055000062800066200073700073900074600075700075750082N00084900089300092900093000094200110000110400126Z00127900145700149500156T0016580017180018620018680019170019175023910032300033270034940036220036480038070038290039200039860041910041960044960046210047920048530049960053030053950054050054670058820060590061250063160064550065660066700066830067080067290067370068270068330068760069620072020074430078140078160080720082800083790084110084650084990086040086060086450086820086890086900087010092040095700096530096760102460102940106190109820109960114450115180115450118000127120128940131030131220140610141080142760145020153710154030166480170900174900176750179530182400183490185490185750187420187660191420195940196170196300199730199800200230200670200780203400204840205470206640206650207940214390215380215570215600216400217730217950220100222110222670223250226950234080234690235980236340237690238120241820243070244460245620246250246710251120260660261780263050266470271980278650284620287840288330291650293480296160298060298380299170299660302440304360307750308080308430309710310210311690314130314140317450317690321550322970323990326030330350331920334970335810338840340450347740347850348080352770354200354390358570359090365270372320373110378800382150383930388610388870389030389470397030424870432980445680446440456070456160456190460470461030464280464490468530471820475830475960476040476060476830493280494120900120950130950160950200950210950220950260",9:"0000400000500002400002700003000004300009500010700013800013900014200014600014650015300015N00015S000162000207000217000235000235500245000270000279000279500279K0028800029200032000033500035700036100036200040600041000041050044900047000048300048350053200053800053850053870053890057100057200057250058000058500060600066600073400075300077000078600079800086000092700093200094500096800099000099700101000105800106900107700110800112100113000113200113300114200117P00122000122050122800123300128600133100135200135700137200138700139900141000144700149900157500160900164500167400173700182500182900185000187000188800191800195400197700200000204000212400216500218200230000230E0023800023810024120024720024740024830024890024900024910024940024950025440025530025540025620026040027050031430031510032080032940033250033310033340033530035150036530036620037070038110038880039830040610041020041650041930042600043370044340047400047770048410048430050120051900051905052260053060053270053700060980064960065060065350065500066130066590066910067570067990069640071850072470073240075180078520078590079980080470080530081660083550083660084680084870085910086710087260088290088390088790089470090080090150090430090435092200092730092780093050093240093380093510097780098660100250101330104040105550105630109670110790111110111380111770113810114630114840116100118990121440122350122690123040123330123410123690123700123750125490126560126640128540130500130740137940140660143210145170145210146060151860159580159910161390161890168330170030175250192400192820194370198940200880204020204320206950208860212560214260214330214420215360215480217480219550225590226320226340227420227610234100237880241590241690241710250030252500256150260930263020265560265740267790270210270660271940278470282620284740290120296520298540306040308100308170310870312610317860317870318160331740335870336680337930342870344860351020352090352480352700353590354320365900366030376180378850381970383220406820407400419050420570424960437730439090448900451250453860462310463480472850478560481070483650487580489460900070900100900110900140900270900300900310950140"};
+const EM_IND={}; Object.entries(EM_RAW).forEach(([i,str])=>{for(let k=0;k<str.length;k+=6) EM_IND[str.substr(k,6)]=EM_K[+i];});
+const EM_NAME={"한화솔루션":"solar","OCI홀딩스":"solar","씨에스윈드":"solar"};
+const EM_SEC={"반도체":"semi","유리기판":"semi","MLCC":"semi","소부장":"semi","2차전지":"batt","ESS":"batt","조선":"ship","방산":"def","우주":"def",
+  "전력":"power","원전":"power","정유":"gas","바이오":"bio","제약":"bio","전염병":"bio","자동차":"tariff","화장품":"tariff"};
+// 시나리오별 영향 [1 유리 / 0 영향 적음 / -1 흔들릴 수 있음, 한 줄 이유] — 선거 시나리오 칸(ELEC_SC)과 같은 방향
+const EM_B={
+ semi:{n:"반도체",dd:[1,"양당 모두 반도체 지원"],dr:[1,"양당 모두 반도체 지원"],rr:[1,"AI 규제 완화 · 관세는 변수"]},
+ batt:{n:"2차전지·ESS",dd:[1,"IRA 보조금 축소에 제동"],dr:[0,"하원이 보조금 축소 일부 방어"],rr:[-1,"IRA 보조금 축소 빨라짐"]},
+ solar:{n:"태양광·풍력",dd:[1,"친환경 예산 방어"],dr:[0,"법이 잘 안 바뀜 · 지금 그대로"],rr:[-1,"친환경 지원 축소"]},
+ ship:{n:"조선",dd:[1,"미국 조선업 재건은 양당 공통"],dr:[1,"미국 조선업 재건은 양당 공통"],rr:[1,"미국 조선업 재건 계속"]},
+ def:{n:"방산·우주",dd:[-1,"국방예산 늘리기 어려워짐"],dr:[1,"상원 공화가 국방예산 방어"],rr:[1,"국방예산 확대 계속"]},
+ power:{n:"원전·전력설비",dd:[0,"방향 그대로 · AI 전력 수요"],dr:[1,"양당 모두 원전 확대"],rr:[1,"에너지 규제 완화"]},
+ gas:{n:"LNG·가스·정유",dd:[0,"큰 변화 없음"],dr:[0,"큰 변화 없음"],rr:[1,"화석연료 수출 확대"]},
+ chem:{n:"석유화학",dd:[-1,"환경 규제 강해질 수 있음"],dr:[0,"큰 변화 없음"],rr:[0,"큰 변화 없음"]},
+ bio:{n:"바이오·제약",dd:[1,"약가 인하 → 복제약 수요"],dr:[-1,"약가 인하 압박"],rr:[0,"큰 변화 없음"]},
+ tariff:{n:"자동차·소비재",dd:[0,"관세 완화 기대 · 영향 제한적"],dr:[-1,"관세 그대로 유지"],rr:[-1,"관세 그대로 유지"]}};
+const EM_SCN={dd:"민주당 상·하원",dr:"하원 민주 · 상원 공화",rr:"공화당 상·하원"};
+let emSel=null;
+function emBucket(r){
+  if(EM_NAME[r.name]) return EM_NAME[r.name];
+  if(r.sec&&EM_SEC[r.sec]) return EM_SEC[r.sec];
+  if(EM_IND[r.code]) return EM_IND[r.code];
+  if(r.sec==="화학") return "chem";
+  return null;
+}
+function renderEM(){
+  const E=document.getElementById("em"); if(!E||!D) return;
+  const o=elecOdds||(D&&D.elec)||ELEC_FALLBACK, like=elecKey(o); if(!emSel) emSel=like;
+  const rows=getMine().map(n=>D.rows.find(r=>r.name===n)).filter(Boolean);
+  const it=rows.map(r=>{const b=emBucket(r);const v=b?EM_B[b][emSel]:[0,"선거 영향 적음 · 시장 흐름 따라감"];return {r,b,v};});
+  const c={g:0,n:0,b:0}; it.forEach(x=>{x.v[0]>0?c.g++:x.v[0]<0?c.b++:c.n++;});
+  const lab=v=>v>0?["emg","▲ 유리"]:v<0?["emb","▼ 흔들릴 수 있음"]:["emn","영향 적음"];
+  E.innerHTML=`<div class="emt">🗳 선거 결과, 내 종목은 괜찮을까?</div>
+<div class="ems">들고 있는 종목을 다 넣으면 선거 결과별로 유리한지, 흔들릴 수 있는지 한 번에 보여드려요.</div>
+<div class="emlike">지금 유력한 결과 <b>${EM_SCN[like]}</b><br><small style="color:var(--muted)">해외 예측시장 실시간 확률 기준 · 1분마다 갱신</small></div>
+<div class="emtab">${Object.entries(EM_SCN).map(([k,t])=>`<button data-k="${k}" class="${k===emSel?"on":""}">${t.replace(" · ","<br>")}${k===like?"<em>유력</em>":""}</button>`).join("")}</div>
+${rows.length?`<div class="emsum"><div class="emg"><b>${c.g}</b>유리</div><div class="emn"><b>${c.n}</b>영향 적음</div><div class="emb"><b>${c.b}</b>흔들릴 수 있음</div></div>
+${it.sort((a,b)=>b.v[0]-a.v[0]).map(({r,b,v})=>{const [cl,t]=lab(v[0]);return `<div class="emr" data-n="${r.name}"><div class="l"><b>${r.name}</b><small>${b?EM_B[b].n+" · ":""}${v[1]}</small></div><span class="emv ${cl}">${t}</span></div>`;}).join("")}`
+:`<div class="emlike" style="background:var(--bg);text-align:center">아직 넣은 종목이 없어요. 아래에 들고 있는 종목을 전부 넣어보세요.</div>`}
+<div class="emadd"><input id="emIn" placeholder="예: 삼성전자, 에코프로, 한화에어로" autocomplete="off"><button id="emBtn">넣기</button></div>
+<div class="ems" id="emMsg" style="min-height:1em"></div>
+<div class="emnote">"흔들릴 수 있음"은 선거 결과 때문에 업종이 잠깐 흔들릴 수 있다는 뜻이지, 팔라는 뜻이 아니에요. 종목을 누르면 지금 상태 진단이 나와요. 정책 방향을 바탕으로 정리한 참고용이고 매수·매도 추천이 아니에요. 넣은 종목은 "내 종목"에도 같이 담겨요 (이 기기에만 저장).</div>`;
+  E.querySelectorAll(".emtab button").forEach(b=>b.onclick=()=>{emSel=b.dataset.k;renderEM();});
+  E.querySelectorAll(".emr").forEach(e=>e.onclick=()=>{const r=D.rows.find(x=>x.name===e.dataset.n); if(r){show(r); document.getElementById("verdict").scrollIntoView({behavior:"smooth"});}});
+  const add=()=>{const v=document.getElementById("emIn").value;const parts=v.split(/[,，\n/]+|\s{2,}/).map(x=>x.trim()).filter(Boolean);
+    const ok=[],bad=[];parts.forEach(p=>{const r=findRow(p);r?ok.push(r.name):bad.push(p);});
+    const cur=getMine(); const next=[...cur,...ok.filter(n=>!cur.includes(n))];
+    setMine(next); renderEM();
+    const m=document.getElementById("emMsg");
+    if(m) m.textContent=(ok.length?`${ok.length}개 넣었어요. `:"")+(bad.length?`못 찾은 종목: ${bad.join(", ")}`:"")+(next.length>15?" (최대 15개까지 저장돼요)":"");};
+  document.getElementById("emBtn").onclick=add;
+  document.getElementById("emIn").onkeydown=e=>{if(e.key==="Enter")add();};
+}
+
 </script>
 </body>
 </html>
