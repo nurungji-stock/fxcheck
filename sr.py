@@ -257,5 +257,27 @@ def encode(levels):
                 w.append("F" + x.split(" ")[1].replace("%", ""))
             else:
                 w.append(CODE.get(x, x))
-        out.append([o["p"], 1 if o["up"] else 0, {"강": 2, "중": 1, "약": 0}[o["grade"]], w])
+        out.append([o["p"], 1 if o["up"] else 0, {"강": 2, "중": 1, "약": 0}[o["grade"]], w, o.get("rec")])
     return out
+
+
+def track(cd, levels):
+    """각 가격대의 최근 기록: 닿은 횟수, 반응 횟수(닿고 5거래일 안에 하루 평균 움직임만큼 되돌림)
+    지지는 반등, 저항은 막힘. 마지막 5거래일은 결과가 안 나와서 뺌."""
+    if not cd or not levels: return
+    atr = _atr(cd); px = cd[-1]["c"]; tol = max(atr * 0.5, px * 0.01); end = len(cd) - 5
+    for o in levels:
+        p, up = o["p"], o["up"]; n = k = 0; j = 0
+        while j < end:
+            x = cd[j]
+            if (not up and x["l"] <= p + tol and x["h"] > p - tol * 3) or (up and x["h"] >= p - tol and x["l"] < p + tol * 3):
+                res = None; t = j
+                for t in range(j, min(j + 6, len(cd))):
+                    c = cd[t]["c"]
+                    if (not up and c < p - tol) or (up and c > p + tol): res = "b"; break
+                    if (not up and c >= p + atr) or (up and c <= p - atr): res = "o"; break
+                n += 1; k += res == "o"; j = t + 1
+                while j < end and ((not up and cd[j]["l"] <= p + tol) or (up and cd[j]["h"] >= p - tol)): j += 1
+            else:
+                j += 1
+        o["rec"] = [n, k]
