@@ -724,6 +724,7 @@ def main():
     if _kst.weekday() < 5 and (_kst.hour, _kst.minute) >= (15, 40):
         KRX_TODAY = krx_investor_today(_kst.strftime("%Y%m%d"))
     KRX_DATE = _kst.strftime("%Y.%m.%d")
+    OPEN_NOW = _kst.weekday() < 5 and (9, 0) <= (_kst.hour, _kst.minute) < (15, 40)
 
     # 코드 캐시 (이전 실행 결과 재사용)
     try: cache = json.load(open("codes.json", encoding="utf-8"))
@@ -757,6 +758,7 @@ def main():
         try:
             ic = candles_daum(sym, 260)
             if ic:
+                if OPEN_NOW and ic and ic[-1]["d"].replace("-", "") == _kst.strftime("%Y%m%d"): ic = ic[:-1]   # 장중엔 전날 마감 기준
                 m = {r["d"].replace("-", "."): r["c"] for r in ic}; m["_last"] = ic[-1]["c"]; IDX[label] = m
                 print("index proxy", label, sym, len(ic))
         except Exception as e: print("index err", label, e)
@@ -798,7 +800,8 @@ def main():
                     if not c0: raise RuntimeError(f"수급·일봉 없음 {locals().get('src_err','')}")
                     rows = [dict(d=x["d"].replace("-", "."), close=x["c"], rate=(x["c"] / x["pc"] - 1) * 100 if x.get("pc") else 0.0,
                                  inst=None, frgn=None, hold=0.0) for x in reversed(c0[-20:])]
-                mi = bi = si = ii = ti = lv = ipo = tday = rec = None
+                mi = bi = si = ii = ti = lv = ipo = tday = rec = bot0 = None
+                cdc = []
                 try:
                     rec = None
                     cdl = candles_daum(code, 250) or []
@@ -806,13 +809,14 @@ def main():
                     try:
                         if cdl:
                             if len(cdl) < 245: ipo = [cdl[0]["pc"], cdl[0]["d"]]
-                            _lv = sr.find_levels(cdl, ipo=ipo[0] if ipo else None); sr.track(cdl, _lv); lv = sr.encode(_lv)
+                            cdc = cdl[:-1] if (OPEN_NOW and len(cdl) > 60 and cdl[-1]["d"].replace("-", "") == _kst.strftime("%Y%m%d")) else cdl; _lv = sr.find_levels(cdc, ipo=ipo[0] if ipo else None); sr.track(cdc, _lv); lv = sr.encode(_lv)
                             x = cdl[-1]; tday = [x["d"], x["o"], x["h"], x["l"], x["c"], x["v"]]
                             if CHARTS: write_chart(code, cdl)
                     except Exception as e:
                         print("level err", code, e)
                     cd = cdl[-130:] if len(cdl) >= 40 else None
-                    rec = rec_info(cdl, IDX.get(mkt)) if cdl else None
+                    rec = rec_info(cdc if cdl else cdl, IDX.get(mkt)) if cdl else None
+                    bot0 = bottom_info(cdc[-130:], [x for x in rows if x["d"] != KRX_DATE]) if (cdl and cdc is not cdl and len(cdc) >= 40) else None
                     if cd:
                         # 투자자별 집계가 아직 안 올라온 날은 종가만 먼저 표에 넣고 수급 칸은 '집계 전'
                         cdd = cd[-1]["d"].replace("-", ".")
@@ -833,7 +837,7 @@ def main():
                     print("candle err", code, e)
                 j = judge(rows)
                 sec = SECN.get(norm(name)) or SECN.get(norm(disp)) or ""
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, lv=lv, ipo=ipo, tday=tday, rec=rec, **j)
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, lv=lv, ipo=ipo, tday=tday, rec=rec, bot0=bot0, **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
@@ -855,7 +859,7 @@ def main():
     ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0")] for r in ok]
     import collections as _c
     print("STATE", _c.Counter((r.get("state") or [None])[0] for r in ok))
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
