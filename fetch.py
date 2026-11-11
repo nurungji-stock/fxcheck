@@ -775,6 +775,35 @@ def main():
                 CRASH[label] = [ks[i], round((c1 / c0 - 1) * 100, 2)]; break
     print("CRASH", CRASH)
 
+    # ───────── 회사 체력: 연간 영업이익(네이버) — 일주일에 한 번만 새로 받음 (fin.json 캐시) ─────────
+    try: FIN = json.load(open("fin.json", encoding="utf-8"))
+    except Exception: FIN = {}
+    FIN_TODAY = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    def _fnum(v):
+        try: return float(str(v).replace(",", ""))
+        except Exception: return None
+    def fund(code):
+        """[등급, 작년 영업이익(억), 올해 예상 영업이익(억)] · 등급 2=흑자+이익 증가(전망), 1=흑자, 0=적자"""
+        c = FIN.get(code)
+        if not c or (datetime.datetime.strptime(FIN_TODAY, "%Y-%m-%d") - datetime.datetime.strptime(c.get("t", "2000-01-01"), "%Y-%m-%d")).days >= 7:
+            try:
+                j = S.get(f"https://m.stock.naver.com/api/stock/{code}/finance/annual", timeout=15).json()["financeInfo"]
+                T = j["trTitleList"]; R = {r["title"]: r["columns"] for r in j["rowList"]}; op = R.get("영업이익", {})
+                g = lambda k: _fnum((op.get(k) or {}).get("value"))
+                act = [g(t["key"]) for t in T if t.get("isConsensus") == "N"]
+                est = [g(t["key"]) for t in T if t.get("isConsensus") == "Y"]
+                c = dict(t=FIN_TODAY, op=act[-2:], ope=est[0] if est else None); FIN[code] = c
+            except Exception:
+                if not c: return None
+        A = c["op"][-1] if c.get("op") else None
+        P = c["op"][0] if len(c.get("op") or []) > 1 else None
+        E = c.get("ope")
+        if A is None: return None
+        if A < 0 and (E is None or E < 0): q = 0
+        elif A > 0 and ((E is not None and E >= A) or (E is None and P is not None and P > 0 and A >= P)): q = 2
+        else: q = 1
+        return [q, A, E]
+
     def resolve(name):
         k = norm(ALIAS.get(name, name))
         if k in codes: return codes[k]
@@ -812,7 +841,7 @@ def main():
                     if not c0: raise RuntimeError(f"수급·일봉 없음 {locals().get('src_err','')}")
                     rows = [dict(d=x["d"].replace("-", "."), close=x["c"], rate=(x["c"] / x["pc"] - 1) * 100 if x.get("pc") else 0.0,
                                  inst=None, frgn=None, hold=0.0) for x in reversed(c0[-20:])]
-                mi = bi = si = ii = ti = lv = ipo = tday = rec = bot0 = botc = None
+                mi = bi = si = ii = ti = lv = ipo = tday = rec = bot0 = botc = fu = None
                 cdc = []
                 try:
                     rec = None
@@ -837,6 +866,20 @@ def main():
                             if ci is not None and ci >= 40:
                                 botc = bottom_info(cdl[:ci + 1][-130:], [x for x in rows if x["d"] <= cr[0]])
                     except Exception as e: print("botc err", code, e)
+                    fu = None
+                    try:
+                        f0 = fund(code)
+                        rel = None
+                        cr = CRASH.get(mkt); im = IDX.get(mkt) or {}
+                        if cr and cdl:
+                            ci = next((i for i in range(len(cdl) - 1, -1, -1) if cdl[i]["d"].replace("-", ".") == cr[0]), None)
+                            if ci is not None and ci >= 200:
+                                i0 = max(0, ci - 249)
+                                k0, k1 = cdl[i0]["d"].replace("-", "."), cdl[ci]["d"].replace("-", ".")
+                                if im.get(k0) and im.get(k1) and cdl[i0]["c"]:
+                                    rel = round((cdl[ci]["c"] / cdl[i0]["c"]) / (im[k1] / im[k0]) - 1, 3)
+                        if f0: fu = [f0[0], rel, f0[1], f0[2]]
+                    except Exception as e: print("fund err", code, e)
                     if cd:
                         # 투자자별 집계가 아직 안 올라온 날은 종가만 먼저 표에 넣고 수급 칸은 '집계 전'
                         cdd = cd[-1]["d"].replace("-", ".")
@@ -857,7 +900,7 @@ def main():
                     print("candle err", code, e)
                 j = judge(rows)
                 sec = SECN.get(norm(name)) or SECN.get(norm(disp)) or ""
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, lv=lv, ipo=ipo, tday=tday, rec=rec, bot0=bot0, botc=botc, **j)
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, lv=lv, ipo=ipo, tday=tday, rec=rec, bot0=bot0, botc=botc, fu=fu, **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
@@ -879,7 +922,7 @@ def main():
     ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0"), r.get("botc")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0"), r.get("botc"), r.get("fu")] for r in ok]
     import collections as _c
     print("STATE", _c.Counter((r.get("state") or [None])[0] for r in ok))
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
@@ -917,6 +960,8 @@ def main():
         if len(ks) >= 2 and m[ks[-2]]:
             mktchg[lb] = [ks[-1], round((m[ks[-1]] / m[ks[-2]] - 1) * 100, 2)]
             mkth[lb] = [[ks[i], round((m[ks[i]] / m[ks[i-1]] - 1) * 100, 2)] for i in range(max(1, len(ks) - 8), len(ks))]   # 최근 지수 일별 등락 (반등장 성적표용)
+    try: json.dump(FIN, open("fin.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    except Exception as e: print("fin save err", e)
     data = dict(mkt=mktchg, mkth=mkth, crash=CRASH, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
                 gauge=gauge, earn=earnings_scan(ok, kst), elec=elec_odds(), macro=macro_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
