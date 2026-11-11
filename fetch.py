@@ -709,7 +709,8 @@ def rec_info(cdl, idx):
         ral = 0.0
         for t in range(len(cl) - 1):
             if cl[t]: ral = max(ral, max(cl[t + 1:t + 41]) / cl[t] - 1)
-        return [n, k, med, round(ral * 100)]
+        lw = [x.get("l") or x["c"] for x in cdl[-20:]]; lo20 = min(lw); age = len(lw) - 1 - max(i for i, v in enumerate(lw) if v == lo20)
+        return [n, k, med, round(ral * 100), age, round(lo20)]   # 4 최근 20일 저점이 며칠 전인지, 5 그 저점
     except Exception:
         return None
 
@@ -763,6 +764,17 @@ def main():
                 print("index proxy", label, sym, len(ic))
         except Exception as e: print("index err", label, e)
 
+    # 가장 최근 지수 폭락일(하루 -2.5% 이하 & 20일선 대비 97 미만) — 하락장 판정은 이 날 기준으로 고정
+    CRASH = {}
+    for label, m in IDX.items():
+        ks = sorted(k for k in m if k != "_last")
+        for i in range(len(ks) - 1, max(20, len(ks) - 30), -1):
+            c0, c1 = m[ks[i - 1]], m[ks[i]]
+            ma20 = sum(m[k] for k in ks[i - 19:i + 1]) / 20
+            if c0 and c1 / c0 - 1 <= -0.025 and c1 / ma20 * 100 < 97:
+                CRASH[label] = [ks[i], round((c1 / c0 - 1) * 100, 2)]; break
+    print("CRASH", CRASH)
+
     def resolve(name):
         k = norm(ALIAS.get(name, name))
         if k in codes: return codes[k]
@@ -800,7 +812,7 @@ def main():
                     if not c0: raise RuntimeError(f"수급·일봉 없음 {locals().get('src_err','')}")
                     rows = [dict(d=x["d"].replace("-", "."), close=x["c"], rate=(x["c"] / x["pc"] - 1) * 100 if x.get("pc") else 0.0,
                                  inst=None, frgn=None, hold=0.0) for x in reversed(c0[-20:])]
-                mi = bi = si = ii = ti = lv = ipo = tday = rec = bot0 = None
+                mi = bi = si = ii = ti = lv = ipo = tday = rec = bot0 = botc = None
                 cdc = []
                 try:
                     rec = None
@@ -817,6 +829,14 @@ def main():
                     cd = cdl[-130:] if len(cdl) >= 40 else None
                     rec = rec_info(cdc if cdl else cdl, IDX.get(mkt)) if cdl else None
                     bot0 = bottom_info(cdc[-130:], [x for x in rows if x["d"] != KRX_DATE]) if (cdl and cdc is not cdl and len(cdc) >= 40) else None
+                    botc = None
+                    try:
+                        cr = CRASH.get(mkt)
+                        if cr and cdl:
+                            ci = next((i for i in range(len(cdl) - 1, -1, -1) if cdl[i]["d"].replace("-", ".") == cr[0]), None)
+                            if ci is not None and ci >= 40:
+                                botc = bottom_info(cdl[:ci + 1][-130:], [x for x in rows if x["d"] <= cr[0]])
+                    except Exception as e: print("botc err", code, e)
                     if cd:
                         # 투자자별 집계가 아직 안 올라온 날은 종가만 먼저 표에 넣고 수급 칸은 '집계 전'
                         cdd = cd[-1]["d"].replace("-", ".")
@@ -837,7 +857,7 @@ def main():
                     print("candle err", code, e)
                 j = judge(rows)
                 sec = SECN.get(norm(name)) or SECN.get(norm(disp)) or ""
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, lv=lv, ipo=ipo, tday=tday, rec=rec, bot0=bot0, **j)
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, lv=lv, ipo=ipo, tday=tday, rec=rec, bot0=bot0, botc=botc, **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
@@ -859,7 +879,7 @@ def main():
     ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0"), r.get("botc")] for r in ok]
     import collections as _c
     print("STATE", _c.Counter((r.get("state") or [None])[0] for r in ok))
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
@@ -897,7 +917,7 @@ def main():
         if len(ks) >= 2 and m[ks[-2]]:
             mktchg[lb] = [ks[-1], round((m[ks[-1]] / m[ks[-2]] - 1) * 100, 2)]
             mkth[lb] = [[ks[i], round((m[ks[i]] / m[ks[i-1]] - 1) * 100, 2)] for i in range(max(1, len(ks) - 8), len(ks))]   # 최근 지수 일별 등락 (반등장 성적표용)
-    data = dict(mkt=mktchg, mkth=mkth, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
+    data = dict(mkt=mktchg, mkth=mkth, crash=CRASH, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
                 gauge=gauge, earn=earnings_scan(ok, kst), elec=elec_odds(), macro=macro_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]])
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
