@@ -30,7 +30,7 @@ jobs:
           SITE_PASS: ${{ secrets.SITE_PASS }}
       - run: |
           git config user.name bot && git config user.email bot@users.noreply.github.com
-          git add data.json codes.json history.json earnings.json stocks.json sectors.json && (git commit -m "update $(date -u +%H:%M)" && git push) || echo "no change"
+          git add data.json codes.json history.json earnings.json stocks.json sectors.json fin.json && (git commit -m "update $(date -u +%H:%M)" && git push) || echo "no change"
       # 차트 일봉은 기록이 쌓이지 않게 charts 브랜치에 덮어쓰기
       - name: push charts
         if: ${{ hashFiles('charts_out/c/*.json') != '' }}
