@@ -38,6 +38,11 @@ def naver_codes():
             time.sleep(0.2)
     return codes
 
+CAPS = {}   # 종목코드 → [시가총액(억원), 현재가, 거래정지코드] (네이버 시가총액 목록에서 같이 받아옴, 상장폐지 기준 확인용)
+def _num(x):
+    try: return int(str(x).replace(",", "").strip())
+    except Exception: return None
+
 def naver_m_codes():
     codes = {}
     for m, label in (("KOSPI", "코스피"), ("KOSDAQ", "코스닥")):
@@ -48,6 +53,8 @@ def naver_m_codes():
             for s in st:
                 if s.get("stockEndType") == "stock":
                     codes[norm(s["stockName"])] = (s["itemCode"], s["stockName"].strip(), label)
+                    try: CAPS[s["itemCode"]] = [_num(s.get("marketValue")), _num(s.get("closePrice")), str((s.get("tradeStopType") or {}).get("code") or "")]
+                    except Exception: pass
             time.sleep(0.1)
     return codes
 
@@ -916,13 +923,18 @@ def main():
     ok = list(byc.values())
     print("ok", len(ok), "bad", len(bad), [(b["name"], b["err"]) for b in bad][:15])
 
+    if not CAPS:
+        try: naver_m_codes()
+        except Exception as e: print("시총 목록 실패:", e)
+    for r in ok: r["cap"] = CAPS.get(r["code"])
+    print("시총 채움", sum(1 for r in ok if r.get("cap")), "/", len(ok))
     for r in ok: cache[r["name"]] = [r["code"], r["name"], r["mkt"]]
     json.dump(cache, open("codes.json", "w", encoding="utf-8"), ensure_ascii=False)
 
     ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0"), r.get("botc"), r.get("fu")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0"), r.get("botc"), r.get("fu"), r.get("cap")] for r in ok]
     import collections as _c
     print("STATE", _c.Counter((r.get("state") or [None])[0] for r in ok))
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
