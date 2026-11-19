@@ -117,6 +117,119 @@ def trend_naver(code):
         page += 1
     return rows
 
+# ───────── 외국인은 지금 몇 단계? (빚 갚는 매도가 끝나는 3단계) ─────────
+#  -1 새로 팔기 시작 · 0 매도 이어지는 중 · 1 매도 줄어드는 중 · 2 매도 멈춤(팔았다 샀다) · 3 사는 쪽으로 돌아섬 · 4 계속 사는 중 · 9 외국인 거래 적음
+def fx_stage_amt(amt):
+    """amt: 최근→과거 순 하루 외국인 순매수 금액(억원). [단계, 최근5일 합, 이전 15일의 5일 평균, 최근5일 중 산 날, 연속일(+매수/-매도)]"""
+    amt = [a for a in amt if a is not None][:20]
+    if len(amt) < 10: return None
+    rec, prv = amt[:5], amt[5:20]
+    ar, ap = sum(rec) / len(rec), sum(prv) / len(prv)
+    buy5 = sum(1 for a in rec if a > 0)
+    sg = 1 if amt[0] > 0 else -1 if amt[0] < 0 else 0
+    stk = 0
+    for a in amt:
+        if sg and a != 0 and (a > 0) == (sg > 0): stk += 1
+        else: break
+    if abs(ar) * 5 < 1 and abs(ap) * 5 < 1: st = 9
+    elif ap < 0:
+        if ar > 0 and buy5 >= 3: st = 3
+        elif ar >= 0 or (buy5 >= 2 and abs(ar) <= abs(ap) * 0.5): st = 2
+        elif abs(ar) <= abs(ap) * 0.6: st = 1
+        else: st = 0
+    else:
+        if ar >= 0: st = 4
+        elif abs(ar) > max(abs(ap), 0.5): st = -1
+        else: st = 2
+    return [st, round(ar * 5, 1), round(ap * 5, 1), buy5, stk * sg]
+
+def fx_stage(rows):
+    xs = [r for r in rows if r.get("frgn") is not None and r.get("close")][:20]
+    if len(xs) < 10: return None
+    base = fx_stage_amt([r["frgn"] * r["close"] / 1e8 for r in xs])
+    if not base: return None
+    hs = [r.get("hold") for r in xs if r.get("hold")]
+    hn = hs[0] if hs else None
+    hc = round(hs[0] - hs[-1], 2) if len(hs) >= 2 else None
+    return base + [round(hn, 2) if hn else None, hc, len(xs)]
+
+# ───────── 공매도 몰린 종목 (거래소 · 로그인 필요: 비밀값 KRX_ID / KRX_PW) — 하루 한 번만 새로 받음 (short.json 캐시) ─────────
+def short_scan(ok, kst):
+    try: SH = json.load(open("short.json", encoding="utf-8"))
+    except Exception: SH = {}
+    today = kst.strftime("%Y-%m-%d")
+    old = True
+    try: old = (kst.date() - datetime.date.fromisoformat(SH.get("run", "2000-01-01"))).days >= 4
+    except Exception: pass
+    due = (not SH) or old or (SH.get("run") != today and kst.weekday() < 5 and (kst.hour, kst.minute) >= (17, 30))
+    if due and os.getenv("KRX_ID") and os.getenv("KRX_PW"):
+        try:
+            from pykrx import stock as kx
+            def back(fn, n=10):
+                for i in range(n):
+                    d = (kst - datetime.timedelta(days=i)).strftime("%Y%m%d")
+                    try:
+                        df = fn(d)
+                        if df is not None and len(df) > 0 and float(df.select_dtypes("number").abs().sum().sum()) > 0: return d, df
+                    except Exception as e: print("short back err", d, e)
+                return None, None
+            new = dict(run=today, per={}, bal={}, top={}, amt={}, mk={})
+            for M, lab in (("KOSPI", "코스피"), ("KOSDAQ", "코스닥")):
+                d, t50 = back(lambda d: kx.get_shorting_volume_top50(d, M))
+                if not d: print("short: 거래 데이터 없음", M); continue
+                new["d"] = f"{d[:4]}.{d[4:6]}.{d[6:]}"
+                new["top"][lab] = [[str(c).zfill(6), round(float(x["공매도거래대금"]) / 1e8, 1), round(float(x["공매도비중"]), 2),
+                                    round(float(x["직전40일공매도평균비중"]), 2), round(float(x["주가수익률"]), 2)] for c, x in t50.head(20).iterrows()]
+                try:
+                    v = kx.get_shorting_value_by_ticker(d, M)
+                    for c, x in v.iterrows():
+                        a = float(x["공매도"]) / 1e8
+                        if a > 0: new["per"][str(c).zfill(6)] = [round(a, 1), round(float(x["비중"]), 2)]
+                    s = v.sort_values("공매도", ascending=False).head(20)
+                    new["amt"][lab] = [[str(c).zfill(6), round(float(x["공매도"]) / 1e8, 1), round(float(x["비중"]), 2)] for c, x in s.iterrows()]
+                    new["mk"][lab] = [round(float(v["공매도"].sum()) / 1e8)]
+                except Exception as e: print("short value err", M, e)
+                try:
+                    iv = kx.get_shorting_investor_value_by_date(d, d, M)
+                    if len(iv):
+                        x = iv.iloc[-1]; tot = float(x.get("합계", 0)) or float(x.sum())
+                        if tot: new["mk"].setdefault(lab, [None]).append(round(float(x.get("외국인", 0)) / tot * 100))
+                except Exception as e: print("short investor err", M, e)
+                # 잔고 (거래소는 2영업일 뒤 공개) · 일주일 전과 비교해 쌓이는 중인지 줄어드는(되사는) 중인지
+                bd, b = back(lambda d: kx.get_shorting_balance_by_ticker(d, M), 12)
+                if bd:
+                    new["bd"] = f"{bd[:4]}.{bd[4:6]}.{bd[6:]}"
+                    bd0 = datetime.datetime.strptime(bd, "%Y%m%d")
+                    pb = None
+                    for i in range(7, 12):
+                        try:
+                            x0 = kx.get_shorting_balance_by_ticker((bd0 - datetime.timedelta(days=i)).strftime("%Y%m%d"), M)
+                            if x0 is not None and len(x0) and float(x0["비중"].abs().sum()) > 0: pb = x0; break
+                        except Exception: pass
+                    for c, x in b.iterrows():
+                        r0 = float(x["비중"])
+                        if r0 <= 0: continue
+                        ch = None
+                        if pb is not None and c in pb.index: ch = round(r0 - float(pb.loc[c, "비중"]), 2)
+                        new["bal"][str(c).zfill(6)] = [round(r0, 2), round(float(x["공매도금액"]) / 1e8), ch]
+            if new["per"] or new["bal"]:
+                SH = new; json.dump(SH, open("short.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+                print("short 갱신", SH.get("d"), "잔고", SH.get("bd"), len(SH["per"]), len(SH["bal"]))
+        except Exception as e: print("short_scan 실패:", e)
+    elif due: print("short: KRX_ID/KRX_PW 비밀값이 없어 공매도 데이터를 건너뜀")
+    if not SH: return None
+    nm = {r["code"]: r["name"] for r in ok}
+    for r in ok:
+        p, b = SH.get("per", {}).get(r["code"]), SH.get("bal", {}).get(r["code"])
+        if p or b: r["sh"] = [p[0] if p else None, p[1] if p else None, b[0] if b else None, b[2] if b else None, b[1] if b else None]
+    def nmz(L): return [[nm.get(x[0], x[0])] + x[1:] for x in L if x[0] in nm]
+    # 잔고 비중 높은 종목 (되사야 할 물량이 많이 쌓인 곳)
+    bal = sorted(((c, v) for c, v in SH.get("bal", {}).items() if c in nm), key=lambda kv: -kv[1][0])[:20]
+    return dict(d=SH.get("d"), bd=SH.get("bd"), mk=SH.get("mk", {}),
+                top={k: nmz(v) for k, v in SH.get("top", {}).items()},
+                amt={k: nmz(v) for k, v in SH.get("amt", {}).items()},
+                bal=[[nm[c]] + v for c, v in bal])
+
 DAUM_DEBUG = [False]
 def trend_daum(code):
     h = {"Referer": f"https://finance.daum.net/quotes/A{code}"}
@@ -907,7 +1020,12 @@ def main():
                     print("candle err", code, e)
                 j = judge(rows)
                 sec = SECN.get(norm(name)) or SECN.get(norm(disp)) or ""
-                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, lv=lv, ipo=ipo, tday=tday, rec=rec, bot0=bot0, botc=botc, fu=fu, **j)
+                fx = fz = None
+                try:
+                    fx = fx_stage(rows)
+                    fz = {x["d"]: x["frgn"] * x["close"] / 1e8 for x in rows[:20] if x.get("frgn") is not None and x.get("close")}
+                except Exception as e: print("fx err", code, e)
+                return dict(name=disp, cat=cat, code=code, mkt=mkt, days=rows[:7], macd=mi, bottom=bi, sec=sec, state=si, ind=ii, tech=ti, lv=lv, ipo=ipo, tday=tday, rec=rec, bot0=bot0, botc=botc, fu=fu, fx=fx, fz=fz, **j)
             except Exception as e:
                 err = str(e); time.sleep(1 + i)
         return dict(name=name, cat=cat, code=code, err=err)
@@ -928,13 +1046,30 @@ def main():
         except Exception as e: print("시총 목록 실패:", e)
     for r in ok: r["cap"] = CAPS.get(r["code"])
     print("시총 채움", sum(1 for r in ok if r.get("cap")), "/", len(ok))
+    # 시장 전체 외국인 단계: 전 종목 외국인 순매수 금액을 날짜별로 더함 (집계가 덜 된 날은 제외)
+    FXM = {}
+    try:
+        for lab in ("코스피", "코스닥"):
+            rs = [r for r in ok if r.get("mkt") == lab and r.get("fz")]
+            if not rs: continue
+            agg, cnt = {}, {}
+            for r in rs:
+                for d, a in r["fz"].items(): agg[d] = agg.get(d, 0) + a; cnt[d] = cnt.get(d, 0) + 1
+            ds = sorted((d for d in agg if cnt[d] >= len(rs) * 0.6), reverse=True)[:20]
+            st = fx_stage_amt([agg[d] for d in ds])
+            if st: FXM[lab] = st + [[[d, round(agg[d])] for d in ds[:10]]]
+        print("FXM", {k: v[:5] for k, v in FXM.items()})
+    except Exception as e: print("FXM err", e)
+    SHORT = None
+    try: SHORT = short_scan(ok, datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9))
+    except Exception as e: print("short err", e)
     for r in ok: cache[r["name"]] = [r["code"], r["name"], r["mkt"]]
     json.dump(cache, open("codes.json", "w", encoding="utf-8"), ensure_ascii=False)
 
     ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0"), r.get("botc"), r.get("fu"), r.get("cap")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0"), r.get("botc"), r.get("fu"), r.get("cap"), r.get("fx"), r.get("sh")] for r in ok]
     import collections as _c
     print("STATE", _c.Counter((r.get("state") or [None])[0] for r in ok))
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
@@ -975,7 +1110,8 @@ def main():
     try: json.dump(FIN, open("fin.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     except Exception as e: print("fin save err", e)
     data = dict(mkt=mktchg, mkth=mkth, crash=CRASH, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
-                gauge=gauge, earn=earnings_scan(ok, kst), elec=elec_odds(), macro=macro_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]])
+                gauge=gauge, earn=earnings_scan(ok, kst), elec=elec_odds(), macro=macro_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]],
+                fxm=FXM, short=SHORT)
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
 
