@@ -120,7 +120,7 @@ def trend_naver(code):
 # ───────── 외국인은 지금 몇 단계? (빚 갚는 매도가 끝나는 3단계) ─────────
 #  -1 새로 팔기 시작 · 0 매도 이어지는 중 · 1 매도 줄어드는 중 · 2 매도 멈춤(팔았다 샀다) · 3 사는 쪽으로 돌아섬 · 4 계속 사는 중 · 9 외국인 거래 적음
 def fx_stage_amt(amt):
-    """amt: 최근→과거 순 하루 외국인 순매수 금액(억원). [단계, 최근5일 합, 이전 15일의 5일 평균, 최근5일 중 산 날, 연속일(+매수/-매도)]"""
+    """amt: 최근→과거 순 하루 외국인 순매수 금액(억원). [단계, 최근5일 합, 이전 15일의 5일 평균, 최근5일 중 산 날, 연속일(+매수/-매도), 가장 최근 하루]"""
     amt = [a for a in amt if a is not None][:20]
     if len(amt) < 10: return None
     rec, prv = amt[:5], amt[5:20]
@@ -136,12 +136,13 @@ def fx_stage_amt(amt):
         if ar > 0 and buy5 >= 3: st = 3
         elif ar >= 0 or (buy5 >= 2 and abs(ar) <= abs(ap) * 0.5): st = 2
         elif abs(ar) <= abs(ap) * 0.6: st = 1
+        elif amt[0] >= ap * 0.4: st = 1          # 5일 평균은 아직 크지만 가장 최근 하루 매도가 그 전 평균의 40% 아래로 확 줄어듦 → 1단계 진입
         else: st = 0
     else:
         if ar >= 0: st = 4
         elif abs(ar) > max(abs(ap), 0.5): st = -1
         else: st = 2
-    return [st, round(ar * 5, 1), round(ap * 5, 1), buy5, stk * sg]
+    return [st, round(ar * 5, 1), round(ap * 5, 1), buy5, stk * sg, round(amt[0], 1)]
 
 def fx_stage(rows):
     xs = [r for r in rows if r.get("frgn") is not None and r.get("close")][:20]
@@ -229,6 +230,29 @@ def short_scan(ok, kst):
                 top={k: nmz(v) for k, v in SH.get("top", {}).items()},
                 amt={k: nmz(v) for k, v in SH.get("amt", {}).items()},
                 bal=[[nm[c]] + v for c, v in bal])
+
+def trend_naver_m(code):
+    """네이버 모바일 API 매매동향 (PC 페이지가 막힐 때 대신 씀)"""
+    r = S.get(f"https://m.stock.naver.com/api/stock/{code}/trend?pageSize=60", timeout=15)
+    if r.status_code != 200: raise RuntimeError(f"naver_m HTTP {r.status_code}")
+    data = r.json()
+    if not isinstance(data, list) or not data: raise RuntimeError("naver_m 빈 응답")
+    out = []
+    for it in data:
+        bd = str(it.get("bizdate", ""))
+        if len(bd) != 8: continue
+        close = num(it.get("closePrice"))
+        diff = num(it.get("compareToPreviousClosePrice"))
+        cd = str((it.get("compareToPreviousPrice") or {}).get("code", ""))
+        if cd in ("4", "5"): diff = -abs(diff)
+        elif cd in ("1", "2"): diff = abs(diff)
+        prev = close - diff
+        out.append(dict(d=f"{bd[:4]}.{bd[4:6]}.{bd[6:]}", close=close, rate=(diff / prev * 100) if prev else 0.0,
+                        inst=num(it.get("organPureBuyQuant")), frgn=num(it.get("foreignerPureBuyQuant")), hold=num(it.get("foreignerHoldRatio"))))
+    if not out: raise RuntimeError("naver_m 표 없음")
+    for i in range(len(out) - 1):                       # 등락률은 전날 종가로 다시 계산 (더 정확)
+        if out[i + 1]["close"]: out[i]["rate"] = (out[i]["close"] / out[i + 1]["close"] - 1) * 100
+    return out
 
 DAUM_DEBUG = [False]
 def trend_daum(code):
@@ -868,7 +892,7 @@ def main():
 
     # 데이터 소스 결정
     source = None
-    for name, fn in (("naver", trend_naver), ("daum", trend_daum)):
+    for name, fn in (("naver", trend_naver), ("naver_m", trend_naver_m), ("daum", trend_daum)):
         try:
             rows = fn("005930"); source = fn; print("source:", name, "| 삼성전자 샘플:", rows[0]); break
         except Exception as e: print(name, "불가:", e)
