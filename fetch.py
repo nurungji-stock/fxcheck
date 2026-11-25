@@ -231,6 +231,116 @@ def short_scan(ok, kst):
                 amt={k: nmz(v) for k, v in SH.get("amt", {}).items()},
                 bal=[[nm[c]] + v for c, v in bal])
 
+# ───────── 외국인 추정 평단 (거래소 실제 매수금액 기준 · 비밀값 KRX_ID / KRX_PW) — 하루 한 번 (fxcost.json 캐시) ─────────
+# 1) 거래소 '외국인 보유수량' 주간 기록(최근 1년)으로 종목마다 외국인 보유가 가장 적었던 주(=이번 매수의 출발점)를 찾고
+# 2) 그 다음 날부터 오늘까지 거래소가 집계한 외국인 '매수거래대금 ÷ 매수거래량' = 외국인이 이번에 모은 물량의 실제 평균 매수가
+#    (평균단가 방식: 판 물량은 평단을 바꾸지 않음 → 이번에 산 물량의 평단 = 그 기간 매수 평균가)
+# 3) 참고용으로 최근 3개월·1년 외국인 매수 평균가도 같이 계산
+def fx_cost(ok, kst):
+    try: FC = json.load(open("fxcost.json", encoding="utf-8"))
+    except Exception: FC = {}
+    today = kst.strftime("%Y-%m-%d")
+    old = True
+    try: old = (kst.date() - datetime.date.fromisoformat(FC.get("run", "2000-01-01"))).days >= 4
+    except Exception: pass
+    due = (not FC.get("res")) or old or (FC.get("run") != today and kst.weekday() < 5 and (kst.hour, kst.minute) >= (17, 40))
+    if due and os.getenv("KRX_ID") and os.getenv("KRX_PW"):
+        try:
+            from pykrx import stock as kx
+            MK = ("KOSPI", "KOSDAQ")
+            def hold_on(d):                                     # d(YYYYMMDD) 하루의 전 종목 외국인 지분율
+                out = {}
+                for M in MK:
+                    try:
+                        df = kx.get_exhaustion_rates_of_foreign_investment(d, M)
+                        if df is None or not len(df): continue
+                        col = "지분율" if "지분율" in df.columns else df.columns[2]
+                        for c, x in df.iterrows():
+                            v = float(x[col])
+                            if v == v: out[str(c).zfill(6)] = round(v * 100)
+                    except Exception as e: print("fxcost hold err", d, M, e)
+                return out
+            def last_day(base):                                 # base 이전 가장 가까운 거래일의 보유 기록
+                for i in range(6):
+                    d = (base - datetime.timedelta(days=i)).strftime("%Y%m%d")
+                    h = hold_on(d)
+                    if len(h) > 500: return d, h
+                return None, None
+            # (1) 주간 보유 기록 · 처음엔 1년 치를 채우고, 그다음부턴 새 주만 더함
+            codes = FC.get("codes", []); W = FC.get("w", [])          # W = [[YYYYMMDD, [지분율*100 ... codes 순서]], ...]
+            have = {w[0]: dict(zip(codes, w[1])) for w in W}
+            d0, h0 = last_day(kst)
+            if not d0: raise RuntimeError("거래소 보유 기록 없음")
+            have[d0] = h0
+            t0 = datetime.datetime.strptime(d0, "%Y%m%d")
+            for k in range(1, 53):
+                tgt = t0 - datetime.timedelta(days=7 * k)
+                if any(abs((datetime.datetime.strptime(d, "%Y%m%d") - tgt).days) <= 3 for d in have): continue
+                d, h = last_day(tgt)
+                if d: have[d] = h
+            cut = (t0 - datetime.timedelta(days=372)).strftime("%Y%m%d")
+            wk = {}                                                    # 한 주에 하나(그 주 마지막 거래일)만 남김
+            for d in have:
+                if d >= cut:
+                    k = datetime.datetime.strptime(d, "%Y%m%d").isocalendar()[:2]
+                    if d > wk.get(k, ""): wk[k] = d
+            ds = sorted(wk.values())
+            codes = sorted(set().union(*[set(have[d]) for d in ds]))
+            W = [[d, [have[d].get(c) for c in codes]] for d in ds]
+            # (2) 종목마다 이번 매수의 출발점(보유가 가장 적었던 주) 찾기
+            start = {}; info = {}
+            for i, c in enumerate(codes):
+                ser = [(w[0], w[1][i]) for w in W if w[1][i] is not None]
+                if len(ser) < 8: continue
+                dmin, vmin = min(ser, key=lambda x: x[1])
+                now = ser[-1][1]; rise = (now - vmin) / 100
+                recent = dmin >= ser[max(0, len(ser) - 3)][0]          # 최근 2주 안이 1년 최저 → 이번 매수 물량 없음
+                info[c] = [now / 100, round(rise, 2), dmin, recent]
+                if not recent and rise >= 0.3:
+                    s = (datetime.datetime.strptime(dmin, "%Y%m%d") + datetime.timedelta(days=1)).strftime("%Y%m%d")
+                    start.setdefault(s, []).append(c)
+            # (3) 기간별 외국인 매수 평균가 (거래소 매수거래대금 ÷ 매수거래량)
+            def buy_avg(fr, to):
+                out = {}
+                for M in MK:
+                    try:
+                        df = kx.get_market_net_purchases_of_equities(fr, to, M, "외국인")
+                        if df is None or not len(df): continue
+                        for c, x in df.iterrows():
+                            bq, ba = float(x["매수거래량"]), float(x["매수거래대금"])
+                            sq, sa = float(x["매도거래량"]), float(x["매도거래대금"])
+                            out[str(c).zfill(6)] = [ba / bq if bq else None, ba / 1e8, sa / sq if sq else None]
+                    except Exception as e: print("fxcost buy err", fr, to, M, e)
+                return out
+            p3 = buy_avg((t0 - datetime.timedelta(days=91)).strftime("%Y%m%d"), d0)
+            p12 = buy_avg((t0 - datetime.timedelta(days=365)).strftime("%Y%m%d"), d0)
+            res = {}
+            for s, cs in start.items():
+                b = buy_avg(s, d0)
+                for c in cs:
+                    x = b.get(c)
+                    if x and x[0] and x[1] >= 10:                # 외국인 매수가 10억 원 이상일 때만 (거래 적은 종목은 의미 없음)
+                        res[c] = [round(x[0]), f"{s[:4]}.{s[4:6]}.{s[6:]}", round(x[2]) if x[2] else None]
+            out = {}
+            for c, (now, rise, dmin, recent) in info.items():
+                a3, a12 = p3.get(c), p12.get(c)
+                w = res.get(c)
+                out[c] = [w[0] if w else None, w[1] if w else None, rise, round(now, 2), 1 if recent else 0,
+                          round(a3[0]) if a3 and a3[0] and a3[1] >= 10 else None, round(a12[0]) if a12 and a12[0] and a12[1] >= 10 else None,
+                          f"{dmin[:4]}.{dmin[4:6]}.{dmin[6:]}", w[2] if w else None]
+            FC = dict(run=today, d=f"{d0[:4]}.{d0[4:6]}.{d0[6:]}", codes=codes, w=W, res=out)
+            json.dump(FC, open("fxcost.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+            print("fxcost 갱신", FC["d"], "주간기록", len(W), "종목", len(out), "이번 매수 평단", sum(1 for v in out.values() if v[0]))
+        except Exception as e: print("fx_cost 실패:", e)
+    elif due: print("fxcost: KRX_ID/KRX_PW 비밀값이 없어 외국인 평단을 건너뜀")
+    R = FC.get("res") or {}
+    n = 0
+    for r in ok:
+        v = R.get(r["code"])
+        if v: r["fc"] = v; n += 1
+    print("fxcost 붙인 종목", n)
+    return FC.get("d")
+
 def trend_naver_m(code):
     """네이버 모바일 API 매매동향 (PC 페이지가 막힐 때 대신 씀)"""
     r = S.get(f"https://m.stock.naver.com/api/stock/{code}/trend?pageSize=60", timeout=15)
@@ -1087,13 +1197,16 @@ def main():
     SHORT = None
     try: SHORT = short_scan(ok, datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9))
     except Exception as e: print("short err", e)
+    FCD = None
+    try: FCD = fx_cost(ok, datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9))
+    except Exception as e: print("fxcost err", e)
     for r in ok: cache[r["name"]] = [r["code"], r["name"], r["mkt"]]
     json.dump(cache, open("codes.json", "w", encoding="utf-8"), ensure_ascii=False)
 
     ok.sort(key=lambda r: (-r["st"], r["ss"], -(r["days"][0]["frgn"] or 0)))
     kst = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)
     compact = [[r["name"], r["cat"], r["code"], r["mkt"], r["mark"], r["txt"], r["st"], r["ss"], round(r["s3"]), round(r["s5"]),
-                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0"), r.get("botc"), r.get("fu"), r.get("cap"), r.get("fx"), r.get("sh")] for r in ok]
+                [[d["d"], d["close"], round(d["rate"], 2), None if d["inst"] is None else round(d["inst"]), None if d["frgn"] is None else round(d["frgn"]), round(d["hold"], 2)] for d in r["days"]], r.get("macd"), r.get("bottom"), r.get("sec", ""), r.get("state"), r.get("ind"), r.get("tech"), r.get("lv"), r.get("tday"), r.get("ipo"), r.get("rec"), r.get("bot0"), r.get("botc"), r.get("fu"), r.get("cap"), r.get("fx"), r.get("sh"), r.get("fc")] for r in ok]
     import collections as _c
     print("STATE", _c.Counter((r.get("state") or [None])[0] for r in ok))
     print("macd ok", sum(1 for r in ok if r.get("macd")), "/", len(ok))
@@ -1135,7 +1248,7 @@ def main():
     except Exception as e: print("fin save err", e)
     data = dict(mkt=mktchg, mkth=mkth, crash=CRASH, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
                 gauge=gauge, earn=earnings_scan(ok, kst), elec=elec_odds(), macro=macro_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]],
-                fxm=FXM, short=SHORT)
+                fxm=FXM, short=SHORT, fcd=FCD)
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
 
