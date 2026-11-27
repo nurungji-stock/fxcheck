@@ -804,6 +804,34 @@ def elec_odds():
 
 
 MACRO_SYMS = {"us10y": "^TNX", "wti": "CL=F", "brent": "BZ=F"}
+def idx_snap():
+    """첫 화면용: 코스피·코스닥 최근 40일 시세 + 최근 5일 외국인·기관·개인 순매수(억 원) — 네이버 모바일 API"""
+    out = {}
+    for lb, code in (("코스피", "KOSPI"), ("코스닥", "KOSDAQ")):
+        try:
+            rows = S.get(f"https://m.stock.naver.com/api/index/{code}/price?pageSize=40&page=1", timeout=15).json()
+            px = []
+            for x in rows:
+                d = str(x.get("localTradedAt", ""))[:10]
+                if not d: continue
+                px.append([d, num(x.get("openPrice")), num(x.get("highPrice")), num(x.get("lowPrice")), num(x.get("closePrice"))])
+            px.sort()
+            b = S.get(f"https://m.stock.naver.com/api/index/{code}/basic", timeout=15).json()
+            fl = []
+            for d in [r[0] for r in px[-5:]]:
+                try:
+                    t = S.get(f"https://m.stock.naver.com/api/index/{code}/trend?bizdate={d.replace('-', '')}", timeout=15).json()
+                    fl.append([d, num(t.get("foreignValue")), num(t.get("institutionalValue")), num(t.get("personalValue"))])
+                except Exception as e: print("idx trend err", code, d, e)
+            out[lb] = dict(px=px, now=num(b.get("closePrice")), rate=num(b.get("fluctuationsRatio")), st=b.get("marketStatus", ""), fl=fl)
+        except Exception as e:
+            print("IDX SNAP FAIL", code, e)
+    if out:
+        out["at"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).astimezone(datetime.timezone(datetime.timedelta(hours=9))).strftime("%m/%d %H:%M")
+        print("IDX SNAP", {k: (v["now"], v["rate"], v["fl"][-1] if v.get("fl") else None) for k, v in out.items() if k != "at"})
+        return out
+    return None
+
 def macro_snap():
     """미국 10년물 금리·WTI·브렌트 (야후, 실패하면 None) — 사이트에서 실시간 위젯이 안 뜰 때 대신 보여줌"""
     out = {}
@@ -1247,7 +1275,7 @@ def main():
     try: json.dump(FIN, open("fin.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     except Exception as e: print("fin save err", e)
     data = dict(mkt=mktchg, mkth=mkth, crash=CRASH, updated=kst.strftime("%Y-%m-%d %H:%M"), base=px_base + ("" if inv_base == px_base else f" 종가 · 수급은 {inv_base[5:]}까지") + (" (당일 수급은 거래소 잠정치)" if KRX_TODAY and inv_base == px_base else ""), count=len(ok),
-                gauge=gauge, earn=earnings_scan(ok, kst), elec=elec_odds(), macro=macro_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]],
+                gauge=gauge, earn=earnings_scan(ok, kst), elec=elec_odds(), macro=macro_snap(), idx=idx_snap(), rows=compact, missing=[b["name"] for b in bad if b["cat"]],
                 fxm=FXM, short=SHORT, fcd=FCD)
     json.dump(data, open("data.json", "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     if len(ok) < len(universe) * 0.5: sys.exit("절반 이상 실패 — 차단 의심")
